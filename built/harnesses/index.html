@@ -1099,6 +1099,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test-and-benchmark-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke test and benchmark (new)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous integration
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2067,6 +2089,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#smoke-test-and-benchmark-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smoke test and benchmark (new)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous integration
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2190,6 +2234,19 @@ touching registration.</strong></p>
 <code>restart</code> does not kill the old process, so always make sure it is dead first. macOS has no
 <code>timeout</code> or <code>setsid</code>.</p>
 </div>
+<h2 id="smoke-test-and-benchmark-new">Smoke test and benchmark (new)<a class="headerlink" href="#smoke-test-and-benchmark-new" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>eval/gfs-core.sh<span class="w"> </span>smoke<span class="w">                 </span><span class="c1"># 25 end-to-end checks on real disk sites; exit 0 or 1</span>
+eval/gfs-core.sh<span class="w"> </span>smoke<span class="w"> </span>/tmp/x<span class="w"> </span>mem<span class="w">      </span><span class="c1"># the same in RAM</span>
+eval/gfs-core.sh<span class="w"> </span>bench<span class="w"> </span>--size-mb<span class="w"> </span><span class="m">256</span><span class="w">   </span><span class="c1"># primitives, publish/read, versioning, repair, scrub -&gt; eval/results/bench/*.json</span>
+</code></pre></div>
+<p>Both are classes in the bundle (<code>io.cresco.gfs.core.tools.Smoke</code>, <code>Bench</code>), so they run on any
+deployment host with the bundle and its two runtime jars (gson, io.cresco:library). On a shared
+filesystem that can't prove its fsync barrier, the smoke test <strong>fails closed</strong> unless <code>--attest</code>
+is given.</p>
+<h2 id="continuous-integration">Continuous integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
+<p>Every push to <code>GaiaKeep/gfs</code> runs <code>.github/workflows/test.yml</code>: the full suite (208 tests,
+including the 120-cell integration matrix and both smoke runs), the wire-contract lint, the
+command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.</p>
 
 
 

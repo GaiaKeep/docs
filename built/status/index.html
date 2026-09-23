@@ -2133,7 +2133,7 @@
 (see the <a href="../../">home page</a> for definitions). Updated 2026-09-23 at <code>GaiaKeep/gfs</code> <code>b616948</code>.</p>
 <div class="admonition success">
 <p class="admonition-title">Durable storage core: built and tested</p>
-<p>All eleven components are built under <code>io.cresco.gfs.core</code> (in-process, all I/O through <code>ExtentBinding</code>): <strong>203 tests, 0 failures</strong>, including a 120-cell integration matrix. Decisions with their measurements: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>.</p>
+<p>All eleven components are built under <code>io.cresco.gfs.core</code> (in-process, all I/O through <code>ExtentBinding</code>): <strong>208 tests, 0 failures</strong>, including a 120-cell integration matrix and the smoke test, run by CI on every push. Engine fixes after measurement: disk publish 1.6–2.0 → 46–78 MB/s at R=3, verified reads 30–36 → 230–380 MB/s, repair 72 → ~1,500 copies/s. Decisions with their measurements: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>.</p>
 </div>
 <h2 id="foundation">Foundation<a class="headerlink" href="#foundation" title="Permanent link">&para;</a></h2>
 <table>

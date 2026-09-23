@@ -1533,6 +1533,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-d-c2-1-answered-by-an-x86-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision D-C2-1, answered by an x86 host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-measurement-correction-jit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A measurement correction: JIT warm-up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2177,6 +2227,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-d-c2-1-answered-by-an-x86-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision D-C2-1, answered by an x86 host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-measurement-correction-jit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A measurement correction: JIT warm-up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2562,6 +2662,77 @@ from.</p>
    commit across hosts. That is the next integration stage.</li>
 <li>Metadata-key IV discipline (S1), before any media is written.</li>
 </ol>
+<h2 id="update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci">Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI<a class="headerlink" href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" title="Permanent link">&para;</a></h2>
+<p>The recommended defaults for D-C10-1, D-C10-2 and D-C10-3 were adopted and built. They stay
+configurable. <strong>208 tests, 0 failures</strong>, on this machine and on CI.</p>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Fix</th>
+<th>Before</th>
+<th>After (same Mac)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F-C10-2: one fsync per block, sites written serially</td>
+<td><code>BlockStore.stage</code> / <code>commitStaged</code>: syncs run in parallel at <code>seal</code>, one directory sync per batch, sites sealed in parallel</td>
+<td>disk publish at R=3: 1.6–2.0 MB/s</td>
+<td><strong>46–78 MB/s</strong></td>
+</tr>
+<tr>
+<td>F-C10-3: reads staged one block at a time</td>
+<td><code>readTo(OutputStream)</code>: windowed, one request per site per window, parallel across sites, authenticated per block, per-block fallback</td>
+<td>verified disk read: 30–36 MB/s</td>
+<td><strong>230–380 MB/s</strong></td>
+</tr>
+<tr>
+<td>New (found by the benchmark): repair one block at a time</td>
+<td>Plan first, one fetch per source site, one sealed write per target site, all in parallel</td>
+<td>72 copies/s</td>
+<td><strong>~1,400–1,600 copies/s</strong></td>
+</tr>
+<tr>
+<td>F-C10-1: surplus copies never trimmed</td>
+<td><code>trim(graceMs)</code>: after the grace period, down to R and never below, distinct failure domains first</td>
+<td>never</td>
+<td>tested; idempotent</td>
+</tr>
+<tr>
+<td>New: a long domain id made every block unwritable (stores cap ids at 128 characters)</td>
+<td>Block names hash long or unusual domain ids</td>
+<td>—</td>
+<td>tested</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Versioning with deduplication (benchmark).</strong> Ten successive versions of a file, each with a 0.1 %
+insertion: the deduplicating modes stored <strong>0.01 of the logical bytes</strong> published, NONE stored <strong>3.0</strong>
+(R=3).</p>
+<h3 id="decision-d-c2-1-answered-by-an-x86-host">Decision D-C2-1, answered by an x86 host<a class="headerlink" href="#decision-d-c2-1-answered-by-an-x86-host" title="Permanent link">&para;</a></h3>
+<p>The CI runner (Azure, Linux x86-64, 2 cores) measured <strong>SHA-256 at 1,365 MB/s and SHA-384 at
+613 MB/s</strong>, a <strong>2.2×</strong> gap against 1.67× on Apple silicon. SHA-384 is still above one LTO-10 drive
+(400 MB/s) on a single core, with less headroom than the laptop suggested. Hashing parallelises per
+block, so a many-core server has room to spare. The recommendation to keep SHA-384 stands, now on
+x86 evidence. The DGX run (job 221777) adds a server-class x86 figure.</p>
+<h3 id="a-measurement-correction-jit-warm-up">A measurement correction: JIT warm-up<a class="headerlink" href="#a-measurement-correction-jit-warm-up" title="Permanent link">&para;</a></h3>
+<p>The benchmark's first codec figure (269 MB/s) was a measurement artifact, not a regression. The
+codec seals at <strong>103 MB/s cold</strong> and reaches <strong>~1,100 MB/s after ~3,000 seals (~200 MB)</strong> in the
+same JVM, and JDK 21 and 23 are identical once warm. The benchmark now warms up the primitives and
+the whole engine path before measuring, and reports steady state (1,043 MB/s), because a storage
+server runs warm. The first ~200 MB after a process starts are slower, and that should be expected
+after every restart.</p>
+<h3 id="tools">Tools<a class="headerlink" href="#tools" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>eval/gfs-core.sh smoke [dir] [fs|mem] [--attest]</code> runs 25 checks end to end on real sites and
+  exits 0 or 1. It passes 25/25 on disk (3.4 s) and in RAM (0.5 s), and runs in every build.</li>
+<li><code>eval/gfs-core.sh bench [...]</code> measures primitives, publish and read, versioning, repair and scrub,
+  and writes JSON to <code>eval/results/bench/</code>.</li>
+<li>Both are classes in the bundle (<code>io.cresco.gfs.core.tools</code>), so they run on any deployment host.</li>
+<li>CI (<code>.github/workflows/test.yml</code>) runs the suite, the wire-contract lint, the smoke test and a
+  small benchmark on every push, and uploads the results. The first run passed.</li>
+</ul>
 
 
 
