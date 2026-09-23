@@ -57,3 +57,22 @@ Copy or symlink `eval/` to `run/gfs/` in a Cresco workspace. Results land in `ru
     Never stage a new agent jar while a campaign runs; restarts pick it up mid-run. The launcher's
     `restart` does not kill the old process, so always make sure it is dead first. macOS has no
     `timeout` or `setsid`.
+
+## Smoke test and benchmark (new)
+
+```bash
+eval/gfs-core.sh smoke                 # 25 end-to-end checks on real disk sites; exit 0 or 1
+eval/gfs-core.sh smoke /tmp/x mem      # the same in RAM
+eval/gfs-core.sh bench --size-mb 256   # primitives, publish/read, versioning, repair, scrub -> eval/results/bench/*.json
+```
+
+Both are classes in the bundle (`io.cresco.gfs.core.tools.Smoke`, `Bench`), so they run on any
+deployment host with the bundle and its two runtime jars (gson, io.cresco:library). On a shared
+filesystem that can't prove its fsync barrier, the smoke test **fails closed** unless `--attest`
+is given.
+
+## Continuous integration
+
+Every push to `GaiaKeep/gfs` runs `.github/workflows/test.yml`: the full suite (208 tests,
+including the 120-cell integration matrix and both smoke runs), the wire-contract lint, the
+command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.

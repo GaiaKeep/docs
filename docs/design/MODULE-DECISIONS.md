@@ -176,3 +176,47 @@ from.
 3. Reference storage at scale (D-C6-1), then wiring the engine into the federation index for quorum
    commit across hosts. That is the next integration stage.
 4. Metadata-key IV discipline (S1), before any media is written.
+
+## Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI
+
+The recommended defaults for D-C10-1, D-C10-2 and D-C10-3 were adopted and built. They stay
+configurable. **208 tests, 0 failures**, on this machine and on CI.
+
+| Finding | Fix | Before | After (same Mac) |
+|---|---|---|---|
+| F-C10-2: one fsync per block, sites written serially | `BlockStore.stage` / `commitStaged`: syncs run in parallel at `seal`, one directory sync per batch, sites sealed in parallel | disk publish at R=3: 1.6–2.0 MB/s | **46–78 MB/s** |
+| F-C10-3: reads staged one block at a time | `readTo(OutputStream)`: windowed, one request per site per window, parallel across sites, authenticated per block, per-block fallback | verified disk read: 30–36 MB/s | **230–380 MB/s** |
+| New (found by the benchmark): repair one block at a time | Plan first, one fetch per source site, one sealed write per target site, all in parallel | 72 copies/s | **~1,400–1,600 copies/s** |
+| F-C10-1: surplus copies never trimmed | `trim(graceMs)`: after the grace period, down to R and never below, distinct failure domains first | never | tested; idempotent |
+| New: a long domain id made every block unwritable (stores cap ids at 128 characters) | Block names hash long or unusual domain ids | — | tested |
+
+**Versioning with deduplication (benchmark).** Ten successive versions of a file, each with a 0.1 %
+insertion: the deduplicating modes stored **0.01 of the logical bytes** published, NONE stored **3.0**
+(R=3).
+
+### Decision D-C2-1, answered by an x86 host
+
+The CI runner (Azure, Linux x86-64, 2 cores) measured **SHA-256 at 1,365 MB/s and SHA-384 at
+613 MB/s**, a **2.2×** gap against 1.67× on Apple silicon. SHA-384 is still above one LTO-10 drive
+(400 MB/s) on a single core, with less headroom than the laptop suggested. Hashing parallelises per
+block, so a many-core server has room to spare. The recommendation to keep SHA-384 stands, now on
+x86 evidence. The DGX run (job 221777) adds a server-class x86 figure.
+
+### A measurement correction: JIT warm-up
+
+The benchmark's first codec figure (269 MB/s) was a measurement artifact, not a regression. The
+codec seals at **103 MB/s cold** and reaches **~1,100 MB/s after ~3,000 seals (~200 MB)** in the
+same JVM, and JDK 21 and 23 are identical once warm. The benchmark now warms up the primitives and
+the whole engine path before measuring, and reports steady state (1,043 MB/s), because a storage
+server runs warm. The first ~200 MB after a process starts are slower, and that should be expected
+after every restart.
+
+### Tools
+
+- `eval/gfs-core.sh smoke [dir] [fs|mem] [--attest]` runs 25 checks end to end on real sites and
+  exits 0 or 1. It passes 25/25 on disk (3.4 s) and in RAM (0.5 s), and runs in every build.
+- `eval/gfs-core.sh bench [...]` measures primitives, publish and read, versioning, repair and scrub,
+  and writes JSON to `eval/results/bench/`.
+- Both are classes in the bundle (`io.cresco.gfs.core.tools`), so they run on any deployment host.
+- CI (`.github/workflows/test.yml`) runs the suite, the wire-contract lint, the smoke test and a
+  small benchmark on every push, and uploads the results. The first run passed.

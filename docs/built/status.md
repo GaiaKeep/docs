@@ -4,7 +4,7 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 (see the [home page](../index.md) for definitions). Updated 2026-09-23 at `GaiaKeep/gfs` `b616948`.
 
 !!! success "Durable storage core: built and tested"
-    All eleven components are built under `io.cresco.gfs.core` (in-process, all I/O through `ExtentBinding`): **203 tests, 0 failures**, including a 120-cell integration matrix. Decisions with their measurements: [Module decisions](../design/MODULE-DECISIONS.md).
+    All eleven components are built under `io.cresco.gfs.core` (in-process, all I/O through `ExtentBinding`): **208 tests, 0 failures**, including a 120-cell integration matrix and the smoke test, run by CI on every push. Engine fixes after measurement: disk publish 1.6–2.0 → 46–78 MB/s at R=3, verified reads 30–36 → 230–380 MB/s, repair 72 → ~1,500 copies/s. Decisions with their measurements: [Module decisions](../design/MODULE-DECISIONS.md).
 
 ## Foundation
 
