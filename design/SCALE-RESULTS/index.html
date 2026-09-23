@@ -1,0 +1,3832 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/SCALE-RESULTS/">
+      
+      
+        <link rel="prev" href="../RESULTS/">
+      
+      
+        <link rel="next" href="../CLAIMS/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Scale results (full) - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gfs-scale-and-native-performance-results" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Scale results (full)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#headline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-codec-no-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native codec (no fabric)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-dataplane-fragment-frames-control-receipts-node-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transport (dataplane fragment frames + control receipts, node → node)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#durability-data-path-promote-encode-blind-placement-restore-audit-detected-keyless-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Durability data path (promote → encode → blind placement; restore; audit-detected keyless repair)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#index-scale-synthetic-publisher-paged-deltas-of-2000" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Index scale (synthetic publisher, paged deltas of 2000)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-publication-through-filerepo-scan-sha-256-derby-catalog-delta-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real publication through filerepo (scan + SHA-256 + Derby catalog + delta export)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node scale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repair-storm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repair storm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#survivability-policies-per-data-domain-single-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Survivability policies (per data domain) — single-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#survivability-policies-per-data-domain-multi-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Survivability policies (per data domain) — multi-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passive-failure-tolerance-single-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passive-failure tolerance — single-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passive-failure-tolerance-multi-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passive-failure tolerance — multi-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#java-client-access-path-clientlib-verified-stream-256-mib-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Java client access path (clientlib, verified stream, 256 MiB × 5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repeatability-3-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeatability (3 runs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-benchmarks-agent-distinct-placement-unless-noted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure benchmarks (agent-distinct placement unless noted)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-controller-restart-3-agent-reconnection-with-no-manual-agent-restart-w-gfs-6-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global-controller restart × 3 — agent reconnection with NO manual agent restart (W-GFS-6 fix)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cresco-side-fixes-proven-on-this-build-w-gfs-4-stable-plugin-identity-w-gfs-5-advertised-broker-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cresco-side fixes proven on this build (W-GFS-4 stable plugin identity, W-GFS-5 advertised broker ports)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soak-20-min-random-agent-kill-every-90-s-restart-after-30-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soak (20 min, random agent kill every ~90 s, restart after 30 s)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-region-topology-every-site-its-own-regional-controller-broker-bridged-to-the-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-region topology (every site = its own regional controller + broker, bridged to the global)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#headline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-codec-no-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native codec (no fabric)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-dataplane-fragment-frames-control-receipts-node-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transport (dataplane fragment frames + control receipts, node → node)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#durability-data-path-promote-encode-blind-placement-restore-audit-detected-keyless-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Durability data path (promote → encode → blind placement; restore; audit-detected keyless repair)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#index-scale-synthetic-publisher-paged-deltas-of-2000" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Index scale (synthetic publisher, paged deltas of 2000)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-publication-through-filerepo-scan-sha-256-derby-catalog-delta-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real publication through filerepo (scan + SHA-256 + Derby catalog + delta export)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node scale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repair-storm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repair storm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#survivability-policies-per-data-domain-single-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Survivability policies (per data domain) — single-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#survivability-policies-per-data-domain-multi-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Survivability policies (per data domain) — multi-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passive-failure-tolerance-single-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passive-failure tolerance — single-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passive-failure-tolerance-multi-region-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passive-failure tolerance — multi-region fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#java-client-access-path-clientlib-verified-stream-256-mib-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Java client access path (clientlib, verified stream, 256 MiB × 5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repeatability-3-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeatability (3 runs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-benchmarks-agent-distinct-placement-unless-noted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure benchmarks (agent-distinct placement unless noted)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-controller-restart-3-agent-reconnection-with-no-manual-agent-restart-w-gfs-6-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global-controller restart × 3 — agent reconnection with NO manual agent restart (W-GFS-6 fix)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cresco-side-fixes-proven-on-this-build-w-gfs-4-stable-plugin-identity-w-gfs-5-advertised-broker-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cresco-side fixes proven on this build (W-GFS-4 stable plugin identity, W-GFS-5 advertised broker ports)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soak-20-min-random-agent-kill-every-90-s-restart-after-30-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Soak (20 min, random agent kill every ~90 s, restart after 30 s)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-region-topology-every-site-its-own-regional-controller-broker-bridged-to-the-global" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-region topology (every site = its own regional controller + broker, bridged to the global)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition info">
+<p class="admonition-title">Status: Proven (prototype)</p>
+<p>Full scale and performance tables.</p>
+</div>
+<h1 id="gfs-scale-and-native-performance-results">GFS scale and native performance results<a class="headerlink" href="#gfs-scale-and-native-performance-results" title="Permanent link">&para;</a></h1>
+<p><em>Generated 2026-09-18 00:27 from <code>run/gfs/results/</code>. Host: 14-core Apple silicon, 36 GB, single machine; all nodes share the loopback network, so numbers are compute/broker/protocol ceilings, not WAN numbers.</em></p>
+<h2 id="headline">Headline<a class="headerlink" href="#headline" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Durability data path:</strong> encode 233–291 MB/s, restore 254–393 MB/s for 256 MiB–1 GiB objects; every restore hash-verified; every lost holder detected by audit in &lt; 122 ms and regenerated without keys</li>
+<li><strong>Transport:</strong> fragment push peak 577 MB/s node→node; control-plane RPC p99 0.72 ms while a 444 MB/s flood runs (isolation holds); client fetch 143.7 MB/s</li>
+<li><strong>Index:</strong> 1,000,000 files ingested at 143,444 files/s, 1811 MB heap, resolve p99 0.4 ms at 5398 resolves/s; replica converged=True (lag 14.2 s)</li>
+<li><strong>Federation size:</strong> 240 sites on one host; placement solve + promote 3 ms; index 19 % of one core under heartbeats</li>
+<li><strong>Storm:</strong> 40 of 240 sites lost at once → 85 objects repaired in 27.2 s, 7 beyond m (coding limit), control p99 0.5 ms during the storm</li>
+</ul>
+<h2 id="native-codec-no-fabric">Native codec (no fabric)<a class="headerlink" href="#native-codec-no-fabric" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>bench</th>
+<th>parameters</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>env</td>
+<td>cores=14, threads=14, target_mib=512, jvm=21.0.5</td>
+<td></td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=3, m=2, block=64 KiB, overhead=1.67</td>
+<td>encode_mb_s=793.3, decode_worst_mb_s=784.9</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=3, m=2, block=256 KiB, overhead=1.67</td>
+<td>encode_mb_s=833.9, decode_worst_mb_s=855.8</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=3, m=2, block=512 KiB, overhead=1.67</td>
+<td>encode_mb_s=822.0, decode_worst_mb_s=845.2</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=3, m=2, block=1024 KiB, overhead=1.67</td>
+<td>encode_mb_s=813.5, decode_worst_mb_s=836.2</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=4, m=2, block=64 KiB, overhead=1.5</td>
+<td>encode_mb_s=847.5, decode_worst_mb_s=720.8</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=4, m=2, block=256 KiB, overhead=1.5</td>
+<td>encode_mb_s=852.5, decode_worst_mb_s=851.0</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=4, m=2, block=512 KiB, overhead=1.5</td>
+<td>encode_mb_s=836.0, decode_worst_mb_s=838.7</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=4, m=2, block=1024 KiB, overhead=1.5</td>
+<td>encode_mb_s=840.9, decode_worst_mb_s=841.9</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=6, m=3, block=64 KiB, overhead=1.5</td>
+<td>encode_mb_s=570.4, decode_worst_mb_s=563.3</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=6, m=3, block=256 KiB, overhead=1.5</td>
+<td>encode_mb_s=568.0, decode_worst_mb_s=568.0</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=6, m=3, block=512 KiB, overhead=1.5</td>
+<td>encode_mb_s=563.0, decode_worst_mb_s=559.9</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=6, m=3, block=1024 KiB, overhead=1.5</td>
+<td>encode_mb_s=561.8, decode_worst_mb_s=561.5</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=10, m=4, block=64 KiB, overhead=1.4</td>
+<td>encode_mb_s=428.3, decode_worst_mb_s=426.4</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=10, m=4, block=256 KiB, overhead=1.4</td>
+<td>encode_mb_s=423.2, decode_worst_mb_s=425.7</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=10, m=4, block=512 KiB, overhead=1.4</td>
+<td>encode_mb_s=423.0, decode_worst_mb_s=422.1</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=10, m=4, block=1024 KiB, overhead=1.4</td>
+<td>encode_mb_s=423.2, decode_worst_mb_s=422.4</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=20, m=6, block=64 KiB, overhead=1.3</td>
+<td>encode_mb_s=286.6, decode_worst_mb_s=284.8</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=20, m=6, block=256 KiB, overhead=1.3</td>
+<td>encode_mb_s=282.1, decode_worst_mb_s=282.9</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=20, m=6, block=512 KiB, overhead=1.3</td>
+<td>encode_mb_s=280.5, decode_worst_mb_s=282.1</td>
+</tr>
+<tr>
+<td>rs</td>
+<td>k=20, m=6, block=1024 KiB, overhead=1.3</td>
+<td>encode_mb_s=281.4, decode_worst_mb_s=281.0</td>
+</tr>
+<tr>
+<td>rs_parallel</td>
+<td>k=10, m=4, block=256 KiB, threads=14</td>
+<td>encode_mb_s=3872.2</td>
+</tr>
+<tr>
+<td>aes_gcm</td>
+<td>stripe_bytes=768 KiB</td>
+<td>encrypt_mb_s=209.2, decrypt_mb_s=3411.2</td>
+</tr>
+<tr>
+<td>aes_gcm</td>
+<td>stripe_bytes=2560 KiB</td>
+<td>encrypt_mb_s=3389.1, decrypt_mb_s=3472.1</td>
+</tr>
+<tr>
+<td>aes_gcm</td>
+<td>stripe_bytes=5120 KiB</td>
+<td>encrypt_mb_s=3482.7, decrypt_mb_s=3499.8</td>
+</tr>
+<tr>
+<td>aes_gcm_parallel</td>
+<td>threads=14</td>
+<td>encrypt_mb_s=24232.5</td>
+</tr>
+<tr>
+<td>sha256</td>
+<td></td>
+<td>mb_s=2318.9</td>
+</tr>
+<tr>
+<td>shamir</td>
+<td>n=9, t=5</td>
+<td>split_us=60.2, combine_us=5.9</td>
+</tr>
+<tr>
+<td>datapath_encode_1thread</td>
+<td>k=10, m=4, block=512 KiB</td>
+<td>mb_s=308.5</td>
+</tr>
+</tbody>
+</table>
+<h2 id="topology">Topology<a class="headerlink" href="#topology" title="Permanent link">&para;</a></h2>
+<ul>
+<li>12 site agents × 20 storage instances = <strong>240 sites</strong> (+ publisher site + index core + replica); deploy 27.3 s; all registered in 3.0 s</li>
+</ul>
+<h2 id="transport-dataplane-fragment-frames-control-receipts-node-node">Transport (dataplane fragment frames + control receipts, node → node)<a class="headerlink" href="#transport-dataplane-fragment-frames-control-receipts-node-node" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>op</th>
+<th>frame</th>
+<th>concurrency</th>
+<th>MB/s</th>
+<th>frames/s</th>
+<th>p50 ms</th>
+<th>p99 ms</th>
+<th>failed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>push</td>
+<td>64 KiB</td>
+<td>1</td>
+<td>59.5</td>
+<td>952</td>
+<td>0.9</td>
+<td>2.5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>64 KiB</td>
+<td>8</td>
+<td>158.5</td>
+<td>2536</td>
+<td>2.9</td>
+<td>10.5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>64 KiB</td>
+<td>32</td>
+<td>159.8</td>
+<td>2557</td>
+<td>5.7</td>
+<td>50.8</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>256 KiB</td>
+<td>1</td>
+<td>160.8</td>
+<td>643</td>
+<td>1.4</td>
+<td>2.5</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>256 KiB</td>
+<td>8</td>
+<td>386.8</td>
+<td>1547</td>
+<td>5.0</td>
+<td>11.2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>256 KiB</td>
+<td>32</td>
+<td>375.9</td>
+<td>1504</td>
+<td>10.1</td>
+<td>26.0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>512 KiB</td>
+<td>1</td>
+<td>225.6</td>
+<td>451</td>
+<td>2.0</td>
+<td>3.6</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>512 KiB</td>
+<td>8</td>
+<td>470.2</td>
+<td>940</td>
+<td>7.9</td>
+<td>27.9</td>
+<td>0</td>
+</tr>
+<tr>
+<td>push</td>
+<td>512 KiB</td>
+<td>32</td>
+<td>576.8</td>
+<td>1154</td>
+<td>12.7</td>
+<td>36.7</td>
+<td>0</td>
+</tr>
+<tr>
+<td>get</td>
+<td>256 KiB</td>
+<td>1</td>
+<td>86.3</td>
+<td>345</td>
+<td>1.7</td>
+<td>6.0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>get</td>
+<td>256 KiB</td>
+<td>8</td>
+<td>375.6</td>
+<td>1502</td>
+<td>5.0</td>
+<td>12.2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>get</td>
+<td>256 KiB</td>
+<td>32</td>
+<td>429.1</td>
+<td>1716</td>
+<td>8.9</td>
+<td>18.6</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>control-plane RPC (probe round trip)</th>
+<th>p50 ms</th>
+<th>p99 ms</th>
+<th>max ms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>idle</td>
+<td>0.26</td>
+<td>0.36</td>
+<td>7.59</td>
+</tr>
+<tr>
+<td>during a 512 KiB × 32-way fragment flood (444 MB/s)</td>
+<td>0.26</td>
+<td>0.72</td>
+<td>1.43</td>
+</tr>
+</tbody>
+</table>
+<p>Client access path (grant → origin → filerepo streamfile → wsapi → Python client, verified per chunk): 256 MiB in 1.78 s = <strong>143.7 MB/s</strong> (sha256 ok=True; {'rounds': 1, 'refetched_chunks': 0, 'corrupt_chunks': 0, 'missing_chunks': 0, 'verified': True}; includes stream setup; Python-client bound)</p>
+<h2 id="durability-data-path-promote-encode-blind-placement-restore-audit-detected-keyless-repair">Durability data path (promote → encode → blind placement; restore; audit-detected keyless repair)<a class="headerlink" href="#durability-data-path-promote-encode-blind-placement-restore-audit-detected-keyless-repair" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>object</th>
+<th>(k,m)</th>
+<th>block</th>
+<th>stripes</th>
+<th>overhead</th>
+<th>encode MB/s</th>
+<th>time-to-DURABLE s</th>
+<th>restore MB/s</th>
+<th>restore ok</th>
+<th>lost frags</th>
+<th>audit ms</th>
+<th>detect+repair s (job s)</th>
+<th>repaired</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 MiB</td>
+<td>(3,2)</td>
+<td>256 KiB</td>
+<td>2</td>
+<td>1.67</td>
+<td>71.4</td>
+<td>0.52</td>
+<td>76.9</td>
+<td>True</td>
+<td>2</td>
+<td>44</td>
+<td>0.55 (0.012)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>1</td>
+<td>1.67</td>
+<td>62.5</td>
+<td>0.52</td>
+<td>90.9</td>
+<td>True</td>
+<td>1</td>
+<td>49</td>
+<td>0.56 (0.009)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1 MiB</td>
+<td>(6,3)</td>
+<td>256 KiB</td>
+<td>1</td>
+<td>1.50</td>
+<td>66.7</td>
+<td>0.52</td>
+<td>90.9</td>
+<td>True</td>
+<td>1</td>
+<td>47</td>
+<td>0.56 (0.013)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1 MiB</td>
+<td>(6,3)</td>
+<td>512 KiB</td>
+<td>1</td>
+<td>1.50</td>
+<td>83.3</td>
+<td>0.52</td>
+<td>66.7</td>
+<td>True</td>
+<td>1</td>
+<td>45</td>
+<td>0.56 (0.009)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1 MiB</td>
+<td>(10,4)</td>
+<td>256 KiB</td>
+<td>1</td>
+<td>1.40</td>
+<td>40.0</td>
+<td>0.52</td>
+<td>66.7</td>
+<td>True</td>
+<td>1</td>
+<td>45</td>
+<td>0.56 (0.013)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1 MiB</td>
+<td>(10,4)</td>
+<td>512 KiB</td>
+<td>1</td>
+<td>1.40</td>
+<td>43.5</td>
+<td>0.52</td>
+<td>71.4</td>
+<td>True</td>
+<td>1</td>
+<td>46</td>
+<td>0.56 (0.013)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(3,2)</td>
+<td>256 KiB</td>
+<td>22</td>
+<td>1.67</td>
+<td>190.5</td>
+<td>0.52</td>
+<td>296.3</td>
+<td>True</td>
+<td>22</td>
+<td>40</td>
+<td>0.56 (0.121)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>11</td>
+<td>1.67</td>
+<td>129.0</td>
+<td>0.51</td>
+<td>156.9</td>
+<td>True</td>
+<td>11</td>
+<td>44</td>
+<td>0.55 (0.11)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(6,3)</td>
+<td>256 KiB</td>
+<td>11</td>
+<td>1.50</td>
+<td>172.0</td>
+<td>0.51</td>
+<td>258.1</td>
+<td>True</td>
+<td>11</td>
+<td>46</td>
+<td>0.56 (0.139)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(6,3)</td>
+<td>512 KiB</td>
+<td>6</td>
+<td>1.50</td>
+<td>197.5</td>
+<td>0.51</td>
+<td>266.7</td>
+<td>True</td>
+<td>6</td>
+<td>51</td>
+<td>0.57 (0.126)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(10,4)</td>
+<td>256 KiB</td>
+<td>7</td>
+<td>1.40</td>
+<td>179.8</td>
+<td>0.52</td>
+<td>170.2</td>
+<td>True</td>
+<td>7</td>
+<td>41</td>
+<td>0.56 (0.131)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(10,4)</td>
+<td>512 KiB</td>
+<td>4</td>
+<td>1.40</td>
+<td>155.3</td>
+<td>0.52</td>
+<td>205.1</td>
+<td>True</td>
+<td>4</td>
+<td>42</td>
+<td>0.56 (0.138)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(3,2)</td>
+<td>256 KiB</td>
+<td>86</td>
+<td>1.67</td>
+<td>211.9</td>
+<td>0.52</td>
+<td>288.3</td>
+<td>True</td>
+<td>86</td>
+<td>40</td>
+<td>0.56 (0.47)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>43</td>
+<td>1.67</td>
+<td>193.9</td>
+<td>0.51</td>
+<td>263.4</td>
+<td>True</td>
+<td>43</td>
+<td>49</td>
+<td>0.56 (0.422)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(6,3)</td>
+<td>256 KiB</td>
+<td>43</td>
+<td>1.50</td>
+<td>228.6</td>
+<td>0.51</td>
+<td>273.5</td>
+<td>True</td>
+<td>43</td>
+<td>40</td>
+<td>0.56 (0.51)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(6,3)</td>
+<td>512 KiB</td>
+<td>22</td>
+<td>1.50</td>
+<td>244.3</td>
+<td>0.51</td>
+<td>306.2</td>
+<td>True</td>
+<td>22</td>
+<td>42</td>
+<td>0.55 (0.445)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(10,4)</td>
+<td>256 KiB</td>
+<td>26</td>
+<td>1.40</td>
+<td>245.2</td>
+<td>0.52</td>
+<td>242.4</td>
+<td>True</td>
+<td>26</td>
+<td>43</td>
+<td>1.07 (0.519)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>64 MiB</td>
+<td>(10,4)</td>
+<td>512 KiB</td>
+<td>13</td>
+<td>1.40</td>
+<td>237.9</td>
+<td>0.51</td>
+<td>246.2</td>
+<td>True</td>
+<td>13</td>
+<td>54</td>
+<td>0.57 (0.462)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(3,2)</td>
+<td>256 KiB</td>
+<td>342</td>
+<td>1.67</td>
+<td>233.4</td>
+<td>1.54</td>
+<td>350.2</td>
+<td>True</td>
+<td>342</td>
+<td>54</td>
+<td>2.15 (1.849)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>171</td>
+<td>1.67</td>
+<td>278.3</td>
+<td>1.02</td>
+<td>392.6</td>
+<td>True</td>
+<td>171</td>
+<td>53</td>
+<td>2.11 (1.815)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(6,3)</td>
+<td>256 KiB</td>
+<td>171</td>
+<td>1.50</td>
+<td>256.5</td>
+<td>1.03</td>
+<td>340.0</td>
+<td>True</td>
+<td>171</td>
+<td>57</td>
+<td>2.67 (2.156)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(6,3)</td>
+<td>512 KiB</td>
+<td>86</td>
+<td>1.50</td>
+<td>290.6</td>
+<td>1.03</td>
+<td>347.8</td>
+<td>True</td>
+<td>86</td>
+<td>51</td>
+<td>2.1 (1.859)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(10,4)</td>
+<td>256 KiB</td>
+<td>103</td>
+<td>1.40</td>
+<td>256.3</td>
+<td>1.02</td>
+<td>362.6</td>
+<td>True</td>
+<td>103</td>
+<td>60</td>
+<td>2.65 (2.071)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(10,4)</td>
+<td>512 KiB</td>
+<td>52</td>
+<td>1.40</td>
+<td>248.5</td>
+<td>1.52</td>
+<td>277.7</td>
+<td>True</td>
+<td>52</td>
+<td>58</td>
+<td>2.11 (1.852)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1024 MiB</td>
+<td>(10,4)</td>
+<td>256 KiB</td>
+<td>410</td>
+<td>1.40</td>
+<td>252.3</td>
+<td>4.59</td>
+<td>296.9</td>
+<td>True</td>
+<td>410</td>
+<td>122</td>
+<td>8.86 (8.405)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1024 MiB</td>
+<td>(10,4)</td>
+<td>512 KiB</td>
+<td>205</td>
+<td>1.40</td>
+<td>270.8</td>
+<td>4.07</td>
+<td>253.5</td>
+<td>True</td>
+<td>205</td>
+<td>99</td>
+<td>7.99 (7.695)</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<p>Parallel promotes: 8 × 64 MiB at (6,3): 8 done in 2.05 s = <strong>249.2 MB/s aggregate</strong></p>
+<h2 id="index-scale-synthetic-publisher-paged-deltas-of-2000">Index scale (synthetic publisher, paged deltas of 2000)<a class="headerlink" href="#index-scale-synthetic-publisher-paged-deltas-of-2000" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>files</th>
+<th>ingest files/s</th>
+<th>index heap MB</th>
+<th>index RSS MB</th>
+<th>listfiles(2000) p50 ms</th>
+<th>commit * ms</th>
+<th>projectfiles(2000) p50 ms</th>
+<th>resolve p50 / p99 ms</th>
+<th>resolve/s (16 clients)</th>
+<th>replica lag s</th>
+<th>replica hash equal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100000</td>
+<td>123736</td>
+<td>138</td>
+<td>813</td>
+<td>14</td>
+<td>0.6</td>
+<td>14</td>
+<td>0.4 / 0.8</td>
+<td>5413.7</td>
+<td>2.8</td>
+<td>True</td>
+</tr>
+<tr>
+<td>250000</td>
+<td>142501</td>
+<td>304</td>
+<td>1489</td>
+<td>15</td>
+<td>0.4</td>
+<td>23</td>
+<td>0.2 / 0.4</td>
+<td>5322.2</td>
+<td>3.7</td>
+<td>True</td>
+</tr>
+<tr>
+<td>500000</td>
+<td>142749</td>
+<td>1018</td>
+<td>2770</td>
+<td>13</td>
+<td>0.3</td>
+<td>20</td>
+<td>0.2 / 0.4</td>
+<td>5396.9</td>
+<td>6.5</td>
+<td>True</td>
+</tr>
+<tr>
+<td>1000000</td>
+<td>143444</td>
+<td>1811</td>
+<td>5536</td>
+<td>22</td>
+<td>0.3</td>
+<td>45</td>
+<td>0.2 / 0.4</td>
+<td>5397.7</td>
+<td>14.2</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<h2 id="real-publication-through-filerepo-scan-sha-256-derby-catalog-delta-export">Real publication through filerepo (scan + SHA-256 + Derby catalog + delta export)<a class="headerlink" href="#real-publication-through-filerepo-scan-sha-256-derby-catalog-delta-export" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>files</th>
+<th>time to visible s</th>
+<th>files/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20000</td>
+<td>10.1</td>
+<td>1971</td>
+</tr>
+<tr>
+<td>50000</td>
+<td>10.1</td>
+<td>4929</td>
+</tr>
+</tbody>
+</table>
+<h2 id="node-scale">Node scale<a class="headerlink" href="#node-scale" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>240 sites</strong> registered (241 UP); listnodes p50 5 ms; ledger p50 5 ms; promote (10,4) RPC incl. placement solve p50 3 ms; index CPU 19 % under 240 heartbeats / 3 s; index RSS 725 MB</li>
+</ul>
+<h2 id="repair-storm">Repair storm<a class="headerlink" href="#repair-storm" title="Permanent link">&para;</a></h2>
+<ul>
+<li>100 × 16 MiB objects at (10,4) policy <code>None</code> promoted in 5.3 s (302.4 MB/s aggregate)</li>
+<li>placement spread: 236 of 240 sites hold fragments; max 14 objects on any one site (mean 5.93); largest single agent share 0.093</li>
+<li>killed 2 agents = <strong>40 sites lost</strong> (17 % of the federation at once), detected in 16.1 s; fragments lost per object mean 2.18 max 7 (hist {'0': 8, '1': 27, '2': 28, '3': 23, '4': 7, '5': 5, '6': 1, '7': 1})</li>
+<li>85 objects DEGRADED and repairable; <strong>7 beyond m=4 (LOST, by design unrecoverable without the sites returning)</strong></li>
+<li>every repairable object DURABLE again in <strong>27.2 s</strong> (3.13 objects/s), healed=True</li>
+<li>control-plane RPC p99: baseline 0.5 ms → during storm 0.5 ms; index CPU after 253.85999999999999 %</li>
+</ul>
+<h2 id="survivability-policies-per-data-domain-single-region-fabric">Survivability policies (per data domain) — single-region fabric<a class="headerlink" href="#survivability-policies-per-data-domain-single-region-fabric" title="Permanent link">&para;</a></h2>
+<p>9/9 profiles behaved as specified</p>
+<table>
+<thead>
+<tr>
+<th>profile</th>
+<th>policy</th>
+<th>(k,m)</th>
+<th>expected</th>
+<th>result</th>
+<th>placement satisfied</th>
+<th>pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>site-distinct-default</td>
+<td><code>{"domain": "site"}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>agent-distinct</td>
+<td><code>{"domain": "agent"}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>agent-distinct-unsatisfiable</td>
+<td><code>{"domain": "agent"}</code></td>
+<td>(12,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=14 distinct agent do</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>allowed-sites-only</td>
+<td><code>{"allowed_sites": ["site-000", "site-001", "site-002", "site-003", "site-004", "site-005"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>allowed-sites-too-few</td>
+<td><code>{"allowed_sites": ["site-000", "site-001", "site-002"]}</code></td>
+<td>(3,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=5 distinct site doma</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>denied-sites</td>
+<td><code>{"denied_sites": ["site-000", "site-001", "site-002", "site-003", "site-004", "site-005", "site-006", "site-007", "site-008", "site-009"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>jurisdiction-KY</td>
+<td><code>{"allowed_state_codes": ["KY"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>jurisdiction-unsatisfiable</td>
+<td><code>{"allowed_state_codes": ["ZZ"]}</code></td>
+<td>(3,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=5 distinct site doma</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>dataset-default (4,3) agent-distinct</td>
+<td><code>{}</code></td>
+<td>(,)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<h2 id="survivability-policies-per-data-domain-multi-region-fabric">Survivability policies (per data domain) — multi-region fabric<a class="headerlink" href="#survivability-policies-per-data-domain-multi-region-fabric" title="Permanent link">&para;</a></h2>
+<p>12/12 profiles behaved as specified</p>
+<table>
+<thead>
+<tr>
+<th>profile</th>
+<th>policy</th>
+<th>(k,m)</th>
+<th>expected</th>
+<th>result</th>
+<th>placement satisfied</th>
+<th>pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>site-distinct-default</td>
+<td><code>{"domain": "site"}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>agent-distinct</td>
+<td><code>{"domain": "agent"}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>agent-distinct-unsatisfiable</td>
+<td><code>{"domain": "agent"}</code></td>
+<td>(9,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=11 distinct agent do</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>region-distinct</td>
+<td><code>{"domain": "region"}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>min-regions-4</td>
+<td><code>{"domain": "site", "min_regions": 4}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>region-distinct-unsatisfiable</td>
+<td><code>{"domain": "region"}</code></td>
+<td>(8,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=10 distinct region d</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>allowed-sites-only</td>
+<td><code>{"allowed_sites": ["site-000", "site-001", "site-002", "site-003", "site-004", "site-005"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>allowed-sites-too-few</td>
+<td><code>{"allowed_sites": ["site-000", "site-001", "site-002"]}</code></td>
+<td>(3,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=5 distinct site doma</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>denied-sites</td>
+<td><code>{"denied_sites": ["site-000", "site-001", "site-002", "site-003", "site-004", "site-005", "site-006", "site-007", "site-008", "site-009"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>jurisdiction-KY</td>
+<td><code>{"allowed_state_codes": ["KY"]}</code></td>
+<td>(3,2)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr>
+<td>jurisdiction-unsatisfiable</td>
+<td><code>{"allowed_state_codes": ["ZZ"]}</code></td>
+<td>(3,2)</td>
+<td>refuse</td>
+<td>7 survivability policy not satisfiable: n=5 distinct site doma</td>
+<td></td>
+<td>True</td>
+</tr>
+<tr>
+<td>dataset-default (4,3) agent-distinct</td>
+<td><code>{}</code></td>
+<td>(,)</td>
+<td>accept</td>
+<td>10 encoding</td>
+<td>True</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<h2 id="passive-failure-tolerance-single-region-fabric">Passive-failure tolerance — single-region fabric<a class="headerlink" href="#passive-failure-tolerance-single-region-fabric" title="Permanent link">&para;</a></h2>
+<ul>
+<li>encode under loss: 12 × 64 MiB promotes started, holder agent <code>n12</code> killed at 0.4 s (8 objects had a fragment planned there): <strong>12/12 completed</strong> in 22.3 s with 44 fallback placements; 5 DURABLE</li>
+<li>restore with a dead holder: 5/5 verified restores, [8.67, 0.51, 4.61, 0.51, 0.51] s each (raced fetch)</li>
+<li>victim back in 10.2 s; all objects DURABLE 10.2 s after return</li>
+</ul>
+<h2 id="passive-failure-tolerance-multi-region-fabric">Passive-failure tolerance — multi-region fabric<a class="headerlink" href="#passive-failure-tolerance-multi-region-fabric" title="Permanent link">&para;</a></h2>
+<ul>
+<li>encode under loss: 12 × 64 MiB promotes started, holder agent <code>rctl-08</code> killed at 0.4 s (10 objects had a fragment planned there): <strong>12/12 completed</strong> in 39.8 s with 67 fallback placements; 5 DURABLE</li>
+<li>restore with a dead holder: 5/5 verified restores, [4.6, 0.51, 0.51, 0.51, 4.6] s each (raced fetch)</li>
+<li>victim back in 10.2 s; all objects DURABLE 10.2 s after return</li>
+</ul>
+<h2 id="java-client-access-path-clientlib-verified-stream-256-mib-5">Java client access path (clientlib, verified stream, 256 MiB × 5)<a class="headerlink" href="#java-client-access-path-clientlib-verified-stream-256-mib-5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>condition</th>
+<th>ok/reps</th>
+<th>MB/s min</th>
+<th>median</th>
+<th>max</th>
+<th>re-fetched chunks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>quiet fabric</td>
+<td>5/5</td>
+<td>32.1</td>
+<td>393.2</td>
+<td>413.0</td>
+<td>363</td>
+</tr>
+<tr>
+<td>during the 20-min soak with random kills</td>
+<td>5/5</td>
+<td>28.8</td>
+<td>395.3</td>
+<td>409.6</td>
+<td>554</td>
+</tr>
+</tbody>
+</table>
+<h2 id="repeatability-3-runs">Repeatability (3 runs)<a class="headerlink" href="#repeatability-3-runs" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>mean</th>
+<th>stdev</th>
+<th>min</th>
+<th>max</th>
+<th>CV %</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>push_256K_x8_MBps</td>
+<td>425.95</td>
+<td>12.65</td>
+<td>417.58</td>
+<td>440.51</td>
+<td>3.0</td>
+</tr>
+<tr>
+<td>push_512K_x32_MBps</td>
+<td>563.53</td>
+<td>34.55</td>
+<td>532.34</td>
+<td>600.68</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>get_256K_x8_MBps</td>
+<td>377.97</td>
+<td>15.36</td>
+<td>361.46</td>
+<td>391.85</td>
+<td>4.1</td>
+</tr>
+<tr>
+<td>rpc_p99_ms</td>
+<td>0.38</td>
+<td>0.04</td>
+<td>0.35</td>
+<td>0.42</td>
+<td>11.2</td>
+</tr>
+<tr>
+<td>encode_64MiB_MBps</td>
+<td>263.05</td>
+<td>3.79</td>
+<td>259.11</td>
+<td>266.67</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>restore_64MiB_MBps</td>
+<td>309.09</td>
+<td>13.84</td>
+<td>299.07</td>
+<td>324.87</td>
+<td>4.5</td>
+</tr>
+<tr>
+<td>repair_64MiB_s</td>
+<td>0.59</td>
+<td>0.01</td>
+<td>0.59</td>
+<td>0.6</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>encode_256MiB_MBps</td>
+<td>266.45</td>
+<td>7.81</td>
+<td>259.63</td>
+<td>274.97</td>
+<td>2.9</td>
+</tr>
+<tr>
+<td>restore_256MiB_MBps</td>
+<td>295.7</td>
+<td>13.78</td>
+<td>281.63</td>
+<td>309.18</td>
+<td>4.7</td>
+</tr>
+<tr>
+<td>repair_256MiB_s</td>
+<td>2.14</td>
+<td>0.01</td>
+<td>2.13</td>
+<td>2.14</td>
+<td>0.3</td>
+</tr>
+<tr>
+<td>encode_1024MiB_MBps</td>
+<td>267.03</td>
+<td>4.98</td>
+<td>263.99</td>
+<td>272.78</td>
+<td>1.9</td>
+</tr>
+<tr>
+<td>restore_1024MiB_MBps</td>
+<td>292.16</td>
+<td>18.77</td>
+<td>270.54</td>
+<td>304.4</td>
+<td>6.4</td>
+</tr>
+<tr>
+<td>repair_1024MiB_s</td>
+<td>9.35</td>
+<td>2.42</td>
+<td>7.94</td>
+<td>12.15</td>
+<td>25.9</td>
+</tr>
+<tr>
+<td>listnodes_p50_ms</td>
+<td>2.24</td>
+<td>0.04</td>
+<td>2.21</td>
+<td>2.28</td>
+<td>1.6</td>
+</tr>
+</tbody>
+</table>
+<h2 id="failure-benchmarks-agent-distinct-placement-unless-noted">Failure benchmarks (agent-distinct placement unless noted)<a class="headerlink" href="#failure-benchmarks-agent-distinct-placement-unless-noted" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>scenario</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1_repairer_dies_mid_repair</td>
+<td>{"holder_killed": "n12", "repairer_killed": "n01", "healed": true, "heal_s": 77.9, "final_repairer": "global-region:n02:gfs-site-020", "repairer_changed": true, "restore_after": true}</td>
+</tr>
+<tr>
+<td>F2_source_dies_mid_repair</td>
+<td>{"killed": ["n01", "n11"], "healed": true, "heal_s": 32.5}</td>
+</tr>
+<tr>
+<td>F3_corrupt_fragment_served</td>
+<td>{"fragments_corrupted": 86, "restore_verified": true, "restore_s": 0.55, "scrub_reported_bad": 7297, "index_frags_marked_bad_delta": 86, "marked_BAD_by_scrub": true, "index_BAD_state_observed": true, "repaired": true}</td>
+</tr>
+<tr>
+<td>F4_custody</td>
+<td>{"key_id": "kek-pub-site-3e3652", "t": 3, "n": 5, "holders_dead_first": 2, "holders_alive_first": 3, "reconstruct_with_t_alive_ok": true, "detail_first": "restored", "holders_dead_second": 5, "holders_alive_second": 0, "below_t_fails_closed": true, "detail_second": "IllegalStateException: only 0 of</td>
+</tr>
+<tr>
+<td>F5_index_restart</td>
+<td>{"journal_entries": 834, "files": 409, "objects_before": 4, "wsapi_back_s": 9.9, "index_answering_s": 9.9, "all_nodes_reregistered_s": 34.0, "state_hash_preserved": true, "full_hash_preserved": false, "replica_hash_equal": true, "promote_restore_after": true, "agents_stuck_in_connection_fault_after_</td>
+</tr>
+<tr>
+<td>F6_publisher_restart</td>
+<td>{"back_s": 0.1, "dataset_online": true, "restore_after": true, "fetch_after": true}</td>
+</tr>
+<tr>
+<td>F7_beyond_m_then_return</td>
+<td>{"agents_killed": ["n08", "n09", "n10", "n11", "n12"], "states_after_loss": {"LOST": 9, "DURABLE": 1}, "restore_of_LOST_object_fails_closed": true, "lost_restore_detail": "IllegalStateException: stripe 0: only 9 of 10 fragments reachable", "all_durable_after_return": true, "recover_s": 0.0}</td>
+</tr>
+<tr>
+<td>F8_mixed_load_storm</td>
+<td>{"agents_killed": ["n11", "n12"], "promotes": 16, "ok": 16, "failed": 0, "promote_p50_s": 1.01, "promote_p99_s": 10.09, "objects": 16, "all_repaired": true, "storm_window_s": 60.7}</td>
+</tr>
+</tbody>
+</table>
+<h2 id="global-controller-restart-3-agent-reconnection-with-no-manual-agent-restart-w-gfs-6-fix">Global-controller restart × 3 — agent reconnection with NO manual agent restart (W-GFS-6 fix)<a class="headerlink" href="#global-controller-restart-3-agent-reconnection-with-no-manual-agent-restart-w-gfs-6-fix" title="Permanent link">&para;</a></h2>
+<ul>
+<li>12 agents / 240 storage nodes; <strong>all agents back on every run = True</strong> (agents not back: []); slowest full re-registration 44.2 s; slowest agent lost→recovered (from agent logs) 3.6 s</li>
+<li><code>STUCK IN CONNECTION FAULT</code> log lines across all agents and runs: <strong>0</strong>; promote+restore after every restart = True</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>run</th>
+<th>wsapi back (s)</th>
+<th>index answering (s)</th>
+<th>all agents back (s)</th>
+<th>max lost→recovered (s)</th>
+<th>STUCK lines</th>
+<th>msgIn held / dropped</th>
+<th>post restore ok</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>9.9</td>
+<td>9.9</td>
+<td>32.1</td>
+<td>3.1</td>
+<td>0</td>
+<td>0 / 0</td>
+<td>True (0.51 s)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>7.9</td>
+<td>7.9</td>
+<td>44.2</td>
+<td>3.6</td>
+<td>0</td>
+<td>1 / 0</td>
+<td>True (0.53 s)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>9.9</td>
+<td>10.0</td>
+<td>44.2</td>
+<td>3.6</td>
+<td>0</td>
+<td>0 / 0</td>
+<td>True (0.53 s)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cresco-side-fixes-proven-on-this-build-w-gfs-4-stable-plugin-identity-w-gfs-5-advertised-broker-ports">Cresco-side fixes proven on this build (W-GFS-4 stable plugin identity, W-GFS-5 advertised broker ports)<a class="headerlink" href="#cresco-side-fixes-proven-on-this-build-w-gfs-4-stable-plugin-identity-w-gfs-5-advertised-broker-ports" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>W-GFS-4:</strong> storage plugin deployed on <code>n12</code> WITHOUT a pinned id (agent minted <code>plugin-d02be080-3eef-4240-bb50-5203c7a96f88</code>); JVM killed and restarted (pid 49868 → 50345, restarted=True); node left UP on kill=True; <strong>same node id back UP after restart = True</strong> in 17.2 s; new ids that appeared: []</li>
+<li><strong>W-GFS-5:</strong> 8 regional controllers on one host, each with its own broker port, bridged to the global; 150 s settle window after deploy: <strong><code>Controller Path Lost</code> events = 0</strong>, broker-monitor connect failures = 0, bridges started = 64, global sees 8 of 8 regions (the pre-fix campaign logged 191 path-lost events per region)</li>
+</ul>
+<h2 id="soak-20-min-random-agent-kill-every-90-s-restart-after-30-s">Soak (20 min, random agent kill every ~90 s, restart after 30 s)<a class="headerlink" href="#soak-20-min-random-agent-kill-every-90-s-restart-after-30-s" title="Permanent link">&para;</a></h2>
+<ul>
+<li>ops {'promote': 195, 'fetch': 94, 'restore': 195, 'kills': 13, 'restarts': 12}; objects 195; <strong>error rate 0.0</strong>; all DURABLE at end = True</li>
+<li>throughput p50/min/max: {'promote_MBps': {'p50': 3.5, 'min': 0.3, 'max': 24.4}, 'fetch_MBps': {'p50': 7.0, 'min': 0.8, 'max': 49.6}, 'restore_MBps': {'p50': 30.8, 'min': 0.3, 'max': 118.5}}</li>
+<li>RSS: index 944.15625 → 993.453125 MB, publisher 672.15625 → 785.5 MB</li>
+<li>errors (first): []</li>
+</ul>
+<h2 id="multi-region-topology-every-site-its-own-regional-controller-broker-bridged-to-the-global">Multi-region topology (every site = its own regional controller + broker, bridged to the global)<a class="headerlink" href="#multi-region-topology-every-site-its-own-regional-controller-broker-bridged-to-the-global" title="Permanent link">&para;</a></h2>
+<ul>
+<li>9 regions × 8 storage instances = 72 sites; deploy 12.2 s; all registered in 3.0 s</li>
+<li>cross-region fragment push peak 576 MB/s (512 KiB × 8), get peak 648 MB/s; RPC p99 idle 2.3505 ms → under flood 0.709667 ms</li>
+<li>client fetch 256 MiB across the bridge (verified stream): 129.7 MB/s, sha ok=True, {'rounds': 1, 'refetched_chunks': 0, 'corrupt_chunks': 0, 'missing_chunks': 0, 'verified': True}</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>object</th>
+<th>(k,m)</th>
+<th>block</th>
+<th>encode MB/s</th>
+<th>restore MB/s</th>
+<th>restore ok</th>
+<th>detect+repair s</th>
+<th>repaired</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>57.8</td>
+<td>262.3</td>
+<td>True</td>
+<td>0.55</td>
+<td>True</td>
+</tr>
+<tr>
+<td>16 MiB</td>
+<td>(5,2)</td>
+<td>512 KiB</td>
+<td>1.5</td>
+<td>124.0</td>
+<td>True</td>
+<td>31.74</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(3,2)</td>
+<td>512 KiB</td>
+<td>21.4</td>
+<td>208.1</td>
+<td>True</td>
+<td>2.62</td>
+<td>True</td>
+</tr>
+<tr>
+<td>256 MiB</td>
+<td>(5,2)</td>
+<td>512 KiB</td>
+<td>141.4</td>
+<td>183.8</td>
+<td>True</td>
+<td>2.2</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>storm at (5,2) policy <code>{"domain":"region"}</code>: 60 objects, 1 region(s) killed = 8 sites; detected 16.1 s; 49 degraded, 0 beyond m; healed=True in 12.2 s; RPC p99 baseline 1.1 → storm 3.6 ms; spread max 56 objects/site over 8 sites</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

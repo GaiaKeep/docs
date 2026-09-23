@@ -1,0 +1,3842 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/BAREOS-RECOMMENDATION/">
+      
+      
+        <link rel="prev" href="../STORAGE-DIRECTION/">
+      
+      
+        <link rel="next" href="../TAPE-RESEARCH-PROMPT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Bareos analysis (historical) - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-recommendation-bareos-as-the-volume-manager" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bareos analysis (historical)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The decision
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The decision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-argument-that-settles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The argument that settles it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-replaces-gfs-mover-precisely" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What replaces gfs-mover, precisely
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-are-deliberately-not-doing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we are deliberately not doing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-the-layer-0-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Layer 0 contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. The Layer 0 contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#five-reversibility-rules-all-cheap-all-in-the-first-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Five reversibility rules, all cheap, all in the first build
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-guarantees-no-bareos-backed-implementation-can-ever-make" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Guarantees no Bareos-backed implementation can ever make
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-two-catalogue-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The two-catalogue posture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The two-catalogue posture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-join-rule-which-is-the-load-bearing-part" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The join rule, which is the load-bearing part
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconciliation-by-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reconciliation, by case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-bareoss-catalogue-holds-that-the-medium-does-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Bareos's catalogue holds that the medium does not
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-disclosure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The disclosure contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. The disclosure contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-bareos-writes-in-the-clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Bareos writes in the clear
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-contract-eight-conditions-all-enforced-not-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The contract — eight conditions, all enforced, not conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-residue-and-the-one-condition-we-cannot-meet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The residue, and the one condition we cannot meet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-licensing-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The licensing boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-configuration-that-is-load-bearing-not-cosmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Configuration that is load-bearing, not cosmetic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-findings-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Findings: resolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Findings: resolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#corrections-findings-refuted-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrections — findings refuted from source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fatal-and-serious-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fatal and serious — resolved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepted-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accepted costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-the-test-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. The test plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. The test plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-prerequisite-which-is-the-long-pole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The prerequisite, which is the long pole
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-mhvtl-validates-and-what-it-does-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What mhvtl validates, and what it does not
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-rig-checklist-what-must-be-true-before-we-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Rig checklist — what must be true before we commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-open-questions-for-the-owner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Open questions for the owner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-normative-corrections-to-the-dependent-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Normative corrections to the dependent documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-the-disclosure-inventory-read-from-source-2026-09-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. The disclosure inventory, read from source (2026-09-19)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. The disclosure inventory, read from source (2026-09-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The decision
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The decision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-argument-that-settles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The argument that settles it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-replaces-gfs-mover-precisely" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What replaces gfs-mover, precisely
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-we-are-deliberately-not-doing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we are deliberately not doing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-the-layer-0-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Layer 0 contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. The Layer 0 contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#five-reversibility-rules-all-cheap-all-in-the-first-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Five reversibility rules, all cheap, all in the first build
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-guarantees-no-bareos-backed-implementation-can-ever-make" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Guarantees no Bareos-backed implementation can ever make
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-two-catalogue-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The two-catalogue posture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The two-catalogue posture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-join-rule-which-is-the-load-bearing-part" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The join rule, which is the load-bearing part
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconciliation-by-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reconciliation, by case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-bareoss-catalogue-holds-that-the-medium-does-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Bareos's catalogue holds that the medium does not
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-disclosure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The disclosure contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. The disclosure contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-bareos-writes-in-the-clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Bareos writes in the clear
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-contract-eight-conditions-all-enforced-not-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The contract — eight conditions, all enforced, not conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-residue-and-the-one-condition-we-cannot-meet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The residue, and the one condition we cannot meet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-licensing-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The licensing boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-configuration-that-is-load-bearing-not-cosmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Configuration that is load-bearing, not cosmetic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-findings-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Findings: resolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Findings: resolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#corrections-findings-refuted-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corrections — findings refuted from source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fatal-and-serious-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fatal and serious — resolved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepted-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accepted costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-the-test-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. The test plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. The test plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-prerequisite-which-is-the-long-pole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The prerequisite, which is the long pole
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-mhvtl-validates-and-what-it-does-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What mhvtl validates, and what it does not
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-rig-checklist-what-must-be-true-before-we-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Rig checklist — what must be true before we commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-open-questions-for-the-owner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Open questions for the owner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-normative-corrections-to-the-dependent-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Normative corrections to the dependent documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-the-disclosure-inventory-read-from-source-2026-09-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. The disclosure inventory, read from source (2026-09-19)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. The disclosure inventory, read from source (2026-09-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition danger">
+<p class="admonition-title">Status: Superseded</p>
+<p><strong>Superseded 2026-09-20: Bareos is out.</strong> Kept because its licence analysis is what led to that decision, and because its reading of the Bareos source remains accurate.</p>
+</div>
+<h1 id="the-recommendation-bareos-as-the-volume-manager">THE RECOMMENDATION — Bareos as the volume manager<a class="headerlink" href="#the-recommendation-bareos-as-the-volume-manager" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Recommendation, for adoption into <code>SPECIFICATION.md</code> §2.3, §6 and §13.
+<strong>Scope:</strong> Layer 0 of STELE — the boundary between our parcels and the medium.
+<strong>Verified against source, not documentation:</strong> <code>bareos/bareos</code> at <code>f5adb7e</code> (master) and
+<code>markh794/mhvtl</code> at <code>59f32ee</code>, both cloned locally. Every claim below marked <strong>[src]</strong> was checked
+in the tree at the cited file and line. Claims marked <strong>[rig]</strong> are unverified and are listed in §9.</p>
+<hr />
+<h2 id="1-the-decision">1. The decision<a class="headerlink" href="#1-the-decision" title="Permanent link">&para;</a></h2>
+<p><strong>Adopt Bareos as the volume manager. Adopt mhvtl as the rig, from day one, behind Bareos and
+beside it. Build no <code>gfs-mover</code>.</strong></p>
+<p>Not "test rig only", and not "reject". The three-way question is malformed in one specific way, and
+naming the error is what settles it: the debate asked whether Bareos can <em>be</em> <code>gfs-mover</code>. It cannot
+— <code>gfs-mover</code> was specified as a process holding <code>CAP_SYS_RAWIO</code> behind a fixed CDB allowlist, and
+Bareos is three daemons and a relational database sitting three orders of magnitude above a CDB. But
+the correct response is not to reject Bareos; it is to notice that under the owner's division
+<code>gfs-mover</code> <strong>is deleted rather than replaced</strong>, and that what survives in its place is not a mover
+at all.</p>
+<h3 id="the-argument-that-settles-it">The argument that settles it<a class="headerlink" href="#the-argument-that-settles-it" title="Permanent link">&para;</a></h3>
+<p>The prior design's own residual said it plainly: <em>"we are trading a decade of field hardening for a
+write path of one function and a read path of one function."</em> <code>SPECIFICATION.md</code> ~~§5.6~~ <strong>§2.3, with
+the deletion-cost row <em>The tape block layer</em> in §15</strong> <em>(citation corrected 2026-09-19: <code>SPECIFICATION.md</code>
+§5 contains only §5.1–§5.4; there is no §5.5, §5.6 or §5.7)</em>, then costed
+that trade honestly at ~1,600 lines for the tape volume, and identified which lines carry the risk:</p>
+<ul>
+<li><strong>~200 lines</strong> of early-warning to programmable-early-warning end-of-medium handling;</li>
+<li><strong>~400 lines</strong> of sense-key / ASC / ASCQ classification and reposition-after-error.</li>
+</ul>
+<p>Those two — 600 of 1,600 lines — are the ones whose failure mode is <em>silent data loss</em>, and they are
+the only two we had no way to test before hardware arrives. The owner's division puts exactly those
+two on Bareos's side of the line. That is not a coincidence and it is not a compromise: it is the
+division a competent reading of our own line-count table would have produced anyway.</p>
+<p>And the things that must stay ours all sit <em>above</em> a file abstraction, which means Bareos cannot
+touch them:</p>
+<ul>
+<li><strong>A parcel is one Bareos file, exactly <code>PARCEL_BYTES</code>, always.</strong> Bareos stores bytes under a name
+  we choose; it never inspects them.</li>
+<li><strong>The fragment trailer and the index checkpoints are parcels too.</strong> The AEAD sealing, the Merkle
+  tree, the MAC'd checkpoint chain — all of it is payload to Bareos.</li>
+<li><strong>The locator is ours</strong>, and it never contains a Bareos coordinate (§4).</li>
+</ul>
+<p>The second half of the argument is the one the prior design could not answer and this one can.
+§4.2's standing obligation — a versioned published on-media format specification and a maintained
+reference reader, for the thirty-year life of the medium, with no standards body to inherit it — was
+the design's worst unanswered weakness. <code>bls</code>, <code>bextract</code> and <code>bscan</code> are that reader, they are
+catalogue-free (<strong>[src]</strong> <code>bextract</code> links <code>Bareos::LibSD</code>, <code>Findlib</code>, <code>Lib</code>, <code>CLI11</code> and <strong>not</strong>
+<code>Bareos::Cats</code>, <code>core/src/stored/CMakeLists.txt:145</code>), and they are maintained by somebody else. We
+still publish a spec for the STELE structures <em>inside</em> the files, which is a few hundred lines of
+format description rather than a tape driver. That is a strictly smaller permanent obligation.</p>
+<h3 id="what-replaces-gfs-mover-precisely">What replaces <code>gfs-mover</code>, precisely<a class="headerlink" href="#what-replaces-gfs-mover-precisely" title="Permanent link">&para;</a></h3>
+<p>Not one process. Two things, and the containment is better than the allowlist it replaces:</p>
+<ol>
+<li><strong>Bareos</strong> (<code>bareos-dir</code> + <code>bareos-sd</code> + <code>bareos-fd</code> + PostgreSQL, local to the plant) owns
+   drives, changer, reservation, block framing, filemarks, end-of-medium, sense classification,
+   volume labelling.</li>
+<li><strong><code>gfs-probe</code></strong> — a small, non-root, read-mostly helper with a <strong>five-opcode allowlist</strong>:
+   <code>INQUIRY</code>, <code>LOG SENSE</code> (pages 0x0C, 0x31, 0x02, 0x03), <code>MODE SENSE</code>/<code>MODE SELECT</code> on enumerated
+   pages, <code>READ ATTRIBUTE</code>/<code>WRITE ATTRIBUTE</code>, <code>SECURITY PROTOCOL IN</code>. It runs <strong>only between jobs</strong>,
+   on a drive Bareos is not holding.</li>
+</ol>
+<p><code>WRITE(6)</code>, <code>WRITE FILEMARKS</code>, <code>LOCATE(16)</code>, <code>READ(6)</code>, <code>MOVE MEDIUM</code>, <code>READ</code>/<code>REPORT ELEMENT
+   STATUS</code>, <code>PERSISTENT RESERVE IN/OUT</code>, <code>FORMAT MEDIUM</code> and <code>ERASE</code> are <strong>not reachable opcodes in
+   any process we write</strong>. The old design's twenty-row allowlist shrinks to five, and the process
+   that could destroy a cartridge stops existing in our codebase.</p>
+<h3 id="what-we-are-deliberately-not-doing">What we are deliberately not doing<a class="headerlink" href="#what-we-are-deliberately-not-doing" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>No <code>bextract</code> on the hot path.</strong> It <em>can</em> drive an autochanger — <code>AcquireDeviceForRead</code> calls
+  <code>AutoloadDevice</code> (<strong>[src]</strong> <code>core/src/stored/acquire.cc:334</code>) — and that is precisely why it must
+  not. The changer lock is a process-local rwlock on the Autochanger resource (<strong>[src]</strong>
+  <code>core/src/stored/autochanger.cc:393-430</code>), so a <code>bextract</code> that autoloads is a <strong>second changer
+  initiator</strong> with no lock between it and <code>bareos-sd</code>. §6 already rules that two schedulers issuing
+  <code>MOVE MEDIUM</code> to one robot is a correctness failure. <code>bextract</code> is a recovery and proof tool, run
+  against a released drive, never concurrently with the SD.</li>
+<li><strong>No Bareos plugin of any kind</strong>, and specifically not <code>scsicrypto-sd</code> or <code>scsitapealert-sd</code> (§5,
+  §6).</li>
+<li><strong>No use of Bareos's job scheduler.</strong> Its <code>Priority</code> mechanism is structurally unusable for us
+  (§3, finding G-3).</li>
+<li><strong>No recycling, pruning, migration, copy or virtual-full</strong>, ever.</li>
+</ul>
+<hr />
+<h2 id="2-the-layer-0-contract">2. The Layer 0 contract<a class="headerlink" href="#2-the-layer-0-contract" title="Permanent link">&para;</a></h2>
+<p>One interface, three implementations (<code>BareosVolume</code>, <code>SimVolume</code>, and later <code>PosixVolume</code> for the
+directory case). It sits <em>under</em> STELE's <strong>ten</strong> block-plane calls (<code>open</code>, <code>close</code>, <code>recover</code>, <code>append</code>, <code>seal</code>, <code>abandon</code>, <code>read</code>, <code>prove</code>, <code>index</code>, <code>retire</code>) and changes none of them. <em>(Corrected 2026-09-19: "eleven" was wrong — <code>SPECIFICATION.md</code> §5.1 is headed "The SPI — ten calls" and enumerates exactly ten. A reader implementing against this contract would have looked for a call that does not exist.)</em></p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nn">io.cresco.stele.vol</span><span class="p">;</span>
+
+<span class="cm">/** One volume = one cartridge. Never spans. All calls are against a LOADED medium. */</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">VolumeMover</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="n">VolumeCapabilities</span><span class="w"> </span><span class="nf">capabilities</span><span class="p">();</span><span class="w">          </span><span class="c1">// declared, read by the planner, never inferred</span>
+
+<span class="w">    </span><span class="c1">// ---- inventory and attachment: the CHANGER IS NOT OURS ----</span>
+<span class="w">    </span><span class="n">Inventory</span><span class="w">   </span><span class="nf">inventory</span><span class="p">();</span><span class="w">                    </span><span class="c1">// barcode -&gt; element; no mount; cheap</span>
+<span class="w">    </span><span class="n">Attach</span><span class="w">      </span><span class="nf">attach</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">barcode</span><span class="p">,</span><span class="w"> </span><span class="n">Mode</span><span class="w"> </span><span class="n">mode</span><span class="p">);</span><span class="w">   </span><span class="c1">// asks the volume manager to load+claim</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">        </span><span class="nf">detach</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">);</span><span class="w">                    </span><span class="c1">// release; post-condition is declared</span>
+
+<span class="w">    </span><span class="c1">// ---- write: staging is the boundary; nothing touches a drive until commit ----</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">        </span><span class="nf">stage</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">ordinal</span><span class="p">,</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">parcel</span><span class="p">);</span><span class="w">  </span><span class="c1">// exactly PARCEL_BYTES or refuse</span>
+<span class="w">    </span><span class="n">Commit</span><span class="w">      </span><span class="nf">commit</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">);</span><span class="w">               </span><span class="c1">// THE barrier. One fragment. Blocks to terminal.</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">        </span><span class="nf">discard</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">);</span><span class="w">              </span><span class="c1">// staged bytes dropped; medium untouched</span>
+
+<span class="w">    </span><span class="c1">// ---- read: one fragment, contiguous, in ascending media order ----</span>
+<span class="w">    </span><span class="n">Fetch</span><span class="w">       </span><span class="nf">fetch</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">ReadSet</span><span class="w"> </span><span class="n">parcels</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">sink</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ---- recovery: never on a hot path ----</span>
+<span class="w">    </span><span class="n">Survey</span><span class="w">      </span><span class="nf">survey</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">barcode</span><span class="p">,</span><span class="w"> </span><span class="n">SurveyDepth</span><span class="w"> </span><span class="n">d</span><span class="p">);</span><span class="w">   </span><span class="c1">// LABELS | SESSIONS | FULL</span>
+
+<span class="w">    </span><span class="c1">// ---- health: read-mostly, between jobs only ----</span>
+<span class="w">    </span><span class="n">MediumHealth</span><span class="w"> </span><span class="nf">health</span><span class="p">(</span><span class="n">Attach</span><span class="w"> </span><span class="n">a</span><span class="p">);</span><span class="w">              </span><span class="c1">// gfs-probe: LOG SENSE, TapeAlert, MAM, crypto state</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">VolumeCapabilities</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">moverKind</span><span class="p">;</span><span class="w">            </span><span class="c1">// BAREOS | SIM | POSIX</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">containerFormat</span><span class="p">;</span><span class="w">      </span><span class="c1">// "bareos-BB02" | "stele-raw" | "sim-1"</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">versionPin</span><span class="p">;</span><span class="w">           </span><span class="c1">// exact volume-manager version this adapter was written against</span>
+<span class="w">    </span><span class="n">Order</span><span class="w">   </span><span class="n">ordering</span><span class="p">;</span><span class="w">             </span><span class="c1">// EXACT | MONOTONIC_FORWARD | ARBITRARY</span>
+<span class="w">    </span><span class="n">Evidence</span><span class="w"> </span><span class="n">faultEvidence</span><span class="p">;</span><span class="w">       </span><span class="c1">// NATIVE_SENSE | LOG_PARSE | INFERRED | NONE</span>
+<span class="w">    </span><span class="n">Cancel</span><span class="w">  </span><span class="n">cancelPostcondition</span><span class="p">;</span><span class="w">  </span><span class="c1">// UNLOAD_AND_FRONTIER | TERMINATE_ONLY</span>
+<span class="w">    </span><span class="n">Grain</span><span class="w">   </span><span class="n">eventGranularity</span><span class="p">;</span><span class="w">     </span><span class="c1">// PER_PARCEL | PER_FRAGMENT</span>
+<span class="w">    </span><span class="n">Tri</span><span class="w">     </span><span class="n">reservationCapable</span><span class="p">,</span><span class="w"> </span><span class="n">senseVisible</span><span class="p">,</span><span class="w"> </span><span class="n">modeSelectCapable</span><span class="p">,</span>
+<span class="w">            </span><span class="n">mamWriteCapable</span><span class="p">,</span><span class="w"> </span><span class="n">encryptionAssertCapable</span><span class="p">,</span><span class="w"> </span><span class="n">costDecomposable</span><span class="p">;</span><span class="w">   </span><span class="c1">// YES | NO | UNMEASURED</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">parcelBytes</span><span class="p">,</span><span class="w"> </span><span class="n">maxCommitBytes</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Five design decisions, each doing specific work.</p>
+<ol>
+<li>
+<p><strong>One <code>commit</code> = one fragment = one Bareos job = 96 parcels + one trailer.</strong> This is the single
+   most important mapping in the document. It bounds the crash blast radius to one fragment, bounds
+   session-label leakage to one timestamp per fragment, and preserves the contiguity that is our RAO
+   substitute. It also matches STELE's own torn-tail cost exactly, so adopting Bareos changes the
+   crash economics <strong>not at all</strong> (§8, F-A).</p>
+</li>
+<li>
+<p><strong><code>stage</code> returns no position, and does not need to.</strong> STELE §1.2(1) already made the correction
+   that dissolves the whole <code>addressAtAppend</code> argument: <em>"the locator is discovered at a durability
+   barrier, never predicted… a locator that was not returned by a successful <code>seal</code> does not
+   exist."</em> <code>STORAGE-BINDINGS-DECISION.md</code> §3/§4's <code>append</code> returning a provisional ref from <code>READ
+   POSITION</code> is <strong>superseded</strong>, and that supersession is a correction to the older document, not a
+   concession to Bareos.</p>
+</li>
+<li>
+<p><strong>Every capability is declared and tri-state.</strong> <code>UNMEASURED</code> is a legal value that schedules
+   pessimistically and appears on a list somebody works through. A capability surface with no way to
+   say <em>"we have not measured this"</em> gets a plausible default written into it, and a planner then
+   schedules against a guess that looks like a fact. No adapter may run in production with an
+   <code>UNMEASURED</code> field.</p>
+</li>
+<li>
+<p><strong><code>faultEvidence</code> is mandatory.</strong> A Bareos-backed adapter answers <code>LOG_PARSE</code> and may never
+   answer <code>NATIVE_SENSE</code>. STELE's <code>Result&lt;T&gt;{senseKey, asc, ascq, atOrdinal}</code> degrades <em>visibly</em>
+   rather than being quietly fabricated (§3).</p>
+</li>
+<li>
+<p><strong><code>versionPin</code> is in the capability surface, not in a config file.</strong> Our entire fault
+   classification is string-matching against <code>bareos-dir</code> job-log text, which is not an API, is not
+   versioned and is localisable. The adapter refuses to start against a Bareos it was not written
+   for (§8, S-K).</p>
+</li>
+</ol>
+<h3 id="five-reversibility-rules-all-cheap-all-in-the-first-build">Five reversibility rules, all cheap, all in the first build<a class="headerlink" href="#five-reversibility-rules-all-cheap-all-in-the-first-build" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>R1 — <code>containerFormat</code> is a property of the cartridge, recorded at commissioning, and no
+  cartridge is ever written in two formats.</strong> <code>capabilities().formatsReadable</code> gates every attach; a
+  mover that cannot read a cartridge's format refuses rather than mounting it.</li>
+<li><strong>R2 — the STELE parcel head, trailer and checkpoints are written <em>inside</em> the payload, never in
+  the container's framing.</strong> Twenty-four cleartext bytes per parcel (<code>magic | ordinal | flags |
+  crc32</code>), the AEAD trailer, and the MAC'd checkpoint chain are opaque to Bareos. This is what
+  converts "Bareos is the only thing that can read this cartridge" into "Bareos is the <em>easiest</em>
+  thing that can read this cartridge", and it is what makes the decision reversible rather than
+  permanent.</li>
+<li><strong>R3 — nothing in our ledger is ever read back from Bareos's catalogue.</strong> Bareos is write-mostly
+  to us (§4).</li>
+<li><strong>R4 — we never write Bareos's PostgreSQL schema directly.</strong> Recovery goes through <code>bconsole</code> or
+  through a fresh cartridge; populating another program's relational schema is both a version-skew
+  landmine and the one place the arm's-length licensing story thins (§6).</li>
+<li><strong>R5 — we author our own <code>Changer Command</code> from scratch</strong>, against the documented five-verb
+  interface (<code>loaded</code>, <code>load</code>, <code>unload</code>, <code>list</code>, <code>slots</code>). We never edit Bareos's shipped
+  <code>mtx-changer</code> (§6). This rule also buys a scheduling property: see §3.</li>
+</ul>
+<hr />
+<h2 id="3-guarantees-no-bareos-backed-implementation-can-ever-make">3. Guarantees no Bareos-backed implementation can ever make<a class="headerlink" href="#3-guarantees-no-bareos-backed-implementation-can-ever-make" title="Permanent link">&para;</a></h2>
+<p>These are structural. No configuration fixes them, and each is stated with what we do instead.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Guarantee lost</th>
+<th>Evidence</th>
+<th>What we do instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G-1</td>
+<td><strong>SCSI Persistent Reserve on the changer and every drive LUN.</strong> §6's fencing ladder has no top rung: reservation is <code>bareos-sd</code> process memory, dies with the process, binds no second host on a shared fabric.</td>
+<td><code>grep -rni "persistent reserve" core/src</code> returns <strong>nothing</strong>. The entire raw-SCSI surface is <code>scsi_lli.cc</code> (410 lines), <code>scsi_crypto.cc</code>, <code>scsi_tapealert.cc</code>. <strong>[src]</strong></td>
+<td><strong>Single-host-per-changer becomes an operational rule, not a mechanism.</strong> Risk row 18 moves from <em>Prevent</em> to <em>Prevented by deployment</em>. Fencing is enforced where it can be: on epoch loss the scheduler stops submitting, and the device nodes are revoked from the SD's group so a retry fails with <code>EACCES</code> rather than reaching the medium. Takeover is a STONITH story, and it must be written.</td>
+</tr>
+<tr>
+<td>G-2</td>
+<td><strong>The read-error recovery policy</strong> — at most one same-drive retry, then rebuild from local parity <em>on the pass in progress</em>, bounded in drive-seconds not attempts (risk row 12, called "the honest justification for owning the path").</td>
+<td>Bareos's retry behaviour inside a job is its own and is not expressible at that granularity.</td>
+<td>Local-parity reconstruction moves from <em>during the pass</em> to <em>after the error</em>, costing <strong>one extra mount in the rare case</strong>. Set the device wait timeouts low so a marginal cartridge fails fast rather than consuming a drive. Already recorded in <code>SPECIFICATION.md</code> §2.3 as the whole price.</td>
+</tr>
+<tr>
+<td>G-3</td>
+<td><strong>Lane priority.</strong> The target priority is taken from the <strong>first running job</strong>, mixed priority requires <em>every</em> running job to allow it and admits only strictly-higher priorities, and a mismatch sets <code>JS_WaitPriority</code> and <strong>breaks</strong> the walk.</td>
+<td><strong>[src]</strong> <code>core/src/dird/jobq.cc:456-500</code>. Defaults: <code>Priority</code> 10, <code>AllowMixedPriority</code> false (<code>dird_conf.cc:346-347</code>).</td>
+<td><strong>Every tape job carries the same <code>Priority</code>, <code>AllowMixedPriority = yes</code> everywhere, and Bareos's scheduler is declared deliberately unused.</strong> All five lanes, the deadline ordering, the coalescing window and the obligation reserve live in our scheduler, upstream of submission. A config lint fails the plant if any two Job resources differ in <code>Priority</code>.</td>
+</tr>
+<tr>
+<td>G-4</td>
+<td><strong>Preemption at any granularity.</strong> There is no yield point and no drive-second budget.</td>
+<td>Priority affects only queued jobs, never running ones.</td>
+<td>Preemption is fragment-atomic by construction (one commit = one job). <code>cancel</code> = <code>cancel jobid</code> → poll to terminal → hash staging → <code>release storage</code> → our own re-inventory. <strong>Worst-case latency to free a drive is one mount</strong>, and it is carried explicitly in every plan's <code>estWallP95</code>. Every obligation job is exactly one cartridge, never longer.</td>
+</tr>
+<tr>
+<td>G-5</td>
+<td><strong>Structured sense data.</strong> <code>Result.senseKey/asc/ascq</code> has no source; <code>Fault</code> must be inferred from job-log text.</td>
+<td>No structured per-record error surface.</td>
+<td>Fault <em>localisation</em> is unaffected, because it was never from sense in the first place: the parcel ordinal comes from our own bookkeeping and the authoritative check is the Merkle leaf. What degrades is <strong>classification</strong> — and classification is what the <code>(drive, medium)</code> fault histogram needs. <code>gfs-probe</code> reads <code>LOG SENSE</code> 0x02/0x03/0x0C and TapeAlert between jobs and writes straight into the histogram, which is where §5.3 put it anyway. <code>faultEvidence = LOG_PARSE</code> is declared, and the policy branches on it: with <code>LOG_PARSE</code> we do <strong>zero</strong> retries and go straight to parity, because a retry whose failure we cannot classify spends drive-seconds to learn nothing.</td>
+</tr>
+<tr>
+<td>G-6</td>
+<td><strong>Recommended Access Order.</strong> Bareos follows bootstrap-record order.</td>
+<td>—</td>
+<td>Mitigated, not solved, by contiguity: a fragment is 103.1 GB contiguous on one volume by construction. Recorded as a costed trade.</td>
+</tr>
+<tr>
+<td>G-7</td>
+<td><strong>A mutable surface on the cartridge</strong>, if MAM write is unavailable through the helper.</td>
+<td>mhvtl defines <code>WRITE_ATTRIBUTE 0x8d</code> (<code>include/common/mhvtl_scsi.h:133</code>) but <strong>does not dispatch it</strong> in <code>usr/spc.c</code>. <strong>[rig]</strong> on real hardware.</td>
+<td>The index-checkpoint pointer must then be found by reading the last checkpoint rather than by a MAM read at load. Cost: one locate plus a short read instead of zero tape motion. If real drives accept <code>WRITE ATTRIBUTE</code> from the helper between jobs, we recover the cheap path. <strong>Rig item R-14.</strong></td>
+</tr>
+<tr>
+<td>G-8</td>
+<td><strong>Suppression of commit time on the medium.</strong></td>
+<td>Volume label <code>write_btime = GetCurrentBtime()</code> (<strong>[src]</strong> <code>label.cc:488</code>); session SOS and EOS labels <code>SerBtime(GetCurrentBtime())</code> (<strong>[src]</strong> <code>label.cc:580</code>); <code>jcr-&gt;Job</code> is composed as <code>&lt;name&gt;.%Y-%m-%d_%H.%M.%S_%02d</code> (<strong>[src]</strong> <code>dird/job.cc:1505</code>) and is serialised into every session label. None is configurable.</td>
+<td>This is the one permanent disclosure. §5 states its exact shape and who must sign it off.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-the-two-catalogue-posture">4. The two-catalogue posture<a class="headerlink" href="#4-the-two-catalogue-posture" title="Permanent link">&para;</a></h2>
+<p><strong>"Ours authoritative, theirs derived via <code>bscan</code>" is the wrong shape. The correct posture is three
+tiers, and Bareos's catalogue is the bottom one.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Holds</th>
+<th>Rebuilt by</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Placement ledger (ours)</strong></td>
+<td><code>locator → (volume, stripe, fragment)</code>, the volume registry</td>
+<td>Journal + replicas</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>2. On-media index checkpoints (ours)</strong></td>
+<td><code>{ordinal, parcels, leaf_root, stripe_id, fragment_i}</code> + the per-session join record, AEAD-sealed under <code>K_vol</code>, at ¼, ½, ¾ and EOD</td>
+<td>One locate, one short read</td>
+<td>seconds</td>
+</tr>
+<tr>
+<td><strong>3. Bareos catalogue</strong></td>
+<td><code>Media</code>, <code>Job</code>, <code>JobMedia</code>, <code>File</code>, <code>Path</code></td>
+<td><code>bscan</code> — a <strong>full-volume read</strong>, ~20.8 h per 30 TB cartridge at 400 MB/s</td>
+<td>last resort only</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this is sound and the two-tier version is not.</strong> <code>bscan</code> does not rebuild <em>our</em> facts; it
+rebuilds <em>Bareos's</em>. Tier 2 is what makes media-only rebuild real, it is ours, it is encrypted, and
+it costs seconds rather than a drive-day. A posture that leans on <code>bscan</code> is leaning on a 21-hour
+recovery on the conserved resource, in exactly the circumstance the tier exists for.</p>
+<h3 id="the-join-rule-which-is-the-load-bearing-part">The join rule, which is the load-bearing part<a class="headerlink" href="#the-join-rule-which-is-the-load-bearing-part" title="Permanent link">&para;</a></h3>
+<p>The tier-2 checkpoint gains one small per-session record so that a read is synthesisable with <strong>no
+Bareos catalogue at all</strong>:</p>
+<div class="highlight"><pre><span></span><code>session_join { VolSessionId, VolSessionTime, first_ordinal, first_FileIndex, parcel_count }
+</code></pre></div>
+<p>From that, a bootstrap record is a pure function of the locator's <code>ordinal</code>. Two rules make it
+survive:</p>
+<ul>
+<li><strong>Key on <code>(VolumeName, VolSessionId, VolSessionTime, VolFile, VolBlock, FileIndex)</code> and never on
+  <code>JobId</code>.</strong> <code>VolSessionId</code> and <code>VolSessionTime</code> live in the BB02 block header on the medium;
+  <code>JobId</code> is a catalogue-assigned integer that <code>bscan</code> renumbers. A locator keyed on <code>JobId</code> dies
+  the first time the catalogue is rebuilt.</li>
+<li><strong>One parcel = one file = one <code>FileIndex</code>, monotone within a session.</strong> This is what makes the map
+  affine, and it is also what makes error localisation per-parcel.</li>
+</ul>
+<p>Note a fact that makes <code>VolSessionTime</code> safe to record: it is <strong>not a timestamp of the write</strong>. It
+is the storage daemon's process start time — <strong>[src]</strong> <code>core/src/stored/stored.cc:283</code>,
+<code>vol_session_time = (uint32_t)daemon_start_time</code>, assigned once per SD run at <code>job.cc:133</code>. It is
+therefore constant across every block and every session that SD writes. The claim that every block
+header carries a second-resolution clock, giving 10⁷–10⁸ timestamps per cartridge, is <strong>false</strong>; it
+is one value repeated. This materially shrinks the leakage surface and it is checkable in an hour
+(<strong>rig item R-7</strong>).</p>
+<h3 id="reconciliation-by-case">Reconciliation, by case<a class="headerlink" href="#reconciliation-by-case" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Crash mid-commit.</strong> Our journal holds a write-intent row before the first byte. On restart, for
+  the open intent: <code>llist jobid=</code> → status <code>T</code> means pull <code>list jobmedia</code>, read back the trailer,
+  verify, then the locators exist. Anything else means <strong>the fragment does not exist</strong>: no locator
+  was ever returned, nothing above believes it durable, the media is charged as dead tape
+  (<code>unreclaimableTombstoned</code>) and the fragment is rewritten elsewhere. Cost: at most 103.1 GB, 0.34 %
+  of a cartridge, roughly $1.50 of media. <strong>This is STELE's torn-tail cost, unchanged.</strong></li>
+<li><strong>Volume written but not catalogued.</strong> Tier 2 already has it. Bareos's view is repaired by <code>bscan</code>
+  into a scratch database on <code>tmpfs</code>, or simply by starting a fresh cartridge — on WORM that costs
+  tape, not data.</li>
+<li><strong>Bareos catalogue lost entirely.</strong> Reads are unaffected (<code>bextract</code> needs no catalogue). Writes
+  do not resume until <code>update slots</code> has re-inventoried and every volume with <code>VolStatus = Append</code>
+  has been set <code>Used</code>; we start a fresh cartridge. <strong>WORM converts the worst two-catalogue failure
+  into a capacity charge</strong>, which is the strongest structural argument for the posture.</li>
+<li><strong>Our ledger lost.</strong> Tier 2 from every cartridge: one locate and one short read each, not <code>bscan</code>.</li>
+<li><strong>After a restore.</strong> Nothing to reconcile; restores do not mutate media.</li>
+</ul>
+<h3 id="what-bareoss-catalogue-holds-that-the-medium-does-not">What Bareos's catalogue holds that the medium does not<a class="headerlink" href="#what-bareoss-catalogue-holds-that-the-medium-does-not" title="Permanent link">&para;</a></h3>
+<p><code>VolStatus</code>, <code>InChanger</code>, <code>Slot</code>, and volume error and mount counts are catalogue-only, and they are
+generated <em>by failures</em>, so no "we never enable that feature" containment covers them. <strong>Mirror
+every <code>VolStatus</code> transition and every health reading into our ledger at job completion.</strong> Then stop
+calling their catalogue derived and call it what it is: a second authority over a small enumerated
+set of facts that we replicate. An honest two-authority posture over five fields is defensible; a
+false one-authority posture is how the media-health record gets lost.</p>
+<p><strong>Also: the Bareos catalogue is derived in <em>content</em> but load-bearing in <em>availability</em>.</strong> Every job
+start inserts rows and every job end writes file attributes, so a stalled or vacuuming PostgreSQL
+delays a mount. It is a plant-critical component, it is sized and tuned as one, and its health is in
+the plant predicate.</p>
+<hr />
+<h2 id="5-the-disclosure-contract">5. The disclosure contract<a class="headerlink" href="#5-the-disclosure-contract" title="Permanent link">&para;</a></h2>
+<p><strong>Established from source. This section is the one that must be right before the first WORM
+cartridge, because it cannot be corrected afterwards.</strong></p>
+<h3 id="what-bareos-writes-in-the-clear">What Bareos writes in the clear<a class="headerlink" href="#what-bareos-writes-in-the-clear" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Volume label, once per cartridge:</strong> <code>Id</code> ("Bareos 2.0 Immortal"), <code>VerNum</code>, <code>label_btime</code>,
+  <code>write_btime</code>, <code>VolumeName</code>, <code>PrevVolumeName</code>, <code>PoolName</code>, <code>PoolType</code>, <code>MediaType</code>, <code>HostName</code>,
+  <code>LabelProg</code>, <code>ProgVersion</code>, <code>ProgDate</code> — <strong>[src]</strong> <code>label.cc:480-506</code>.</li>
+<li><strong>Block header, every block:</strong> <code>CheckSum</code>, <code>BlockSize</code>, <code>BlockNumber</code>, <code>"BB02"</code>, <code>VolSessionId</code>,
+  <code>VolSessionTime</code> (the SD start time — see §4).</li>
+<li><strong>Session labels, SOS and EOS, once per commit:</strong> <code>JobId</code>, a real wall-clock btime, <code>PoolName</code>,
+  <code>PoolType</code>, <code>JobName</code>, <code>ClientName</code>, the unique <code>Job</code> string <strong>with an ASCII date in it</strong>,
+  <code>FileSetName</code>, <code>JobType</code>, <code>JobLevel</code>, <code>FileSetChecksum</code>; EOS adds <code>JobFiles</code>, <code>JobBytes</code>,
+  start/end file and block, <code>JobErrors</code>, <code>JobStatus</code> — <strong>[src]</strong> <code>label.cc:558-600</code>.</li>
+<li><strong>One attribute record per file:</strong> the <strong>fully qualified filename</strong> plus 13 base64 <code>stat</code> fields
+  including <code>st_dev</code>, <code>st_ino</code>, <code>st_nlink</code>, <code>st_rdev</code>, <code>st_blksize</code>, <code>st_blocks</code> — <strong>[src]</strong>
+  <code>core/src/lib/attribs.cc:55-80</code>.</li>
+</ul>
+<h3 id="the-contract-eight-conditions-all-enforced-not-conventions">The contract — eight conditions, all enforced, not conventions<a class="headerlink" href="#the-contract-eight-conditions-all-enforced-not-conventions" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>The on-media filename is a 128-bit CSPRNG nonce, never a content address.</strong> This is the one
+   correction that nobody would find by inspection and it is not optional. Our content identifiers
+   are <code>sid = HMAC(K_mac, chunk)</code> and <code>xid = HMAC(K_mac, sid_0‖…)</code> with <code>K_mac = HKDF(K_L, "sid")</code>
+   (<code>STORAGE-DIRECTION.md</code>, <em>Structures → Keys</em> and the xorb wire format), while crypto-shredding
+   destroys <strong>the object's key</strong> and <strong>never</strong> <code>K_L</code> <em>(2026-09-19: was "destroys <code>K_rdom</code>"; <code>K_rdom</code>
+   is retired by <code>eval/results/ckpt_dedup_results.json</code>. </em><em>The conclusion is unchanged and the nonce
+   filename remains non-optional</em><em>, because the shred never destroys <code>K_mac</code> or <code>K_L</code>, so any
+   content-derived name remains computable by anyone who ever holds <code>K_L</code>. The reasoning is
+   granularity-independent. Line-number citations into <code>STORAGE-DIRECTION.md</code> are replaced by section
+   names, because that file has been edited and the numbers no longer resolve.)</em>. A content-addressed
+   name on WORM is therefore a <strong>confirmation oracle that survives the erasure it documents,
+   forever</strong>, computable by anyone who ever holds <code>K_L</code>. The
+   design already applies exactly this reasoning to <code>leaf_salt</code> (<code>STORAGE-DIRECTION.md:1218-1226</code>).
+   The nonce costs nothing: the locator is <code>(volume_id, ordinal)</code> and the bootstrap record is
+   synthesised from the session join, so <strong>the filename is load-bearing for nothing</strong>. The
+   nonce→ordinal map lives in the tier-2 checkpoint, sealed, on erasable-by-key terms.
+   <em>This correction is mover-independent and applies to LTFS and to any raw-SCSI design too.</em></li>
+<li><strong>Every parcel is exactly <code>PARCEL_BYTES</code>.</strong> Already <code>SPECIFICATION.md</code> §3.1, enforced as a hard
+   refusal in <code>stage</code>. This makes <code>DataSize</code>, <code>st_size</code>, <code>st_blocks</code> and <code>JobBytes</code> constants.</li>
+<li><strong>Staging is one flat directory with a constant path prefix.</strong> No per-commit, per-fragment,
+   per-lineage, <strong>per-object</strong> or per-redaction-domain path component — the <em>whole path</em> is written.
+   <em>(2026-09-19: <code>per-object</code> added to the existing forbidden list rather than as a new rule. The list
+   enumerates the design's granularities and per-object is now one of them; an object id on WORM is
+   exactly the oracle condition 1 exists to prevent, whether or not the id is content-derived.)</em></li>
+<li><strong>The whole <code>stat</code> buffer is normalised</strong> before commit: fixed epoch for atime/mtime/ctime, one
+   uid/gid, fixed mode, a dedicated filesystem so <code>st_dev</code> is constant. <code>st_ino</code> <strong>cannot</strong> be
+   pinned; it is a weak write-order channel already visible from <code>FileIndex</code>, and it is accepted
+   explicitly rather than listed among the pinned fields.</li>
+<li><strong><code>Signature</code> is absent from every FileSet.</strong> The shipped examples set <code>Signature = XXH128</code>
+   (<strong>[src]</strong> <code>core/src/defaultconfigs/bareos-dir.d/fileset/*.conf.in:6</code>), which would put a
+   per-file ciphertext digest on the medium as its own stream — a permanent cross-corpus linkage
+   token and a second integrity authority competing with our Merkle root. Never start from a shipped
+   example FileSet; write ours from an empty file.</li>
+<li><strong>No ACLs, no extended attributes, no software compression, no sparse handling, no FD-side PKI.</strong>
+   <code>PKI Encryption</code>, <code>PKI Keypair</code>, <code>PKI Master Key</code> and <code>PKI Signatures</code> are <strong>forbidden by package
+   absence, not by configuration</strong>: they write wrapped content-encryption keys onto the medium and
+   put key material at a blind holder, which is the blind-holder invariant failing silently. The
+   plant health predicate asserts the plugin directory is empty.</li>
+<li><strong><code>PoolName</code>, <code>PoolType</code>, <code>MediaType</code>, <code>JobName</code>, <code>ClientName</code>, <code>FileSetName</code> are fixed opaque
+   constants.</strong> Never per-dataset, per-project, per-cohort or per-institution. A FileSet name that
+   encodes a cohort defeats crypto-shredding permanently.</li>
+<li><strong>The SD host's OS hostname is an opaque per-site identifier, set before the first <code>label</code>.</strong>
+   <code>HostName</code> is <code>gethostname()</code> with no directive anywhere (<strong>[src]</strong> <code>label.cc:544</code>). It is written
+   at <em>commissioning</em>, by an operator running <code>label barcodes</code> — a different command at a different
+   time from the one that configures jobs — so it sits outside every job-level control. One cartridge
+   labelled on a correctly-named host before this discipline exists is a permanent disclosure of the
+   holding institution, and it travels with the cartridge on export.</li>
+</ol>
+<p><strong>Delete the shipped <code>BackupCatalog</code> job.</strong> <strong>[src]</strong> <code>core/src/defaultconfigs/bareos-dir.d/job/
+BackupCatalog.conf.in</code> ships by default and backs up the Director's PostgreSQL dump as an ordinary
+file. On a WORM pool that dump lands on unerasable media as one plaintext artefact containing every
+filename, every <code>LStat</code>, every Job and every Volume. A blind holding site must never be a backup
+client of itself. Delete the resource; do not disable it.</p>
+<h3 id="the-residue-and-the-one-condition-we-cannot-meet">The residue, and the one condition we cannot meet<a class="headerlink" href="#the-residue-and-the-one-condition-we-cannot-meet" title="Permanent link">&para;</a></h3>
+<p>Under all eight conditions the medium discloses: <em>the barcode, fixed opaque pool/job/client/fileset
+strings, the Bareos version strings, an opaque site identifier, N blobs of exactly 1 GiB, per-commit
+byte and file counts (constants), physical positions, and a wall-clock commit time per fragment at
+second resolution — in binary and again as an ASCII date string.</em></p>
+<p>Everything there is structure except the last, and the last is the LTFS addendum's <strong>condition 3</strong>,
+which that addendum declared <em>non-negotiable</em>. <strong>Bareos cannot meet it, and neither can LTFS.</strong></p>
+<p>The test to apply is the one <code>ENTAIL-AGENT-NATIVE-FS.md:594</code> already established: a timestamp on
+WORM is acceptable when <em>what it timestamps is de-linkable by key destruction</em>. Under condition 1 a
+session label timestamps a set of <strong>nonce-named, constant-size</strong> blobs. After destruction of the
+objects' keys <em>(2026-09-19: was "After <code>K_rdom</code> destruction"; retired, rename only — the
+de-linkability test is unchanged)</em> nothing links them to a subject, a cohort or a dataset. The residue therefore discloses <strong>when a
+site received ciphertext, never what</strong> — and the exposure is a per-fragment ingest-campaign profile,
+at second resolution, permanent.</p>
+<p>My assessment is that this is acceptable. <strong>It is not mine to accept.</strong> It is a permanent concession
+on unerasable media, it is a declared non-negotiable being waived, and it must be signed off
+explicitly by the constraint holder before the first WORM cartridge. The available partial
+mitigation — mix redaction domains within a fragment, and commit on a fixed cadence with padding
+commits so write times track the schedule rather than the ingest — trades directly against
+cartridge-atomic expiry (<code>TAPE-RESEARCH-PROMPT.md</code> §1(e)) and must be costed, not assumed.</p>
+<p><strong>Note 2026-09-19:</strong> the partial mitigation (mixing within a fragment) is <strong>no longer a free-standing
+option</strong>. Per-object keys force <code>pooled(n)</code> packing anyway — <code>SPECIFICATION.md</code> §8.4 rule 1's
+½-parcel-per-run padding becomes ruinous at object granularity, recorded there as an open hole — so
+this mitigation is partly taken <strong>by default</strong>, and its trade against cartridge-atomic expiry must
+now be costed as part of that packing decision rather than separately. The concession, the
+assessment, the statement that <strong>it is not mine to accept</strong>, and the requirement for explicit sign-off
+by the constraint holder before the first WORM cartridge all stand unchanged.</p>
+<p>Two smaller items for the same allowlist: <strong><code>PrevVolumeName</code> must always be empty</strong> (a non-empty
+value means a fragment spanned two cartridges, which §7 forbids, and it writes a permanent
+cross-cartridge link); and <code>LabelProg</code>/<code>ProgVersion</code>/<code>ProgDate</code> permanently stamp the writing
+software and build date, which is a supply-chain disclosure on a cartridge that leaves the site.</p>
+<hr />
+<h2 id="6-the-licensing-boundary">6. The licensing boundary<a class="headerlink" href="#6-the-licensing-boundary" title="Permanent link">&para;</a></h2>
+<p><strong>Verified, not inferred:</strong> <code>core/src</code> is <strong>350,751 lines</strong>; <strong>979</strong> files carry the Affero header
+and <strong>exactly two</strong> carry LGPL (<code>core/src/lib/bsys.cc</code>,
+<code>core/src/win32/compat/include/sys/mtio.h</code>). <strong>There is effectively no LGPL interface layer. Do not
+plan around one.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Band</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run stock <code>bareos-dir</code>/<code>bareos-sd</code>/<code>bareos-fd</code> from distribution packages as separate OS processes; drive them over the Director console socket (<code>bconsole</code> in <code>.api 2</code>, or the protocol directly); author our own config, FileSets, Pools, bootstrap records and changer script</td>
+<td><strong>Arm's length.</strong> Separate address spaces, documented protocols, no linking, no Bareos code shipped. §13's network clause attaches to <em>modified</em> versions; unmodified Bareos run internally conveys nothing.</td>
+</tr>
+<tr>
+<td>Import <code>python-bareos</code></td>
+<td><strong>Forbidden.</strong> It is AGPLv3 and importing is linking. It costs us nothing to avoid — we are a Java bundle and <code>bconsole</code> is a subprocess.</td>
+</tr>
+<tr>
+<td>Any SD, FD or Dir plugin (C or Python), any SD backend subclass, vendoring any Bareos source</td>
+<td><strong>Forbidden.</strong> <code>core/LICENSE</code> grants additional permissions only for OpenSSL and Windows VSS linking, and states that plugins must be AGPLv3-compatible. There is no plugin exception.</td>
+</tr>
+<tr>
+<td><strong>Editing Bareos's shipped <code>mtx-changer</code></strong></td>
+<td><strong>Forbidden — and this is the trap.</strong> It is a Bareos-supplied program, its documentation invites adaptation, and every real deployment edits it. An edited copy is a modified version of the Program, and §13 then obliges a source offer to remote users — across fifty institutions under data-use agreements who did not sign up for it. <strong>We write our own changer script from scratch</strong> (rule R5).</td>
+</tr>
+<tr>
+<td>Patching Bareos for any reason</td>
+<td><strong>Forbidden.</strong> This is the rule that breaks under pressure, at 2 a.m., during a recovery — which is exactly when it is load-bearing. Make it mechanical: packages come from a distribution only, no Bareos source tree on any plant host, and a deploy-time lint that fails if anything under the Bareos scripts or plugin directories differs from the package.</td>
+</tr>
+<tr>
+<td>Writing rows into Bareos's PostgreSQL schema</td>
+<td><strong>Forbidden</strong> (rule R4). Not linking, but it is the coupling counsel will ask about, and it is a version-skew landmine exercised only during disasters.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The cost this imposes, stated plainly:</strong> the licence forecloses the efficient integration. The
+documented way to stream at native speed without staging is an FD plugin, and that is precisely the
+linking case. So every byte is written to staging and read back over the FD→SD socket. That
+interacts with A-1 (staging as a new single point of loss) and it is unmeasured — <strong>rig item R-11</strong>.</p>
+<p><strong>For counsel, before deployment and before the first export:</strong> (a) does forking <code>bconsole</code> and
+<code>bextract</code> with files on disk constitute mere use; (b) does distributing a container image
+containing stock Bareos packages alongside our code create obligations beyond offering Bareos's
+source; (c) does an institution running unmodified Bareos as part of a system we specified and
+configured incur any §13 exposure, and what must the DUA template say. <strong><code>BAREOS</code> is a registered
+trademark</strong>; nothing we ship may carry a Bareos-like name or imply endorsement.</p>
+<hr />
+<h2 id="7-configuration-that-is-load-bearing-not-cosmetic">7. Configuration that is load-bearing, not cosmetic<a class="headerlink" href="#7-configuration-that-is-load-bearing-not-cosmetic" title="Permanent link">&para;</a></h2>
+<p>Every item below is a <strong>refusal at startup</strong>, read back through <code>show storage</code> / <code>show job</code>, not a
+file we hope is right.</p>
+<p><strong>Volume targeting — one Pool per cartridge, and get the mechanism right.</strong> One Pool, one Media row,
+<code>Maximum Volumes = 1</code>, <code>Maximum Volume Jobs = 0</code> (<strong>unset</strong>), <code>Recycle = no</code>, <code>AutoPrune = no</code>,
+<code>Volume Retention</code> effectively infinite, <code>Label Media = no</code>, no Scratch pool reachable.
+<strong><code>Maximum Volume Jobs = 1</code> is a trap</strong>: <code>next_vol.cc:235</code> refuses a volume once <code>VolJobs</code> reaches
+it, so <code>=1</code> retires a 30 TB cartridge after one fragment. The <code>Maximum Volumes = 1</code> rule also means
+<strong>there is nothing to span to</strong>, so an end-of-medium overshoot fails the job instead of splitting a
+fragment across two cartridges.</p>
+<p><strong>Concurrency — four counters, all defaulting to 1</strong> (<strong>[src]</strong> <code>dird_conf.cc:134, 225, 252, 342</code>).
+The Job-resource limit counts per job <em>name</em>, so a single <code>gfs-commit</code> template silently serialises
+the whole plant. Therefore: <strong>one Job resource per drive</strong>, one Director <code>Storage</code> resource per
+Device, Device <code>MaximumConcurrentJobs = 1</code> (keep the default — it is what makes block interleaving
+on WORM structurally impossible), Director/Client MCJ = drives + margin, <code>AllowDuplicateJobs = yes</code>
+asserted rather than inherited, <code>RescheduleOnError = no</code> and <code>RescheduleTimes = 0</code> asserted (a
+reschedule writes a second copy of a fragment to WORM with our ledger unaware).</p>
+<p><strong>Zero-depth queueing.</strong> At most one outstanding job per Device. Our scheduler owns the standing
+intent queue, the coalescing window, wave formation and deadline ordering, and calls <code>run</code> only
+after it has decided which cartridge mounts next on which drive. Bareos's queue is then empty and
+its priority arbitration is unreachable code (<code>jobq.cc:455</code> guards on <code>!waiting_jobs-&gt;empty()</code>).
+<strong>Cost: no pipelining</strong> — the next mount cannot begin until the previous job terminates. That is a
+real drive-second tax on the conserved resource and it is <strong>rig item R-9</strong>.</p>
+<p><strong>The changer lock is ours to shape.</strong> <code>LockChanger</code> is held across the entire
+<code>RunProgramFullOutput</code> of the load command, plus the unload of the previously-loaded volume and of
+any other drive holding the wanted slot (<strong>[src]</strong> <code>autochanger.cc:194-287</code>). So per library, robot
+access serialises. <strong>Because we author <code>Changer Command</code> (R5), we control what is inside that
+lock</strong>: our script returns as soon as <code>mtx load</code> returns, and never waits for drive-ready. Then only
+the robot move serialises and the three load-to-ready waits overlap. If instead the lock spans
+load-to-ready, mount capacity becomes a scalar independent of drive count and the third drive per
+site stops paying for itself. <strong>This is the single most consequential scheduling measurement on the
+rig — R-8, and it runs first.</strong></p>
+<p><strong><code>Prefer Mounted Volumes</code> is a Director <em>Job</em> directive, default true</strong> (<strong>[src]</strong>
+<code>dird_conf.cc:336</code>), not an SD Device directive. Under one Pool per cartridge with one outstanding
+job per device it is inert; set it explicitly on evidence rather than inheriting it, and note the
+documented alternative (<code>no</code>) carries a vendor-acknowledged deadlock warning.</p>
+<p><strong>Timeouts.</strong> <code>MaximumChangerWait</code>, <code>MaximumOpenWait</code>, <code>MaximumRewindWait</code> all default to <strong>300 s</strong>
+(<strong>[src]</strong> <code>stored_conf.cc:182-187</code>) — longer than a mount, and Bareos's failure idiom under
+contention is to <em>block and ask an operator</em> at three unattended sites. Tune all three below one
+mount, and add our own <strong>submission watchdog</strong>: if a job has not reached a running state within
+<code>estWallP95</code>-derived bound, cancel it and synthesise the named refusal ourselves. Bareos will not
+produce <code>Refusal.retryAfterEpochMs</code>; we must.</p>
+<p><strong><code>Maximum File Size = 1073741824</code></strong>, set explicitly to align Bareos's filemark cadence to the
+parcel boundary (the default is already 1,000,000,000 — <strong>[src]</strong> <code>stored_conf.cc:191</code>). A filemark
+per parcel is <em>good</em> here: it is what makes <code>VolFile</code> positioning cheap.</p>
+<p><strong><code>AlwaysOpen</code></strong> defaults on, and <code>unmount</code> is a <strong>sticky administrative state</strong>. Mount/unmount
+state is scheduler-owned and journalled, with a crash-recovery pass that reconciles <code>status storage</code>
+against the journal on start; "device administratively unmounted with no open ticket" is a CRITICAL
+plant predicate, because nothing else will notice a self-inflicted one-third outage.</p>
+<p><strong>Obligation reserve by physical partition.</strong> Bareos cannot express a reserve as a <em>fraction</em> of
+drive-seconds, only as whole dedicated devices. At three drives per site the minimum expressible
+reserve is 33 % or nothing. So the reserve is enforced in our scheduler as a submission-rate
+invariant over a rolling window, with device pinning available as a coarse backstop. This must be
+stated, because a published reserve that is neither a fraction nor a device is a promise with no
+mechanism.</p>
+<hr />
+<h2 id="8-findings-resolution">8. Findings: resolution<a class="headerlink" href="#8-findings-resolution" title="Permanent link">&para;</a></h2>
+<p>Every FATAL and SERIOUS class raised across the four positions and twelve attacks.
+<strong>R</strong> resolved · <strong>A</strong> accepted cost · <strong>G</strong> gated on the rig · <strong>C</strong> the finding is factually wrong.</p>
+<h3 id="corrections-findings-refuted-from-source">Corrections — findings refuted from source<a class="headerlink" href="#corrections-findings-refuted-from-source" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Claim</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C-1</td>
+<td>Every block header carries a second-resolution write clock; 10⁷–10⁸ timestamps per cartridge; "one <code>#ifdef</code>" would not fix it</td>
+<td><strong>C.</strong> <code>VolSessionTime</code> is the SD <em>process start time</em>, constant for that SD run — <code>stored.cc:283</code>, <code>job.cc:133</code>. One value repeated, not a clock. The real timestamps are one per volume label and two per commit.</td>
+</tr>
+<tr>
+<td>C-2</td>
+<td>mhvtl stops at LTO-8/LTO-9, so nothing LTO-10-specific is testable</td>
+<td><strong>C.</strong> At <code>59f32ee</code>, <code>Media_LTO10</code> and <code>Media_LTO10P</code> are present (<code>usr/vtllib.c:1692-1693</code>), as are <code>PERSISTENT_RESERVE_IN/OUT</code> (<code>usr/spc.c:1034</code>), <code>READ_ATTRIBUTE</code> (<code>:1050</code>), <code>LOG SENSE</code> TAPE_CAPACITY page with live remaining-capacity (<code>usr/mhvtl_log.c:389-397, 703-715</code>), settable programmable early warning (<code>usr/mode.c:611-614</code>), WORM mode-page behaviour and SPIN/SPOUT (<code>usr/ssc.c:925-944</code>).</td>
+</tr>
+<tr>
+<td>C-3</td>
+<td><code>Prefer Mounted Volumes</code> is an SD Device directive</td>
+<td><strong>C.</strong> Director Job resource, default true — <code>dird_conf.cc:336</code>. The correction cuts <em>toward</em> Bareos: it is settable per dispatch.</td>
+</tr>
+<tr>
+<td>C-4</td>
+<td><code>append</code> cannot return a real address, so the write receipt collapses and crash loss grows ~150×</td>
+<td><strong>C.</strong> Superseded by <code>SPECIFICATION.md</code> §1.2(1): the locator is discovered at the barrier, never predicted. The crash unit is the fragment under both designs, and the cost is identical (§4). The finding is against the older document, not against Bareos.</td>
+</tr>
+<tr>
+<td>C-5</td>
+<td><code>bextract</code> cannot drive an autochanger, so an imported cartridge has no read path</td>
+<td><strong>C</strong>, and the true finding is worse: it <em>can</em> (<code>acquire.cc:334</code>), which makes it a second changer initiator. Resolved by never running it concurrently with the SD (§1). Import is handled by <code>bconsole</code> volume registration plus a bootstrap-record restore — <strong>rig item R-13</strong>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fatal-and-serious-resolved">Fatal and serious — resolved<a class="headerlink" href="#fatal-and-serious-resolved" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Finding</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F-A</td>
+<td>Crash mid-write orphans WORM bytes with no recoverable locator</td>
+<td><strong>R</strong> — one commit = one fragment; a locator that no <code>commit</code> returned does not exist; the orphan is charged as dead tape at 0.34 % of a cartridge. Identical to STELE's torn-tail cost.</td>
+</tr>
+<tr>
+<td>F-B</td>
+<td>The Bareos job is simultaneously the crash unit, the localisation unit, the batching unit and the overhead unit, and positions assumed opposite settings</td>
+<td><strong>R</strong> — the knob is set, once, at the fragment: 96 parcels + trailer, one job. Localisation is per-parcel by Merkle leaf, not per-job. Crash loss is one fragment. Batching is within the job.</td>
+</tr>
+<tr>
+<td>F-C</td>
+<td>Two changer initiators (<code>bextract</code> + SD, or a helper issuing <code>MOVE MEDIUM</code>)</td>
+<td><strong>R</strong> — exactly one changer initiator: <code>bareos-sd</code>. <code>gfs-probe</code>'s allowlist excludes <code>MOVE MEDIUM</code> and <code>READ</code>/<code>REPORT ELEMENT STATUS</code>. Inventory comes from <code>status slots</code>. <code>bextract</code> runs only against a released drive.</td>
+</tr>
+<tr>
+<td>F-D</td>
+<td>Changer serialisation converts the conserved resource from drive-seconds to changer-seconds</td>
+<td><strong>R, conditional on R-8</strong> — the lock spans our own changer script, which returns on robot-move completion. Measured first on the rig; if the shape is wrong, the third drive per site loses its justification and the plant arithmetic is re-derived.</td>
+</tr>
+<tr>
+<td>F-E</td>
+<td>Priority is unusable; a low-priority scrub blocks a deadline-bearing read on <em>idle</em> drives</td>
+<td><strong>R</strong> — uniform priority, <code>AllowMixedPriority = yes</code> everywhere, Bareos's scheduler declared unused, lanes enforced before submission (G-3).</td>
+</tr>
+<tr>
+<td>F-F</td>
+<td><code>bscan</code>-rebuildability and a plaintext on-media index are the same property, so adopting Bareos inverts risk row 17</td>
+<td><strong>R</strong> — tier 2 is ours and encrypted; <code>bscan</code> is demoted to last resort and its 20.8 h/cartridge price is published. The medium is self-describing <strong>to the key-holder</strong>, not to its possessor.</td>
+</tr>
+<tr>
+<td>F-G</td>
+<td>A content-addressed on-media filename is a confirmation oracle that survives the shred</td>
+<td><strong>R</strong> — CSPRNG nonce (§5, condition 1). Mover-independent; applies equally to LTFS and to the raw-SCSI design.</td>
+</tr>
+<tr>
+<td>F-H</td>
+<td>Bareos writes key material to the medium (FD PKI / <code>scsicrypto-sd</code>), creating a second custody domain at a blind holder</td>
+<td><strong>R</strong> — forbidden at <em>package</em> level, asserted by the plant predicate; <code>SECURITY PROTOCOL IN</code> read back by <code>gfs-probe</code>. Consistent with <code>SPECIFICATION.md</code> §6.1, row "Bareos PKI data encryption; drive encryption (<code>scsicrypto</code> / library-managed) → <strong>OFF</strong>, asserted by read-back" <em>(citation corrected 2026-09-19: there is no §5.7)</em>.</td>
+</tr>
+<tr>
+<td>F-I</td>
+<td>The shipped <code>BackupCatalog</code> job puts the whole plaintext catalogue on WORM</td>
+<td><strong>R</strong> — resource deleted, and a <code>bextract</code> of every file record is part of the pre-flight diff, not just a label dump.</td>
+</tr>
+<tr>
+<td>F-J</td>
+<td>Shipped FileSets set <code>Signature</code>, creating a second unerasable integrity domain</td>
+<td><strong>R</strong> — absent from every FileSet; build lint over the config tree; never start from a shipped example.</td>
+</tr>
+<tr>
+<td>F-K</td>
+<td>Pruning/recycling can purge a volume we consider durable, and the protection is a config string</td>
+<td><strong>R, with the honest caveat</strong> — <code>Recycle = no</code>, <code>AutoPrune = no</code>, infinite retention, <code>Maximum Volumes = 1</code>, asserted at startup. <strong>WORM is the only capability-level backstop</strong>, and it is why the durable path is WORM-only.</td>
+</tr>
+<tr>
+<td>F-L</td>
+<td>End-of-medium spans to the next volume, splitting a fragment</td>
+<td><strong>R</strong> — <code>Maximum Volumes = 1</code> means there is nothing to span to; <code>Maximum Volume Bytes</code> set below measured capacity as a backstop; <code>gfs-probe</code> reads <code>LOG SENSE</code> 0x31 between jobs and the scheduler refuses to open a fragment that will not fit (<code>SPECIFICATION.md</code> §3.1 — "every parcel is exactly <code>PARCEL_BYTES = 1073741824</code> … enforced as a hard refusal in <code>append</code>" — with §3.2's short-band rule, "a band shorter than full gets <code>j =</code> its actual data-parcel count"; <em>citation corrected 2026-09-19: there is no §5.7</em>; pad, never truncate); <code>PrevVolumeName</code> empty is asserted after every commit.</td>
+</tr>
+<tr>
+<td>F-M</td>
+<td>TapeAlert has three racing readers; <code>Alert Command</code> fires after device release so flags cannot be attributed to a (cartridge, drive) pair</td>
+<td><strong>R</strong> — exactly one reader: <code>gfs-probe</code>, between jobs, with the cartridge identity the scheduler already knows. <code>Drive Tape Alert Enabled</code> off and the plugin not installed. Writes straight into the <code>(drive, medium)</code> fault histogram of <code>SPECIFICATION.md</code> §5.3.</td>
+</tr>
+<tr>
+<td>F-N</td>
+<td><code>cancel</code> has no defined post-condition; the SD may hold a drive our scheduler believes free</td>
+<td><strong>R</strong> — <code>cancelPostcondition = TERMINATE_ONLY</code> is declared; the adapter implements cancel as terminate → poll to terminal → hash staging → <code>release storage</code> → re-inventory, and verifies release before re-scheduling.</td>
+</tr>
+<tr>
+<td>F-O</td>
+<td>No push channel; <code>Ticket</code> state and the projected window are inferred from polled log text</td>
+<td><strong>R</strong> — <code>RunScript</code> with <code>RunsWhen = Before/After</code> (Director-side, no plugin, licensing-clean) pushes job-start and job-end edges. <code>MOUNTING → STREAMING</code> stays inferred and is declared so. <code>queuePosition</code> is <strong>our</strong> pre-submission position and says nothing about Bareos.</td>
+</tr>
+<tr>
+<td>F-P</td>
+<td>Version skew: fault classification is string-matching an unversioned surface on a daemon we must patch and may not modify</td>
+<td><strong>R</strong> — <code>versionPin</code> in the capability surface; the adapter refuses to start on a mismatch; a contract test per parsed command and per matched log string runs in CI against the rig; upgrades are scheduled plant maintenance, per site, never two sites in one window if cartridges move between them.</td>
+</tr>
+<tr>
+<td>F-Q</td>
+<td>Export/reimport double-counts durability credit and has no epoch reconciliation</td>
+<td><strong>R</strong> — import is a <strong>reconciliation, never a restoration</strong>: every fragment enters <code>PRESENT_CLAIMED</code>, is diffed against current placement, and a fragment whose stripe was repaired during transit is admitted as a redundant copy carrying <strong>no</strong> durability credit. Custody travels in MAM where writable, else in the sealed trailer. No object's independent-copy count may exceed its distinct-stripe count.</td>
+</tr>
+<tr>
+<td>F-R</td>
+<td>The plant's failure idiom is "ask the operator"; waiting-on-storage maps to a state the caller reads as progress</td>
+<td><strong>R</strong> — <code>MaxRunTime</code>/<code>MaxWaitTime</code> on every Job, the submission watchdog, and waiting-on-storage maps to <code>PLANT_DEGRADED</code>, never <code>MOUNTING</code>.</td>
+</tr>
+<tr>
+<td>F-S</td>
+<td>Bareos's catalogue is in the mount path although the posture calls it derived</td>
+<td><strong>R</strong> — stated explicitly: derived in content, load-bearing in availability; sized, tuned and health-checked as a plant-critical component (§4).</td>
+</tr>
+<tr>
+<td>F-T</td>
+<td><code>run</code> is not idempotent; a lost JobId after submission leaves an orphan that could duplicate a fragment on WORM</td>
+<td><strong>R</strong> — a scheduler-generated ticket id goes in the job <code>Comment</code>, and crash reconciliation scans <code>list jobs</code> by that key, never by time. An ambiguous <code>run</code> is never retried before a scan.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="accepted-costs">Accepted costs<a class="headerlink" href="#accepted-costs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>A-α — We do not own the retry policy.</strong> Risk row 12 is surrendered; local-parity reconstruction
+  moves from <em>during the pass</em> to <em>after the error</em>, at one extra mount in the rare case.</li>
+<li><strong>A-β — Permanent second-resolution commit time on unerasable media</strong>, in binary and as an ASCII
+  date. Waives a declared non-negotiable. <strong>Requires the constraint holder's explicit sign-off</strong>
+  (§5).</li>
+<li><strong>A-γ — No RAO.</strong> Mitigated by contiguity, recorded as a costed trade.</li>
+<li><strong>A-δ — Zero-depth queueing forfeits pipelining.</strong> Precision over <strong>GB per drive-hour</strong>, chosen
+  deliberately; the tax is the inter-job dead time charged against a <strong>78,840 drive-hour
+  plant-year</strong>, measured at R-9 and re-opened if it is large. <em>(RESTATED 2026-09-19: this line
+  previously read "precision over </em><em>utilisation</em><em>", which concedes something that is not a good —
+  utilisation is an inverted objective, and the reactive plant shows higher utilisation precisely
+  because it burns drive-seconds on mounts; <code>eval/results/plant_sim.json</code>.)</em></li>
+<li><strong>A-ε — Three processes plus a database, not one.</strong> The architecture is less tidy than
+  "<code>gfs-mover</code> is one process", and the operational surface is four services per site with their own
+  config languages, TLS and upgrade cadence.</li>
+<li><strong>A-ζ — Fifty-institution deployment exports an AGPL compliance posture</strong> we can specify but not
+  enforce on sovereign partner sysadmins. Bound it where it can be bound: distribution packages
+  only, no source trees on plant hosts, drift is a compliance event.</li>
+<li><strong>A-η — <code>st_ino</code> is unpinnable</strong>, and the pool-per-cartridge design means ~94 Director config
+  resources per site with reloads contending against multi-hour jobs (<strong>R-12</strong>).</li>
+</ul>
+<h3 id="gated">Gated<a class="headerlink" href="#gated" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>G-α — Single-host-per-changer</strong> replaces Persistent Reserve. The STONITH procedure is owed
+  before any two-host site exists.</li>
+<li><strong>G-β — MAM write</strong> (G-7), gated on R-14.</li>
+<li><strong>G-γ — The drive-ready placement in the changer lock</strong> (F-D), gated on R-8.</li>
+</ul>
+<hr />
+<h2 id="9-the-test-plan">9. The test plan<a class="headerlink" href="#9-the-test-plan" title="Permanent link">&para;</a></h2>
+<h3 id="the-prerequisite-which-is-the-long-pole">The prerequisite, which is the long pole<a class="headerlink" href="#the-prerequisite-which-is-the-long-pole" title="Permanent link">&para;</a></h3>
+<p><strong>One dedicated x86-64 Linux host with root and ~2 TB of scratch.</strong> mhvtl is an out-of-tree kernel
+module needing matching kernel headers and a rebuild on every kernel update. The development machine
+is macOS; the full-tunnel VPN hijacks the vmnet subnet, so local VMs are not a reliable fallback; and
+the DGX cluster is SLURM with no root and no kernel-module rights. <strong>Ask for the host now, not when
+tape hardware is ordered.</strong> mhvtl also ships a TCMU transport (<code>usr/transport_tcmu.c</code>) which relies
+on in-tree <code>target_core_user</code> rather than an out-of-tree module — try that first, as it removes the
+kernel-module build from the critical path.</p>
+<p><strong>Rig as code from day one:</strong> a repo with the pinned kernel, the pinned mhvtl commit, the pinned
+Bareos version, the library definition and the whole Bareos configuration, rebuildable from nothing
+by one script. Cartridge backing files are regenerated, never preserved. Named owner. The suite runs
+in CI on every adapter commit, so a broken rig fails a build instead of quietly ceasing to produce
+evidence.</p>
+<h3 id="order">Order<a class="headerlink" href="#order" title="Permanent link">&para;</a></h3>
+<p><strong>B0 — today, on macOS, no Linux, no Bareos: <code>SimVolume</code> and the fault injector.</strong>
+Implement the §2 contract over a directory tree and move the fault injector <em>to the mover boundary</em>.
+This is the single best change available this week and it is true regardless of the Bareos decision:
+today the fake lives <em>inside</em> the binding (<code>SimTapeBinding</code> + <code>FakeDrive</code>), so simulation and
+reality differ at a seam that is not the seam anything will later swap, and every result is evidence
+about a code path that gets replaced. At the mover boundary, the simulated and real plants differ in
+exactly one component.</p>
+<p>Inject mounts at the four-term cycle <code>O = 265 s</code> <em>(2026-09-19: was 90 s — <code>SPECIFICATION.md</code> §3.4
+identifies the single-term 90 s figure as the error every candidate design made, and <code>O</code> is the
+highest-leverage unmeasured constant in the programme)</em>, 40 s repositions, medium errors at a
+position, deferred errors, torn tails,
+short writes, unit attention mid-sweep, early warning mid-fragment. Add the two cases nothing
+currently tests: <strong>a degrading drive</strong> (rising error counters, a TapeAlert flag on one drive and not
+another for the same cartridge, sustained rate falling through the speed-matching floor) and
+<strong>contention</strong> (three drives, three lanes, a deadline-bearing read arriving behind a 20-hour scrub),
+run against <strong>two dispatchers behind the same contract</strong> — one ideal, one with Bareos semantics
+(single priority band, monotonic-forward ordering, four concurrency caps, job-granular cancel, no
+cross-job coalescing). Measure <strong>GB per drive-hour (headline)</strong>, bytes-per-mount, deadline miss rate, obligation drive-seconds
+delivered, and time-to-first-byte behind a running scrub.</p>
+<p><strong>Baseline to beat, from the plant simulation (2026-09-19, <code>eval/results/plant_sim.json</code>): 653.3
+GB/drive-hour and 111.1 GB/mount on a clustered workload with batching and media-ordering; 172.3 and
+13.3 scattered; 68.1 and 4.0 for a reactive dispatcher.</strong> A Bareos-shaped dispatcher that lands near
+the reactive figures <strong>has failed even if every job completes</strong>. Note the simulation's own limits,
+which are exactly what this rig exists to cover: it models <strong>retrieval only — no write path, no
+scrub, repack or repair contention</strong>, its cartridge assignment is synthetic, and its mount cost is
+Gaussian about 90 s against a reported bimodal 60–120 s and against <code>SPECIFICATION.md</code> §3.4's
+<code>O = 265 s</code>. <strong>Scrub-versus-deadline contention is first observed on this rig, not in the
+simulation.</strong></p>
+<p><em>Proves:</em> the contract is implementable; the scheduler degrades explicitly; whether Bareos-shaped
+dispatch costs us anything we care about — <strong>before the hardware request</strong>, on the machine we have.</p>
+<p><strong>B1 — half a day on the Linux host: mhvtl alone, by hand, no Bareos.</strong>
+<code>sg_inq</code>, <code>sg_logs</code>, <code>mtx status</code>, <code>mt status</code>. Establish what the emulator actually does before
+either adapter depends on it. <em>Proves:</em> which of the twenty risk rows the rig can exercise at all.</p>
+<p><strong>B2 — Bareos ≥ 23.1.0 plus mhvtl.</strong> One library, three drives, ~20 slots, one WORM cartridge and
+one rewritable, one Pool per cartridge, opaque everything. Run R-1 through R-14 below, <strong>in that
+order</strong> — R-1, R-8 and R-2 first, because each can kill the design.</p>
+<p><strong>B3 — the differential.</strong> Corrupt one block in a backing file. Read with the Bareos adapter and
+with <code>gfs-probe</code> + <code>bls</code>. Record where Bareos, our adapter and mhvtl <strong>disagree about what the device
+did</strong>; any disagreement means one of the three is wrong, and that is the finding. This is the only
+experiment in the programme that extracts signal about mhvtl from mhvtl.</p>
+<h3 id="what-mhvtl-validates-and-what-it-does-not">What mhvtl validates, and what it does not<a class="headerlink" href="#what-mhvtl-validates-and-what-it-does-not" title="Permanent link">&para;</a></h3>
+<p><strong>Validates:</strong> command grammar and framing; positioning arithmetic; the changer state machine; the
+volume and session label bytes (the entire §5 disclosure contract, at byte level); the
+bootstrap-record synthesis and catalogue-free read; <code>bscan</code> round-trip and <code>VolSessionId</code>/
+<code>VolSessionTime</code> survival; our recovery logic; Bareos configuration behaviour under contention;
+Persistent Reserve semantics (present in <code>usr/spc.c</code>, so the fencing question is at least
+<em>shaped</em> on the rig even though we do not use PR in production); programmable early warning as a
+settable value; WORM mode-page behaviour.</p>
+<p><strong>Does not validate, and cannot:</strong> deferred write errors (sense response 71h/73h attributed to no
+command); <code>pos_unknown</code> after a bus reset; real backhitch and shoe-shining; <strong>WORM <em>firmware</em>
+enforcement</strong> as opposed to an emulator flag; vendor-specific sense; the achievable <code>PEWS</code> maximum
+on the procured drive; <code>WRITE ATTRIBUTE</code> (undispatched in mhvtl); the LTO-9/10 first-load media
+initialisation (40 min–2 h, which exceeds every Bareos timeout); and — most importantly — <strong>anything
+about time</strong>. mhvtl has no tape; it has a file. <strong>No number from this rig belongs in the cost
+model.</strong> <code>A-2</code> ("every tape <code>estWall</code> is a declared guess until measured") is untouched by everything
+above, and every <code>estWall</code> stays <code>basis: MODELLED</code> until real hardware.</p>
+<p><strong>Is mhvtl-alone-against-our-own-SCSI the better rig?</strong> It would test more of the twenty-row risk
+register — but under this decision we are not writing the code those rows describe, so there is
+nothing to test. The comparison is moot, and that is itself a mark in favour of the decision: a rig
+is worth what it tests of the thing we will keep, and behind Bareos it exercises our scheduler, our
+locator, our staging, our ledger, our disclosure contract and our reconciliation against an
+independently written initiator that does not share our reading of the SCSI spec.</p>
+<p><strong>The hardware gate is unchanged.</strong> No WORM cartridge is written until a real drive passes on
+rewritable media, with an independently written reference reader opening the result <strong>on a different
+drive</strong>.</p>
+<hr />
+<h2 id="10-rig-checklist-what-must-be-true-before-we-commit">10. Rig checklist — what must be true before we commit<a class="headerlink" href="#10-rig-checklist-what-must-be-true-before-we-commit" title="Permanent link">&para;</a></h2>
+<p>Each is a falsifiable statement. A <strong>NO</strong> on R-1, R-2 or R-8 re-opens the decision.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Statement</th>
+<th>Kills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R-1</strong></td>
+<td>A job can be bound to one named cartridge non-racily via one Pool with one Media row, <code>Maximum Volumes = 1</code> and <code>Maximum Volume Jobs</code> unset; and with the target volume set <code>Used</code>, <code>Full</code>, <code>Error</code> and absent in turn, <strong>the job fails rather than improvising</strong> (no Scratch pull, no auto-label, no recycle).</td>
+<td>the whole mapping</td>
+</tr>
+<tr>
+<td><strong>R-2</strong></td>
+<td><code>bls -v</code> and a <code>bextract</code> of every file record on a written cartridge, diffed against a literal allowlist, show <strong>no field we did not intend</strong> — and <code>HostName</code>, the <code>Job</code> date string, <code>write_btime</code>, <code>PrevVolumeName</code> and the 13 <code>stat</code> fields read exactly as §5 predicts.</td>
+<td>the disclosure contract</td>
+</tr>
+<tr>
+<td><strong>R-3</strong></td>
+<td>A bootstrap record synthesised <strong>from our own session-join record alone</strong>, with the Bareos catalogue dropped entirely, restores the fragment via <code>bextract</code>; every parcel rehashes; the Merkle root matches.</td>
+<td>tier-2 independence</td>
+</tr>
+<tr>
+<td><strong>R-4</strong></td>
+<td><code>bscan</code> into an empty catalogue preserves <code>VolSessionId</code> and <code>VolSessionTime</code> <strong>exactly</strong>, while renumbering <code>JobId</code>.</td>
+<td>the locator keying rule</td>
+</tr>
+<tr>
+<td><strong>R-5</strong></td>
+<td>A WORM cartridge labels correctly on this Bareos version, in one write, and a second label attempt is refused by the drive rather than wedging the cartridge.</td>
+<td>WORM operation</td>
+</tr>
+<tr>
+<td><strong>R-6</strong></td>
+<td>With compression off and CSPRNG padding, media bytes consumed per fragment are deterministic and equal to <code>96 × PARCEL_BYTES</code> plus framing, across ten fragments.</td>
+<td>capacity accounting</td>
+</tr>
+<tr>
+<td><strong>R-7</strong></td>
+<td><code>VolSessionTime</code> is identical in every block header and every session label written by one SD run, and changes only when the SD restarts.</td>
+<td>confirms C-1</td>
+</tr>
+<tr>
+<td><strong>R-8</strong></td>
+<td>With our own <code>Changer Command</code>, three simultaneous mounts on three drives from three distinct cartridges reach STREAMING in <strong>materially less</strong> than three times the single-mount wall clock.</td>
+<td>the third drive per site</td>
+</tr>
+<tr>
+<td><strong>R-9</strong></td>
+<td>Inter-job dead time at queue depth 1 — from job <em>N</em> reaching <code>T</code> to job <em>N+1</em> issuing its first robot command — is small relative to a mount.</td>
+<td>zero-depth queueing</td>
+</tr>
+<tr>
+<td><strong>R-10</strong></td>
+<td>Three jobs submitted at once against three Storage resources actually run at once (<code>status director</code>), with all four concurrency counters raised.</td>
+<td>the concurrency config</td>
+</tr>
+<tr>
+<td><strong>R-11</strong></td>
+<td>Staging write amplification and throughput through the FD→SD socket at the parcel rate are within budget, with <code>Spool Data</code> explicitly decided and measured both ways.</td>
+<td>A-1 / the licence tax</td>
+</tr>
+<tr>
+<td><strong>R-12</strong></td>
+<td><code>configure add</code> of the 250th Pool plus a Director reload is safe <strong>while a multi-hour job is running</strong>.</td>
+<td>cartridge commissioning</td>
+</tr>
+<tr>
+<td><strong>R-13</strong></td>
+<td>A cartridge this Director never wrote can be adopted — volume registration through <code>bconsole</code>, <code>update slots</code>, then a bootstrap-record restore — <strong>without <code>label</code></strong>, and without a second changer initiator.</td>
+<td>export/import (S-26)</td>
+</tr>
+<tr>
+<td><strong>R-14</strong></td>
+<td><code>gfs-probe</code> can issue <code>LOG SENSE</code> 0x31, <code>MODE SENSE</code>, <code>SECURITY PROTOCOL IN</code> and <code>READ</code>/<code>WRITE ATTRIBUTE</code> on <code>/dev/sg*</code> <strong>between jobs</strong>, and receives valid data; and TapeAlert flags reach exactly one consumer.</td>
+<td>G-5, G-7, F-M</td>
+</tr>
+<tr>
+<td><strong>R-15</strong></td>
+<td>Killing <code>bareos-sd</code> mid-job leaves a state our adapter classifies correctly: either locators exist and verify, or the fragment does not exist and its media is charged as dead tape. <strong>Zero unaccounted bytes.</strong></td>
+<td>F-A</td>
+</tr>
+<tr>
+<td><strong>R-16</strong></td>
+<td>A read failure at a known position is attributed to exactly one parcel ordinal by Merkle leaf, independent of anything Bareos reports.</td>
+<td>G-5</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-open-questions-for-the-owner">11. Open questions for the owner<a class="headerlink" href="#11-open-questions-for-the-owner" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Sign-off on A-β.</strong> Second-resolution commit time per fragment, permanent, on unerasable media,
+   in binary and as an ASCII date. This waives a condition previously declared non-negotiable. It is
+   a governance decision, not an engineering one, and it must be recorded before the first WORM
+   cartridge. The same decision applies to LTFS, so taking it once settles both.</li>
+<li><strong>The LTFS addendum.</strong> <code>TAPE-RESEARCH-PROMPT.md</code> (2026-09-19) recommends reversing the LTFS
+   rejection, for the same reason that carries most weight here — a standard discharges the
+   format-and-reader obligation. Bareos discharges it too, and more cheaply, because it needs no
+   vendor LE extension to work on WORM and no stale-until-eject index. <strong>If Bareos is adopted, the
+   LTFS addendum should be closed as superseded</strong>, with LTFS retained only as <code>Step 7</code>'s on-demand
+   export conversion. That should be stated explicitly rather than left as two live recommendations.</li>
+<li><strong>Single-host-per-changer.</strong> G-1 makes it a deployment rule. If any site will ever have two hosts
+   on one fabric, the STONITH procedure is owed now.</li>
+<li><strong>Counsel, on the three licensing questions in §6</strong>, before deployment and before the first
+   export — not before the rig.</li>
+</ol>
+<hr />
+<h2 id="12-normative-corrections-to-the-dependent-documents">12. Normative corrections to the dependent documents<a class="headerlink" href="#12-normative-corrections-to-the-dependent-documents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> §3/§4: <strong><code>append</code> returning a provisional ref with its real address
+  is superseded</strong> by <code>SPECIFICATION.md</code> §1.2(1). The locator is discovered at the barrier. F-8's
+  resolution changes accordingly.</li>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> §8 row 1: the 4 KiB plaintext symbol header carrying <em>extent id</em>,
+  <em>payload hash</em> and <em>write epoch</em> is <strong>superseded</strong> by <code>SPECIFICATION.md</code> <strong>§7.1's</strong> 24 cleartext bytes per parcel (<code>magic "STELE\0\2" | parcel ordinal u32 | flags u8 | crc32</code>), cross-referenced to §13.2's permanence inventory <em>(citation corrected 2026-09-19: there is no §5.5)</em>.
+  The superseded form carries the confirmation-oracle defect of §5 condition 1 in our <em>own</em> format,
+  and it is the reason that correction is mover-independent.</li>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> §1, §8 row 20, §10 Step 5 and Step 6: <strong><code>gfs-mover</code> is deleted</strong>,
+  along with rows 2–9, 11, 15, 16 and 20, which become <em>configure and assert</em>. Step 5 and Step 6 are
+  replaced by §9 above. <code>gfs-probe</code> and its five-opcode allowlist replace the fourteen-opcode one.</li>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> §10 Step 4: the fault injector moves from inside <code>SimTapeBinding</code>
+  to the <code>VolumeMover</code> boundary.</li>
+<li><code>TAPE-RESEARCH-PROMPT.md</code> Addendum: see §11.2.</li>
+</ul>
+<p><strong>Added 2026-09-19, from the cross-document coherence pass — corrections this list did not previously carry:</strong></p>
+<ul>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> <strong>§6 fencing item 1</strong> was missed entirely by this list. It rests the
+  whole fencing hierarchy on SCSI Persistent Reserve, which §1 here makes unreachable and
+  <code>SPECIFICATION.md</code> §2.3 lists under <em>Deleted outright</em>, and items 2–4 are all keyed to it.
+  Authority becomes operational — one changer initiator (<code>bareos-sd</code>, F-C) and one submitter to the
+  Director — and <strong>multi-host fencing becomes an open hole</strong> (§11.3 above says the STONITH procedure
+  "is owed now"; it exists in no document).</li>
+<li><code>SPECIFICATION.md</code> <strong>§5.2 and the §17 conformance checklist</strong> both still said "<code>append</code> returns the
+  real ordinal immediately", contradicting this document's §2 barrier and that document's own §1.2(1)
+  and §4. The correction above was aimed only at <code>STORAGE-BINDINGS-DECISION.md</code> §3/§4 and missed that
+  <code>SPECIFICATION.md</code> carries the same construct in its own normative SPI. Corrected there.</li>
+<li><code>STORAGE-BINDINGS-DECISION.md</code> <strong>§8 row 15's <code>commission(barcode)</code></strong> is deleted with <code>gfs-mover</code>,
+  which leaves <code>SPECIFICATION.md</code> §5.4's <strong>WORM-status-at-commissioning read unassigned</strong>. Bareos
+  commissioning is <code>label barcodes</code> and reads no WORM status; <code>gfs-probe</code>'s <code>MODE SENSE</code> makes the
+  read possible but nothing owns it.</li>
+<li><strong>Citations into <code>SPECIFICATION.md</code> §5.5, §5.6 and §5.7 were phantoms</strong> — that document's §5
+  contains only §5.1–§5.4. All four such citations in this file are retargeted above (§2.3 + §15,
+  §7.1, §6.1, §3.1/§3.2).</li>
+<li><strong>"STELE's eleven block-plane calls" was wrong</strong>; there are ten. Corrected in §2.</li>
+</ul>
+<hr />
+<h2 id="13-the-disclosure-inventory-read-from-source-2026-09-19">13. The disclosure inventory, read from source (2026-09-19)<a class="headerlink" href="#13-the-disclosure-inventory-read-from-source-2026-09-19" title="Permanent link">&para;</a></h2>
+<p>Verified against <code>bareos/bareos</code> cloned on a DGX node, <code>core/src/stored/label.cc</code>. <strong>The disclosure
+is materially larger than §3's G-8 stated</strong>, which named only commit time. <code>CreateVolumeLabel</code> and
+the session label together serialise the following <em>in the clear</em> onto the medium.</p>
+<p><strong>Volume label, once per volume</strong> — <code>label.cc:481-504</code>:</p>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>line</th>
+<th>controllable?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Id</code>, <code>VerNum</code></td>
+<td>481, 483</td>
+<td>no — Bareos's own format identity</td>
+</tr>
+<tr>
+<td><strong><code>label_btime</code></strong></td>
+<td>487</td>
+<td><strong>no</strong></td>
+</tr>
+<tr>
+<td><strong><code>write_btime</code></strong></td>
+<td>489</td>
+<td><strong>no</strong></td>
+</tr>
+<tr>
+<td><code>VolumeName</code>, <code>PrevVolumeName</code></td>
+<td>495-496</td>
+<td><strong>yes</strong> — make opaque</td>
+</tr>
+<tr>
+<td><code>PoolName</code>, <code>PoolType</code>, <code>MediaType</code></td>
+<td>497-499</td>
+<td><strong>yes</strong> — make opaque</td>
+</tr>
+<tr>
+<td><strong><code>HostName</code></strong></td>
+<td>501</td>
+<td>partly — the writing host's name; settable per deployment</td>
+</tr>
+<tr>
+<td><code>LabelProg</code>, <code>ProgVersion</code>, <code>ProgDate</code></td>
+<td>502-504</td>
+<td>no — Bareos's identity and build date</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Session label, once per job session</strong> — <code>label.cc:575-604</code>:</p>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>line</th>
+<th>controllable?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BareosId</code>, <code>BareosTapeVersion</code></td>
+<td>575-576</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>JobId</code></td>
+<td>579</td>
+<td>no — a monotonic counter, leaks ordering and volume</td>
+</tr>
+<tr>
+<td><strong>commit time</strong> <code>SerBtime(GetCurrentBtime())</code></td>
+<td>582</td>
+<td><strong>no</strong></td>
+</tr>
+<tr>
+<td><code>pool_name</code>, <code>pool_type</code></td>
+<td>585-586</td>
+<td>yes — make opaque</td>
+</tr>
+<tr>
+<td><code>job_name</code> (base)</td>
+<td>587</td>
+<td>yes — make opaque</td>
+</tr>
+<tr>
+<td><strong><code>client_name</code></strong></td>
+<td>588</td>
+<td>yes — <strong>but see below</strong></td>
+</tr>
+<tr>
+<td><code>jcr-&gt;Job</code> — composed with <code>%Y-%m-%d_%H.%M.%S</code> (<code>dird/job.cc:1506</code>)</td>
+<td>591</td>
+<td>no — carries a second timestamp</td>
+</tr>
+<tr>
+<td><strong><code>fileset_name</code></strong></td>
+<td>592</td>
+<td>yes — make opaque</td>
+</tr>
+<tr>
+<td><code>JobType</code>, <code>JobLevel</code></td>
+<td>593-594</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong><code>fileset_md5</code></strong></td>
+<td>596</td>
+<td>no — a digest of the fileset definition</td>
+</tr>
+<tr>
+<td><code>JobFiles</code>, <code>JobBytes</code>, Start/End Block, Start/End File</td>
+<td>599-604</td>
+<td>no — leaks parcel count and volume shape</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This applies to file devices identically.</strong> <code>WriteNewVolumeLabelToDev</code> calls <code>CreateVolumeLabel</code>
+unconditionally (<code>label.cc:388</code>); the <code>IsTape()</code> branches at 348 and 361 concern open mode and
+rewind, not label content. So a file-backed rig reproduces the on-media disclosure exactly, and the
+question is testable without tape hardware.</p>
+<h3 id="what-this-changes">What this changes<a class="headerlink" href="#what-this-changes" title="Permanent link">&para;</a></h3>
+<p>The mitigable fields are all <em>strings we choose</em> — volume, pool, job, fileset and client names — and
+the four LTFS-era conditions apply unchanged: make them opaque, content-addressed, carrying no
+dataset, project, subject, modality or institution.</p>
+<p><strong><code>client_name</code> is the one that escalates this from a privacy nuisance to a governance problem.</strong> In
+a federation of independent institutions under a data-use agreement, the client is the <em>contributing
+institution</em>. Written in the clear to unerasable media, it is permanent institutional attribution
+that survives every crypto-shred — the fact that institution X contributed to this cartridge cannot
+be withdrawn. It must be opaque from the first label written, because a cartridge labelled otherwise
+is not correctable.</p>
+<p><strong>The irreducible residue, after every mitigation:</strong></p>
+<ol>
+<li><code>label_btime</code> and <code>write_btime</code> on each volume;</li>
+<li>a commit timestamp in every session label, plus a second inside <code>jcr-&gt;Job</code>;</li>
+<li><code>HostName</code> of the writing host (reducible to an opaque name by deployment, not by configuration);</li>
+<li>Bareos's own version and build date;</li>
+<li><code>fileset_md5</code>, a digest of the fileset definition;</li>
+<li><code>JobFiles</code>, <code>JobBytes</code> and block extents — the parcel count and shape of each write.</li>
+</ol>
+<p>Items 1, 2 and 6 are the ones that matter. Fixed-size padded parcels quantise 6 to little. <strong>Nothing
+reduces 1 and 2</strong>: commit time reaches WORM in the clear, correlates with acquisition time for
+clinical data, and survives the erasure it documents. That is the sign-off, and it is now specified
+precisely enough to be signed off or refused.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

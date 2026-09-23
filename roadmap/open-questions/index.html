@@ -1,0 +1,2734 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/roadmap/open-questions/">
+      
+      
+        <link rel="prev" href="../decisions/">
+      
+      
+        <link rel="next" href="../../design/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Open questions - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gfs-open-questions-for-the-owner" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Open questions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to use this
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose and scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hardware-and-procurement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Hardware and procurement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architecture-the-one-placement-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architecture — the one placement engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-redundancy-and-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Redundancy and distribution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-data-model-and-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Data model and versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-deletion-retention-and-repack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Deletion, retention and repack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-security-and-cryptography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Security and cryptography
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-panatlas-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. panAtlas integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-tape-binding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The tape binding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-other-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Other bindings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-the-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. The agent interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-filerepo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. filerepo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-measurements-who-runs-them-and-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Measurements — who runs them and when
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-licensing-and-legal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Licensing and legal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Process
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../design/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to use this
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose and scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hardware-and-procurement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Hardware and procurement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architecture-the-one-placement-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architecture — the one placement engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-redundancy-and-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Redundancy and distribution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-data-model-and-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Data model and versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-deletion-retention-and-repack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Deletion, retention and repack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-security-and-cryptography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Security and cryptography
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-panatlas-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. panAtlas integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-tape-binding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The tape binding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-other-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Other bindings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-the-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. The agent interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-filerepo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. filerepo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-measurements-who-runs-them-and-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Measurements — who runs them and when
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-licensing-and-legal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Licensing and legal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Process
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition info">
+<p class="admonition-title">Answer by id</p>
+<p>Every decision the owner still needs to make, with a priority and, where one exists, a recommendation. Source: <code>GaiaKeep/gfs</code> <code>docs/OPEN-QUESTIONS.md</code>.</p>
+</div>
+<h1 id="gfs-open-questions-for-the-owner">GFS — Open Questions for the Owner<a class="headerlink" href="#gfs-open-questions-for-the-owner" title="Permanent link">&para;</a></h1>
+<p><em>Compiled 2026-09-23 from the design record (<code>SPECIFICATION.md</code>, <code>STORAGE-BINDINGS-DECISION.md</code>,
+<code>STORAGE-DIRECTION.md</code>, <code>ENTAIL-AGENT-NATIVE-FS.md</code>, <code>FROM-SCRATCH-DECISION.md</code>) and the decisions
+made in conversation through commit <code>fc5d81b</code>.</em></p>
+<h2 id="how-to-use-this">How to use this<a class="headerlink" href="#how-to-use-this" title="Permanent link">&para;</a></h2>
+<p>Answer by ID (e.g. "T3: March", "H7: PA unless WORM is LA-only"). Where I have a recommendation it
+is marked <strong>Rec</strong>; accepting it is a valid answer. "Don't know yet" is a useful answer too — it tells
+me to build the decision as a parameter rather than a constant.</p>
+<p><strong>Priority</strong></p>
+<ul>
+<li><strong>[NOW]</strong> — blocks work I would otherwise start this week.</li>
+<li><strong>[BEFORE MEDIA]</strong> — must be settled before the first cartridge or disk is written. These are
+  one-way doors: the on-media format and identifiers cannot change afterward.</li>
+<li><strong>[BEFORE PROD]</strong> — must be settled before real data or a second institution is involved.</li>
+<li><strong>[LATER]</strong> — worth knowing, costs nothing to defer.</li>
+</ul>
+<p><strong>What is already decided</strong> (listed so you can overturn anything here too):
+3-way replication across 3 sites now, erasure coding later via repack · Bareos out (AGPL) ·
+tape is one binding among several, placement is media-neutral · WORM is per-cohort, not
+plant-wide · repack is in scope · GCM counter discipline (<code>SegmentCipher</code>) · panAtlas <code>doc_uid</code> is
+payload-only, never on-media structure · durability barrier is measured and fails closed · Stack
+before Cube · permissive licences only.</p>
+<hr />
+<h2 id="1-purpose-and-scope">1. Purpose and scope<a class="headerlink" href="#1-purpose-and-scope" title="Permanent link">&para;</a></h2>
+<p><strong>P1 [NOW] — Who are the first real consumers, by name?</strong> "Agents" covers the KOS training
+pipeline, panAtlas coverage/decontam jobs, the Astral agent skills, PRIMED-AI validation
+workloads, and future external agents. The first two or three decide which verb gets built first.</p>
+<p><strong>P2 [NOW] — What is the first dataset to go into it for real?</strong> Candidates: the panAtlas index
+estate (198 GB, small, well-understood), heartlens-ct3d-native (25.94 TB, 6.9 M files), the KOS
+V4/V5 corpora, model checkpoints. <strong>Rec:</strong> panAtlas index first — small, its sizes are measured,
+and it exercises identity, versioning and the doc_uid rule without needing a tape.</p>
+<p><strong>P3 [NOW] — Is the DGX copy retained after archiving, or deleted?</strong> This decides whether two
+tape sites is survivable (it is if the DGX copy stays) and whether tape is primary or backup.</p>
+<p><strong>P4 — Is this system the primary store for these datasets, or a durable tier behind the DGX
+filesystem?</strong> Primary means GFS must serve training-rate reads; tier means it only needs to
+materialise into the DGX.</p>
+<p><strong>P5 — Are humans ever consumers?</strong> You've said no. Confirm that means: no browsing UI, no FUSE
+mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
+tab) is still wanted for operators.</p>
+<p><strong>P6 — Are external institutions writers, readers, or only hosts?</strong> "Distribute around the state"
+could mean partner sites hold our ciphertext blindly, or that they also publish their own
+datasets into the fabric. The trust and tenancy model differs completely.</p>
+<p><strong>P7 — Is DoD/DoW deployment in scope for this system specifically?</strong> The zero-trust pivot made
+fail-closed and FIPS/CNSA mandatory for Cresco. Does GFS inherit every one of those requirements
+now, or only when it is fielded there?</p>
+<p><strong>P8 — Is GFS intended to become a product or open-source project others run?</strong> This decides how
+much effort goes into packaging, documentation of the on-media format, and licence hygiene.</p>
+<p><strong>P9 — What does "done" look like for phase one?</strong> A single sentence I can test against, e.g. "an
+agent can publish a versioned dataset, lose one site, and realise the exact version elsewhere."</p>
+<hr />
+<h2 id="2-timeline">2. Timeline<a class="headerlink" href="#2-timeline" title="Permanent link">&para;</a></h2>
+<p><strong>T1 [NOW] — Is there a hard date driving this?</strong> Upcoming deadlines in the atlas that could cite
+this system: PRIMED-AI Validation Center (2026-10-02), PRIMED-AI Playbook (2026-10-09),
+<strong>PRIMED-AI D2M-AIP (2026-10-19 — the atlas already names metadata provenance as its missing
+capability)</strong>, NSF AI Datasets and NSF AI Infrastructure Hubs (both 2026-11-04). Should GFS be
+demonstrable, or only describable, for any of these?</p>
+<p><strong>T2 [NOW] — When do you expect to place the hardware order?</strong> It sets how long I have to get the
+vendor answers (section 3) and whether the mount-cycle measurement can happen on a loaner first.</p>
+<p><strong>T3 — When should the first site be live with real data?</strong></p>
+<p><strong>T4 — When should all three sites be live?</strong></p>
+<p><strong>T5 — When do you want erasure coding to replace replication?</strong> Migration costs about three
+weeks of background drive time at 3 PB, so it can be scheduled; it does not have to be a project.
+Is it tied to a capacity threshold, a cost threshold, or a date?</p>
+<p><strong>T6 — How do you want me to pace the work?</strong> Options: (a) depth-first on one working end-to-end
+path, (b) breadth across all layers at design level, (c) whatever unblocks the grants first.
+<strong>Rec:</strong> (a) — nothing in the SPI is wired yet, and the bugs found this week were all in pieces
+that looked finished and had never run end to end.</p>
+<p><strong>T7 — Who else will work on this, and when?</strong> Students, staff, the concurrent editor on the
+felix-hygiene tree, partner-institution engineers? This decides how much I write down versus build.</p>
+<p><strong>T8 — Is there budget approved, and what is the ceiling?</strong> A number, or "unknown," is enough to
+size the first order.</p>
+<hr />
+<h2 id="3-hardware-and-procurement">3. Hardware and procurement<a class="headerlink" href="#3-hardware-and-procurement" title="Permanent link">&para;</a></h2>
+<p><strong>H1 [NOW] — Stack or Cube for the first purchase?</strong> You said you may start with a Stack.
+<strong>Rec:</strong> Stack, used as the instrument that measures the mount cycle, rewind, load/thread
+distribution and shoe-shine floor that every capacity figure depends on.</p>
+<p><strong>H2 [NOW] — Can you get Stack specifications?</strong> I need slots per module, drive bays per module,
+maximum modules, and <strong>whether one accessor serves the whole stack</strong>. The accessor turned out to be
+the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.</p>
+<p><strong>H3 — How many sites for phase one: 2 or 3?</strong> <strong>Rec:</strong> 3. Two cannot form a quorum for index
+commits. Two is survivable only if the DGX copy is retained (P3) and a witness is added (R4).</p>
+<p><strong>H4 — Which physical locations?</strong> UK campus buildings, partner institutions, colocation? Each
+must be a genuinely independent failure domain (power, network, building).</p>
+<p><strong>H5 — LTO-10 media: LA (30 TB) or PA (up to 40 TB)?</strong> <strong>Rec:</strong> PA, unless PA is not available as
+WORM for the cohorts that need it (see D3), or the premium exceeds 33 % and you stay under 132 PB.</p>
+<p><strong>H6 — Get from Spectra: guaranteed native decimal capacity of the PA part number</strong>, not "up to."
+At 36 TB instead of 40 the four-frame ceiling drops from 175 PB to 158 PB.</p>
+<p><strong>H7 — Is LTO-10 half-height offered?</strong> Their 32.4 TB/hr figure implies 30 HH drives at 300 MB/s;
+the user guide lists LTO-10 as full-height SAS only. Worth 1.41× aggregate if real.</p>
+<p><strong>H8 — Drives per site for phase one?</strong> <strong>Rec:</strong> 2–3. Ingest at a few PB/yr is under half a drive;
+the rest is recall concurrency, repair surge and a hot spare.</p>
+<p><strong>H9 — Is Capacity-on-Demand a licence key on installed chambers, or a field hardware install?</strong> If
+it is a key, buy small and license up. If it is hardware, the buy-small plan inverts.</p>
+<p><strong>H10 — Can drives be added after purchase?</strong></p>
+<p><strong>H11 — Can Spectra quote a minimal satellite unit (1–2 drives, 40–80 slots) as a rebuild target
+or fourth failure domain?</strong></p>
+<p><strong>H12 — The per-site host.</strong> I've sized it at a modest 1U: 8–16 cores, 64–128 GB, an HBA and
+2–4 TB NVMe spool. Do you have a standard server build, or should I spec one? Who buys it?</p>
+<p><strong>H13 — SAS direct, Fibre Channel, or Spectra Swarm 40 GbE between host and drives?</strong></p>
+<p><strong>H14 — Do you want spinning disk (JBOD) or NVMe capacity at each site in phase one, alongside
+tape?</strong> You said placement on JBOD is the same problem. If disk is present, a site can serve
+warm reads without a mount, and the "one offline copy of something that lives on disk" policy
+becomes expressible immediately.</p>
+<p><strong>H15 — Will you ask Spectra for the load/unload cycle rating in writing?</strong> Every media-life figure
+divides by an assumed 20,000 cycles with no vendor citation.</p>
+<p><strong>H16 — Will you ask about LTO-10 WORM availability and price premium for both LA and PA?</strong></p>
+<p><strong>H17 — Does the Stack/Cube support SCSI Persistent Reservation?</strong> Needed if more than one host
+ever talks to one library.</p>
+<p><strong>H18 — Do you want me to write the full vendor question list as a document you can send to
+Spectra?</strong> (21 questions exist in draft from the sizing workflow.)</p>
+<hr />
+<h2 id="4-architecture-the-one-placement-engine">4. Architecture — the one placement engine<a class="headerlink" href="#4-architecture-the-one-placement-engine" title="Permanent link">&para;</a></h2>
+<p><strong>A1 [NOW] — Adopt <code>LocusProfile</code> with a <code>Basis</code> on every value?</strong> Each property would record how
+it was obtained: MEASURED, ATTESTED, MODELLED, DEFAULT, or UNMEASURED. This is "it does not matter"
+written into the code, and it will surface more unmeasured properties like the four fixed this
+week. <strong>Rec:</strong> yes.</p>
+<p><strong>A2 [NOW] — Make <code>bindingKind</code>, <code>mediaClass</code> and <code>node_class</code> illegal as placement inputs</strong> (kept
+as telemetry only)? <strong>Rec:</strong> yes; it is the only enforcement of "tape is just a block of data."</p>
+<p><strong>A3 — Replace latency buckets (MS/SECONDS/MINUTES/HOURS) with the measured number?</strong> The MS bucket
+currently spans RAM (~100 ns), NVMe (~100 µs) and spinning disk (~10 ms), five orders of magnitude.
+<strong>Rec:</strong> callers get the measured distribution plus comparison helpers; buckets become display only.</p>
+<p><strong>A4 — Can a volatile locus (RAM) hold a copy that counts toward the replication factor?</strong>
+<strong>Rec:</strong> no. It may hold cache copies only, and the index must show them as a distinct residency
+state so <code>realise</code> knows the nearby copy may vanish.</p>
+<p><strong>A5 — New locus properties to add — confirm each:</strong> per-access setup cost (mount, seek, none),
+removability / air-gap capability, volatility on power loss, reclaim granularity, reclaim latency,
+and wear measured in the medium's own unit (load cycles, drive writes per day, power-on hours).</p>
+<p><strong>A6 — Is there a common currency across conserved resources, or does placement satisfy each as a
+separate constraint?</strong> <strong>Rec:</strong> separate constraints. A common currency is how a drive-hour budget
+missed that cartridges were wearing out first.</p>
+<p><strong>A7 — Placement policy form: hard constraints plus scoring, or scoring only?</strong> <strong>Rec:</strong>
+constraints plus scoring, with a small fixed set of predicates rather than a general query language.</p>
+<p><strong>A8 — When a policy is unsatisfiable, what happens?</strong> Options: refuse the write; write to what is
+available and mark the object under-protected; queue until capacity appears. <strong>Rec:</strong> refuse by
+default, with an explicit caller opt-in to write under-protected and a visible debt the repair
+loop pays down.</p>
+<p><strong>A9 — <code>capabilityEpoch</code>: when a locus's measured properties change underneath open placements,
+what happens to in-flight writes?</strong> (Recorded open as A-11.)</p>
+<p><strong>A10 — Re-probe cadence.</strong> A shared filesystem's rate at 3 a.m. is not its rate at noon. Probe
+only at start, on a timer, or when observed rates drift?</p>
+<p><strong>A11 — Stripe latency-class homogeneity: retire it now under replication, or keep it for when
+erasure coding returns?</strong> <strong>Rec:</strong> retire for replicated copies, keep as the rule for coded stripes.</p>
+<p><strong>A12 — The wire-up order.</strong> Nothing calls the <code>ExtentBinding</code> SPI yet; the live path is
+<code>NodeAgent.putFragment → store.put</code>. Route the live path through the SPI now (before a second
+binding exists), or after? <strong>Rec:</strong> now — there is no migration cost yet.</p>
+<p><strong>A13 — Split the placement score into durability and access cost?</strong> Recorded as A-3; it changes
+placement for every registered node.</p>
+<p><strong>A14 — Keep <code>ExtentBinding</code>'s deliberate omissions</strong> (no synchronous byte-returning read, no
+<code>delete</code>, no <code>list</code>)? <strong>Rec:</strong> yes.</p>
+<hr />
+<h2 id="5-redundancy-and-distribution">5. Redundancy and distribution<a class="headerlink" href="#5-redundancy-and-distribution" title="Permanent link">&para;</a></h2>
+<p><strong>R1 — Replication factor: 3?</strong> <strong>Rec:</strong> 3, equal to site count, so every site holds a complete
+copy and can serve any object disconnected.</p>
+<p><strong>R2 — Must every site hold every object (N = R), or may sites hold subsets?</strong> N = R keeps sites
+independently readable; more sites than copies makes each site smaller but not complete.</p>
+<p><strong>R3 — Does "blind holding site" still matter under replication?</strong> Each site now holds a complete
+encrypted copy rather than a fragment. Encryption still protects it, but a stolen site yields
+all the ciphertext rather than a third. Acceptable?</p>
+<p><strong>R4 — If two sites: where does the quorum witness run?</strong> A small VM at a third location.</p>
+<p><strong>R5 — Where can a lost site be rebuilt?</strong> Under replication any copy target works: a new site,
+rented rack, disk, or cloud. Is cloud acceptable as a temporary rebuild target for clinical data?</p>
+<p><strong>R6 — Intra-volume RS(28,4) against media defects: keep it under replication?</strong> <strong>Rec:</strong> keep;
+it guards cartridge defects, which replication alone repairs only with a cross-site copy.</p>
+<p><strong>R7 — Which erasure code when it comes back?</strong> RS(2,1) at 3 sites, RS(3,1) at 4, or something
+else. Not needed now; confirm it can wait.</p>
+<p><strong>R8 — Do all datasets get the same protection, or is replication factor a per-dataset policy?</strong>
+Derived artifacts (labels, embeddings, kNN) can be recomputed and may need fewer copies.</p>
+<p><strong>R9 — Maximum acceptable repair window after a site loss</strong> (hours, days, weeks)?</p>
+<hr />
+<h2 id="6-data-model-and-versioning">6. Data model and versioning<a class="headerlink" href="#6-data-model-and-versioning" title="Permanent link">&para;</a></h2>
+<p><strong>V1 — Confirm the model:</strong> reads are always of a named version; writes are quorum-confirmed;
+an <em>extract</em> is a first-class, citable, pinnable point-in-time object.</p>
+<p><strong>V2 — What is a "dataset" for versioning purposes?</strong> One panAtlas registry entry? One directory
+tree? Something an agent declares?</p>
+<p><strong>V3 — Branches: do agents need them, or is linear versioning enough for phase one?</strong></p>
+<p><strong>V4 — Who may create a version of a dataset?</strong> The owner only, any agent in the project, or any
+agent holding a write token?</p>
+<p><strong>V5 — Version identifiers: opaque ids, or content-derived?</strong> Content-derived ids fall under the
+same "no plaintext-derived identifiers on media" rule as <code>doc_uid</code>.</p>
+<p><strong>V6 — How long do unpinned old versions live?</strong> Forever, a retention window, or until capacity
+pressure?</p>
+<p><strong>V7 — Does a pinned extract (cited in a paper or grant) block deletion of its data forever?</strong> If a
+subject then withdraws consent, which wins?</p>
+<p><strong>V8 — Where does <code>retention_class</code> come from at write time?</strong> Repack efficiency swings 18× on
+whether data that dies together was written together, so the writer must say. Options: the
+dataset's registry entry, the caller, a policy on the project, or inferred.</p>
+<p><strong>V9 — Is <code>pack_hint</code> (read affinity) supplied by the caller, derived from panAtlas relationships,
+or learned from request logs?</strong></p>
+<p><strong>V10 — Unversioned live caches: you mentioned caches may be "versioned or unversioned." When is
+an unversioned cache acceptable, and can it ever be promoted to a version?</strong></p>
+<p><strong>V11 — Streaming semantics.</strong> "Stream versioned datasets wherever they need to go": is a stream a
+single object, a whole version, or a query over a version? With backpressure? Resumable after
+interruption?</p>
+<hr />
+<h2 id="7-deletion-retention-and-repack">7. Deletion, retention and repack<a class="headerlink" href="#7-deletion-retention-and-repack" title="Permanent link">&para;</a></h2>
+<p><strong>D1 [BEFORE MEDIA] — Which data must be on drive-enforced WORM?</strong> Candidates: pinned/cited
+extracts, regulatory and audit records, research-integrity snapshots. Everything else rewritable.</p>
+<p><strong>D2 [BEFORE MEDIA] — Privacy interleaving versus reclamation grouping.</strong> Interleaving consent
+units hides cohorts but means nothing ever dies whole; grouping lets volumes die whole but reveals
+the cohort. At 1 %/yr withdrawal, interleaved volumes reach the repack band only after 39–98
+years. Which do you prioritise, per data class?</p>
+<p><strong>D3 [BEFORE MEDIA] — Repack granularity: whole fragments only, or sub-fragment?</strong> Sub-fragment
+repack renumbers positions and would break pinned citations unless engineered for. <strong>Rec:</strong>
+fragment-granular, with retention cohorting as the precondition that makes it yield anything.</p>
+<p><strong>D4 [BEFORE MEDIA] — Adopt the rewrite rule as normative:</strong> a rewrite either preserves the
+ordinals and copies ciphertext bit-identically, or mints a fresh epoch key — never one without the
+other. Otherwise a botched repack reads as a lawful redaction. <strong>Rec:</strong> yes.</p>
+<p><strong>D5 — What is the promised latency for "forget" on consent withdrawal?</strong> Key destruction takes
+~75 s on any medium; physical erasure takes years on tape. Is key destruction legally sufficient
+for your DUAs and IRB?</p>
+<p><strong>D6 — Who is authorised to order a deletion or key destruction, and does it need two people?</strong></p>
+<p><strong>D7 — Physical destruction of WORM cartridges:</strong> at 10 %/yr removal this is a two-person attested
+ceremony roughly every 15 days. Who performs it, and is that acceptable operationally?</p>
+<p><strong>D8 — Default GC state: on, as a budgeted and refusable standing obligation?</strong> <strong>Rec:</strong> yes, with
+admission per volume on predicted live fraction; refuse above 50 % live.</p>
+<p><strong>D9 — Should drives that can skip dead regions be assumed?</strong> The repack cost model differs 3.77×
+depending on it, and the constant is unmeasured. Measure first, or plan on the worst case?</p>
+<p><strong>D10 — Retention floors: who sets them, and can they ever be shortened?</strong> The binding enforces
+them as monotone (never shortened).</p>
+<hr />
+<h2 id="8-security-and-cryptography">8. Security and cryptography<a class="headerlink" href="#8-security-and-cryptography" title="Permanent link">&para;</a></h2>
+<p><strong>S1 [BEFORE MEDIA] — Convert <code>K_meta</code> and the catalogue cnodes to the same counter discipline as
+<code>SegmentCipher</code>?</strong> Recorded as the top open crypto item. <strong>Rec:</strong> yes, before any cartridge.</p>
+<p><strong>S2 [BEFORE MEDIA] — Enforce idempotency keys with a lease?</strong> Today two writers under one key
+would each think they own the counter space. <strong>Rec:</strong> yes; refuse rather than share.</p>
+<p><strong>S3 — Make direct calls to <code>CryptoBox.gcmEncryptWithIv</code> for object data a lint failure?</strong>
+<strong>Rec:</strong> yes.</p>
+<p><strong>S4 [BEFORE PROD] — Key custody: software keys, an HSM, or both?</strong> The design assumes shredding is
+a hardware key destruction. Which HSM, and one per site?</p>
+<p><strong>S5 — Shamir t-of-n custody across sites: keep it, and what are t and n?</strong></p>
+<p><strong>S6 — Drive-level hardware encryption (BlueScale): decline?</strong> <strong>Rec:</strong> decline. We already write
+ciphertext; a second layer adds a key-custody dependency and buys nothing.</p>
+<p><strong>S7 — FIPS 140-3 validated crypto module required now, or at DoD fielding?</strong></p>
+<p><strong>S8 — Per-request credentialed tokens for agents:</strong> you mentioned audited per-request tokens.
+Scoped to what — dataset, version, verb, byte range, time window? Who issues them?</p>
+<p><strong>S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?</strong></p>
+<p><strong>S10 — Tenant model:</strong> reuse Cresco's shipped tenant namespacing and roles, or does GFS need
+finer, attribute-based rules (per dataset, per DUA)?</p>
+<p><strong>S11 — Is metadata confidentiality in scope?</strong> The catalogue currently holds everything except
+content keys, including filenames. Must names and sizes be protected from site operators?</p>
+<hr />
+<h2 id="9-panatlas-integration">9. panAtlas integration<a class="headerlink" href="#9-panatlas-integration" title="Permanent link">&para;</a></h2>
+<p><strong>X1 [NOW] — Decide <code>doc_uid</code> blinding before the imaging element-level overlap job runs.</strong> Today
+<code>doc_uid</code> covers text that is mostly public literature. The imaging job will put the same unkeyed
+content hash on PHI. Keep it unkeyed in payload only, or switch to <code>HMAC(K_idx, doc_uid)</code> and
+accept breaking the cross-lineage crosswalk at every key rotation?</p>
+<p><strong>X2 — Is the panAtlas index (198 GB: 11.24 GB parquet ledgers + 186.8 GB derived arrays) a dataset
+in GFS like any other?</strong> <strong>Rec:</strong> yes; it is self-hosting and realises from cold in ~14 min.</p>
+<p><strong>X3 — Shard the parquet ledgers by redaction domain so withdrawal is a key destruction?</strong> Needs a
+count of redaction domains; at 10⁶ domains shards would be ~11 KB each.</p>
+<p><strong>X4 — What is a redaction domain for panAtlas data?</strong> Subject, source, institution, DUA?</p>
+<p><strong>X5 — Is invalidate-and-recompute acceptable as the redaction method for derived artifacts</strong>
+(labels, edges, kNN)? Only if recompute is affordable; <code>knn_exact96</code> is an exhaustive search over
+the corpus and its cost is unmeasured.</p>
+<p><strong>X6 — Should panAtlas URNs (<code>panatlas:dataset:&lt;slug&gt;</code>) be the dataset names in GFS?</strong></p>
+<p><strong>X7 — <code>manifest_hash</code> currently hashes (path, size, mtime), not content. Should GFS versions
+replace it as the provenance primitive for PRIMED-AI?</strong></p>
+<p><strong>X8 — The stale atlas figure (<code>labels_v53</code> 140 GB vs 186.8 GB measured) has been corrected. Are
+there other panAtlas artifacts you want measured and registered before they go into GFS?</strong></p>
+<hr />
+<h2 id="10-the-tape-binding">10. The tape binding<a class="headerlink" href="#10-the-tape-binding" title="Permanent link">&para;</a></h2>
+<p><strong>B1 [NOW] — Confirm Bareos is out.</strong> Decided on licence grounds: AGPL forbids the streaming
+integration, forcing every byte through staging. The real cost is losing a catalogue-free reader
+written by someone else.</p>
+<p><strong>B2 [NOW] — Java toolchain: move to JDK 22+ for the Foreign Function &amp; Memory API, or use JNA, or
+a small separate C helper process?</strong> <strong>Rec:</strong> JDK 22+ if nothing else pins you to 21; it adds no
+dependency.</p>
+<p><strong>B3 [BEFORE MEDIA] — The on-media format is now a one-way door with no vendor fallback. Do you
+want an independent reference reader</strong> (works with no index, no catalogue, no running system) as
+a blocking deliverable? <strong>Rec:</strong> yes.</p>
+<p><strong>B4 [BEFORE MEDIA] — Should the format specification be published openly</strong> so a future reader can
+be written by anyone?</p>
+<p><strong>B5 — Block size on tape</strong> (1–2 MiB?), filemark placement, partition use, and index checkpoint
+placement. Want to review these, or delegate?</p>
+<p><strong>B6 — Error recovery policy on read/write failure:</strong> retry, skip to local parity, or stop and
+repair? <strong>Rec:</strong> retry only on native sense data; otherwise stop and repair from another copy.</p>
+<p><strong>B7 — Multi-host access to one library:</strong> will more than one host ever drive one library? If so,
+fencing needs SCSI Persistent Reservation (H17) or a lease.</p>
+<p><strong>B8 — Test rig:</strong> use mhvtl (GPL kernel module, test host only, never shipped) for CI? Needs a
+Linux box — which one?</p>
+<p><strong>B9 — Retire the Bareos documents</strong> or keep <code>BAREOS-RECOMMENDATION.md</code> as history?</p>
+<hr />
+<h2 id="11-other-bindings">11. Other bindings<a class="headerlink" href="#11-other-bindings" title="Permanent link">&para;</a></h2>
+<p><strong>N1 — NVMe: raw block device / namespace, or a file on a filesystem?</strong> "The data is raw" suggests
+raw; the filesystem path is what exists and works today.</p>
+<p><strong>N2 — Spinning disk / JBOD: raw partitions, or files?</strong> Raw gives placement exact locality control.</p>
+<p><strong>N3 — RAM as a locus: a process-local arena, a shared-memory region, or leave RAM to the OS page
+cache?</strong></p>
+<p><strong>N4 — Does <code>FsBinding</code> stay as a supported binding</strong> (for shared filesystems and development), even
+though it uses paths and sidecar files?</p>
+<p><strong>N5 — Object storage (S3, cloud) as a locus type for burst or rebuild?</strong></p>
+<p><strong>N6 — Order of bindings to build after FS:</strong> tape, raw NVMe, raw disk, RAM?</p>
+<hr />
+<h2 id="12-the-agent-interface">12. The agent interface<a class="headerlink" href="#12-the-agent-interface" title="Permanent link">&para;</a></h2>
+<p><strong>I1 [NOW] — Confirm the verbs:</strong> <code>prospect</code> (what would it cost to get this version here, by which
+strategy) and <code>realise</code> (the only verb that moves bytes).</p>
+<p><strong>I2 — Should agents be able to move compute to data</strong>, not just data to compute? That requires
+GFS to know about compute locations and schedulers (SLURM on the DGX).</p>
+<p><strong>I3 — Transport for streaming: Cresco dataplane only, or also plain HTTP/gRPC for agents outside
+the mesh?</strong></p>
+<p><strong>I4 — Which client languages must work at launch?</strong> Python (pycrescolib) and Java are both
+required for Cresco generally. Anything else?</p>
+<p><strong>I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools</strong> (like the 89
+existing ones)?</p>
+<p><strong>I6 — Cost model returned by <code>prospect</code>:</strong> drive-hours, wall time, dollars, carbon, egress? Which
+matter to an agent's decision?</p>
+<p><strong>I7 — Admission control: when retrieval demand exceeds the plant, which requests wait, and who
+decides priority?</strong> At 100 TB/day scattered the plant is oversubscribed 2.75×.</p>
+<p><strong>I8 — Do agents get notified when a realise completes (push), or do they poll?</strong></p>
+<hr />
+<h2 id="13-filerepo">13. filerepo<a class="headerlink" href="#13-filerepo" title="Permanent link">&para;</a></h2>
+<p><strong>F1 — Confirm filerepo's role:</strong> it materialises local versions (as a cache) and can publish new
+versions, but is no longer primary storage.</p>
+<p><strong>F2 — Should filerepo's <code>phase0-crypto-baseline</code> branch (<code>repostate</code>, <code>clearRepo(force)</code>) merge to
+1.3?</strong></p>
+<p><strong>F3 — Does filerepo become a GFS binding, a GFS client, or both?</strong></p>
+<hr />
+<h2 id="14-operations">14. Operations<a class="headerlink" href="#14-operations" title="Permanent link">&para;</a></h2>
+<p><strong>O1 [NOW] — Fix the DGX mesh storage path?</strong> Nodes under <code>~/cresco/nodes</code> are on a network
+filesystem and are now refused durable copies. Point <code>store_dir</code> at node-local storage, or attest?
+<strong>Rec:</strong> node-local; it is also 40× faster.</p>
+<p><strong>O2 — Who operates each site day to day</strong> (media handling, drive swaps, destruction ceremonies)?</p>
+<p><strong>O3 — Partner institutions: is a DUA or MOU required before a site holds our ciphertext?</strong></p>
+<p><strong>O4 — Monitoring: extend the existing dashboard Storage tab to per-locus measured properties and
+barrier evidence?</strong></p>
+<p><strong>O5 — Alerting: who gets paged, and for what</strong> (site loss, under-protected objects, media wear)?</p>
+<p><strong>O6 — Disaster-recovery drills: how often do you want a full "lose a site, rebuild" exercise?</strong></p>
+<p><strong>O7 — Deployment path: Cresco agent release chain as today (plugin → snapshot → embed → release)?</strong></p>
+<hr />
+<h2 id="15-measurements-who-runs-them-and-when">15. Measurements — who runs them and when<a class="headerlink" href="#15-measurements-who-runs-them-and-when" title="Permanent link">&para;</a></h2>
+<p><strong>M1 [BEFORE MEDIA] — The mount cycle, as a distribution over a few thousand exchanges.</strong> The
+highest-leverage unmeasured constant in the design; a 45 % error moves throughput ~23 %. Needs a
+real drive. When, and where?</p>
+<p><strong>M2 [BEFORE MEDIA] — Shoe-shine floor / minimum speed-match rate for LTO-10.</strong> Sets spool size.</p>
+<p><strong>M3 — Count the imaging estate.</strong> ~850 TB UK chest CT and ~700 TB KPDT pathology are 92.6 % of
+the sizing basis and come off slides, with five conflicting KPDT figures. Can someone run a PACS
+query and a pathology system query?</p>
+<p><strong>M4 — Consent-withdrawal rate</strong> on a real clinical lineage. Who would know?</p>
+<p><strong>M5 — A real request log to mine co-occurrence from.</strong> Does any exist (DGX job logs, panAtlas API
+logs)?</p>
+<p><strong>M6 — Power-loss test on the candidate site hosts</strong> — the only way to prove a barrier reaches
+power-safe media rather than just costs time. Worth doing?</p>
+<p><strong>M7 — Recompute cost of the derived panAtlas artifacts</strong> (X5).</p>
+<p><strong>M8 — Growth rate.</strong> There is one census and no time series. Planning uses 1 TB/day; at 0.5 or
+2 TB/day expansion dates move by years. Can you give a figure?</p>
+<hr />
+<h2 id="16-licensing-and-legal">16. Licensing and legal<a class="headerlink" href="#16-licensing-and-legal" title="Permanent link">&para;</a></h2>
+<p><strong>L1 — Confirm "permissive commercial licences only"</strong> covers everything that ships, and that
+GPL is acceptable only in test infrastructure that never ships (mhvtl).</p>
+<p><strong>L2 — Do you want counsel to review</strong> the licence position, the DUA implications of partner sites
+holding ciphertext, and whether key destruction satisfies withdrawal obligations?</p>
+<p><strong>L3 — Copyright/licence for GFS itself:</strong> Apache-2.0 as the pom declares?</p>
+<hr />
+<h2 id="17-process">17. Process<a class="headerlink" href="#17-process" title="Permanent link">&para;</a></h2>
+<p><strong>Q1 — Re-cut <code>SPECIFICATION.md</code></strong> so the core is locus, extent, placement, index, versioning,
+crypto and replication, with tape as one binding's appendix? It is currently 6.8:1 tape terms to
+media-neutral terms. <strong>Rec:</strong> yes, before more design goes in.</p>
+<p><strong>Q2 — Commit policy:</strong> I've been committing each proven change to <code>CrescoEdge/gfs</code> 1.3 locally.
+Keep doing that? Push to origin, and when?</p>
+<p><strong>Q3 — Multi-agent workflows:</strong> they produced most of this week's findings, including the wire
+bug. Run them freely on design questions, or ask each time?</p>
+<p><strong>Q4 — Atlas capture:</strong> file GFS decisions and measurements into myatlas as they happen, or batch?</p>
+<p><strong>Q5 — How do you want to answer this list</strong> — inline edits to this file, a call, or chat?</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

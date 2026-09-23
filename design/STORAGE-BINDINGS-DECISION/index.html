@@ -1,0 +1,3547 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/STORAGE-BINDINGS-DECISION/">
+      
+      
+        <link rel="prev" href="../ENTAIL-AGENT-NATIVE-FS/">
+      
+      
+        <link rel="next" href="../STORAGE-DIRECTION/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Storage bindings decision - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-decision-storage-bindings-nas-block-and-tape" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Storage bindings decision
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The answer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The answer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-single-argument-that-settles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The single argument that settles it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-the-extent-framing-survives-as" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What the extent framing survives as
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-spi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The SPI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The SPI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types-in-full" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types, in full
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-each-medium-without-lying-and-what-tape-does-about-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Each medium, without lying — and what tape does about delete
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Each medium, without lying — and what tape does about delete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-filerepo-unchanged-and-explicitly-out-of-the-storage-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. filerepo: unchanged, and explicitly out of the storage path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-mount-scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The mount scheduler
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The mount scheduler">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fencing-in-order-of-authority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fencing, in order of authority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-locus-descriptor-and-what-changes-in-classweightnetfactor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Locus descriptor, and what changes in classWeight/netFactor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Locus descriptor, and what changes in classWeight/netFactor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-scoring-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scoring change
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-scsi-risk-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. SCSI risk register
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-findings-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Findings: resolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Findings: resolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caller-and-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caller and index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepted-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accepted costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Build order
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Build order">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-0-honest-acks-and-three-live-bug-fixes-simulation-now-no-tape-hardware-useful-even-if-the-tape-tier-is-never-bought" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0 — Honest acks and three live bug fixes (simulation now; no tape hardware; useful even if the tape tier is never bought)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-the-spi-and-the-fs-binding-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — The SPI and the fs binding (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-the-index-becomes-two-axis-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — The index becomes two-axis (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restore-and-repair-learn-to-wait-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Restore and repair learn to wait (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-simtapebinding-the-scheduler-and-a-fault-injector-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — SimTapeBinding, the scheduler, and a fault injector (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-gfs-mover-one-drive-no-changer-step-6-changer-persistent-reserve-takeover-superseded-2026-09-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ~~Step 5 — gfs-mover, one drive, no changer~~ / ~~Step 6 — Changer, Persistent Reserve, takeover~~ — SUPERSEDED 2026-09-19
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-gfs-mover-one-drive-no-changer-needs-hardware-we-do-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — gfs-mover, one drive, no changer (needs hardware we do not have)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-changer-persistent-reserve-takeover-needs-hardware-we-do-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Changer, Persistent Reserve, takeover (needs hardware we do not have)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-ltfs-export-as-a-conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7 — LTFS export as a conversion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The answer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The answer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-single-argument-that-settles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The single argument that settles it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-the-extent-framing-survives-as" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What the extent framing survives as
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-spi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The SPI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The SPI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types-in-full" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types, in full
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-each-medium-without-lying-and-what-tape-does-about-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Each medium, without lying — and what tape does about delete
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Each medium, without lying — and what tape does about delete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-filerepo-unchanged-and-explicitly-out-of-the-storage-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. filerepo: unchanged, and explicitly out of the storage path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-mount-scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The mount scheduler
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The mount scheduler">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fencing-in-order-of-authority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fencing, in order of authority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-locus-descriptor-and-what-changes-in-classweightnetfactor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Locus descriptor, and what changes in classWeight/netFactor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Locus descriptor, and what changes in classWeight/netFactor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-scoring-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scoring change
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-scsi-risk-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. SCSI risk register
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-findings-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Findings: resolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Findings: resolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caller-and-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caller and index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepted-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accepted costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Build order
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Build order">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-0-honest-acks-and-three-live-bug-fixes-simulation-now-no-tape-hardware-useful-even-if-the-tape-tier-is-never-bought" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0 — Honest acks and three live bug fixes (simulation now; no tape hardware; useful even if the tape tier is never bought)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-the-spi-and-the-fs-binding-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — The SPI and the fs binding (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-the-index-becomes-two-axis-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — The index becomes two-axis (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-restore-and-repair-learn-to-wait-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Restore and repair learn to wait (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-simtapebinding-the-scheduler-and-a-fault-injector-simulation-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — SimTapeBinding, the scheduler, and a fault injector (simulation now)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-gfs-mover-one-drive-no-changer-step-6-changer-persistent-reserve-takeover-superseded-2026-09-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ~~Step 5 — gfs-mover, one drive, no changer~~ / ~~Step 6 — Changer, Persistent Reserve, takeover~~ — SUPERSEDED 2026-09-19
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-gfs-mover-one-drive-no-changer-needs-hardware-we-do-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — gfs-mover, one drive, no changer (needs hardware we do not have)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-changer-persistent-reserve-takeover-needs-hardware-we-do-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Changer, Persistent Reserve, takeover (needs hardware we do not have)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-ltfs-export-as-a-conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7 — LTFS export as a conversion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Mostly current</p>
+<p>The one-interface-many-media binding decision and its findings table. Current except the Bareos-specific parts and stripe latency-class homogeneity, which replication makes unnecessary for replicated copies.</p>
+</div>
+<h1 id="the-decision-storage-bindings-nas-block-and-tape">THE DECISION — Storage Bindings: NAS, Block and Tape<a class="headerlink" href="#the-decision-storage-bindings-nas-block-and-tape" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Decided. Supersedes the binding question raised against <code>filerepo</code>.
+<strong>Scope:</strong> <code>io.cresco.gfs</code>, <code>io.cresco.filerepo</code>, and the tape plant.
+<strong>Premises:</strong> no filesystem on the media (unchanged). ~~<code>st</code> + SG_IO passthrough, not a device driver~~ — <strong>SUPERSEDED 2026-09-19</strong>: Layer 0 is Bareos (<code>BAREOS-RECOMMENDATION.md</code> §1; <code>SPECIFICATION.md</code> §2.1). We issue no SCSI on any data path; the only SCSI retained is <code>gfs-probe</code>'s five read-mostly opcodes, between jobs, for diagnostics. The label "settled, not relitigated here" is withdrawn with it — it instructed every reader not to question a premise that has since been overturned.</p>
+<hr />
+<h2 id="1-the-answer">1. The answer<a class="headerlink" href="#1-the-answer" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>RETIRED 2026-09-19 by <code>BAREOS-RECOMMENDATION.md</code> §1 and §12, and <code>SPECIFICATION.md</code> §2.3.</strong> Under the owner's division <code>gfs-mover</code> is <strong>deleted rather than replaced</strong>. Bareos (<code>bareos-dir</code> + <code>bareos-sd</code> + <code>bareos-fd</code> + PostgreSQL) owns drives, changer, reservation, framing, filemarks, end-of-medium and sense classification. What survives on our side is <strong><code>gfs-probe</code></strong>: non-root, read-mostly, five-opcode allowlist (<code>INQUIRY</code>, <code>LOG SENSE</code>, <code>MODE SENSE</code>/<code>MODE SELECT</code>, <code>READ</code>/<code>WRITE ATTRIBUTE</code>, <code>SECURITY PROTOCOL IN</code>), running only between jobs on a drive Bareos is not holding. No JVM thread and no process we write can issue <code>WRITE(6)</code>, <code>LOCATE(16)</code>, <code>MOVE MEDIUM</code>, <code>PERSISTENT RESERVE IN/OUT</code>, <code>FORMAT MEDIUM</code> or <code>ERASE</code>. <strong>The containment argument survives; the artefact that carried it does not.</strong> No replacement headline slogan is minted here — the original is struck, not rewritten into a new claim.</p>
+</blockquote>
+<p>~~<strong>One plugin. One SPI. Two processes. Three bindings.</strong>~~</p>
+<p><code>gfs</code> carries all three bindings as one artefact: <code>gfs_roles += plant</code>, <code>binding = fs | block | tape</code>. There is no second bundle. What <em>is</em> separated is not the plugin but the <strong>process</strong>: no JVM thread ever issues a SCSI CDB. ~~A separate OS process, <code>gfs-mover</code>, holds <code>CAP_SYS_RAWIO</code> and the device nodes behind a fixed command allowlist, and the plugin speaks to it over a local socket.~~ <em>(2026-09-19: the no-JVM-CDB invariant stands and is now stronger — no process we write issues a write-path CDB at all. The <code>gfs-mover</code> sentence is retired per the note above.)</em></p>
+<h3 id="the-single-argument-that-settles-it">The single argument that settles it<a class="headerlink" href="#the-single-argument-that-settles-it" title="Permanent link">&para;</a></h3>
+<p>The question was asked as <em>"can one interface be implemented by three media without lying?"</em> That is the wrong test, and every position that passed it still produced a design that breaks. The test that decides is <strong>"can every caller be written without branching on the binding?"</strong> — and against the callers that actually exist, nothing passes it, because the difference between the media is a fact about <em>time</em>, and no interface can hide a fact about time from a caller that has a timeout in it.</p>
+<p>So the difference must be <strong>declared as a value the caller reads</strong>, not concealed behind a signature. Once you accept that, plugin count stops being an architectural question and becomes a packaging question — and on packaging, Cresco settles it against a split:</p>
+<ul>
+<li>A Felix bundle is a classloader, not a privilege domain. Every plugin runs in the agent's single JVM. Raw SCSI requires a process-level capability, so the moment that JVM can issue a CDB, every bundle in it can. <code>PluginAdmin.startPlugin</code> (controller, ~line 1336) sets <code>pluginService.setIsActive(true)</code> <strong>unconditionally</strong>, even when <code>isStarted()</code> returned false and it has just recorded <code>statusCode = 7</code>. A second bundle that fails to claim a changer therefore reports <em>active</em>, registers no HealthCheck (gfs registers it only on the success path), and silently drops every message (<code>PluginBuilder.msgIn</code> dispatches only <code>if (executor != null)</code>). "Separate bundle = separate blast radius" is false in the only direction that matters.</li>
+<li>The role boundary a second bundle would draw is <strong>already drawn in config</strong>. <code>gfs</code> is one bundle with comma-separable roles (<code>gfs_roles</code>, default <code>storage</code>) and per-action gating through <code>noRole()</code> returning status <code>9</code> (<code>gfs/ExecutorImpl.java:288</code> and the switch at 298–397). Adding <code>plant</code> to that enum buys the entire asymmetry — the plant surface has no byte-returning read, the store surface has no mount queue — for a config value.</li>
+<li>A second bundle costs a repo, a CI pipeline, a Central Portal coordinate and a second pass of the three-step ship chain, and creates a version-skew surface on the <code>Locator</code> encoding that the index persists.</li>
+</ul>
+<p>~~<strong>The boundary that buys containment is <code>gfs-mover</code>.</strong> It is a deployment artefact, not a plugin, and it is the thing the "separate plugins" instinct was correctly reaching for.~~ <strong>RETIRED 2026-09-19, see the note at the head of this section.</strong> The boundary that now buys containment is the Bareos process set plus <code>gfs-probe</code>; the reasoning above — a Felix bundle is a classloader, not a privilege domain — is unaffected and is why the boundary had to be a process in the first place.</p>
+<hr />
+<h2 id="2-what-the-extent-framing-survives-as">2. What the extent framing survives as<a class="headerlink" href="#2-what-the-extent-framing-survives-as" title="Permanent link">&para;</a></h2>
+<p>It survives — at the index layer, where ENTAIL already put it — after <strong>three subtractions and one addition</strong>.</p>
+<p><strong>Subtracted: no verb returns bytes on the calling thread.</strong> This is not a concession to tape; it is a description of what gfs already does. <code>NodeAgent.getFragment</code> reads the fragment, pushes it on <code>FrameBus</code>, and returns an ack meaning <em>sent</em>; <code>encode</code>/<code>restore</code>/<code>repair</code> return a <code>job_id</code>. <code>filerepo.getFile</code> is the outlier and already refuses above <code>max_inline_bytes</code> (default 524 288) with <code>status=5, "use streamfile"</code> (<code>filerepo/ExecutorImpl.java:157, 505-509</code>). A synchronous action that <em>declines</em> when the medium makes synchrony untrue is shipped code in this tree. Tape's threshold is zero.</p>
+<p><strong>Subtracted: <code>delete</code> is not a binding method on any medium.</strong> See §4.</p>
+<p><strong>Subtracted: there is no <code>list</code>, no <code>scan</code>, no <code>clear</code>.</strong> A binding never discovers its own contents by traversing the medium.</p>
+<p><strong>Added: latency class is a declared field on the fragment reference, and placement enforces stripe homogeneity.</strong> Without this the SPI is honest and every caller is still wrong.</p>
+<hr />
+<h2 id="3-the-spi">3. The SPI<a class="headerlink" href="#3-the-spi" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Three interfaces, not one — recorded 2026-09-19.</strong> The document set now declares <em>the</em> SPI in three places, with three disjoint vocabularies, and §1's "One SPI" is <strong>withdrawn</strong>.</p>
+<ul>
+<li><code>VolumeMover</code> (<code>BAREOS-RECOMMENDATION.md</code> §2) is <strong>Layer 0</strong>, per <code>SPECIFICATION.md</code> §2.1: one volume, one loaded medium, <code>attach</code>/<code>stage</code>/<code>commit</code>/<code>fetch</code>.</li>
+<li>The ten-call block plane (<code>SPECIFICATION.md</code> §5.1) is <strong>Layer 1</strong>, per that document's own §5 heading: parcels on one volume, synchronous against a handle the plant scheduler already arranged — "no queue, no ETA, no job, no async in this layer".</li>
+<li><code>ExtentBinding</code> below is asynchronous by construction (§2: "no verb returns bytes on the calling thread") and its verbs (<code>intend</code>/<code>plan</code>/<code>enqueue</code>/<code>ticket</code>) are plant-scheduler and materialisation verbs — <strong>but no document assigns it a layer, and none states how the three compose. That is recorded here as an open hole (§9 A-7), not filled.</strong></li>
+</ul>
+<p><strong>Method-name collisions are real and must be disambiguated by layer in every reference:</strong> this document's <code>append</code>/<code>seal</code> are <em>not</em> §5.1's <code>append</code>/<code>seal</code>, and <code>reclaim(extentId)</code> is not §5.4's <code>retire(VolumeId)</code>.</p>
+</blockquote>
+<p><code>io.cresco.gfs.extent</code> — interfaces and plain classes only. <strong>No Java records</strong> (the ClassIndex processor breaks CI).</p>
+<div class="highlight"><pre><span></span><code><span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">ExtentBinding</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="cm">/** Pure. Never touches the medium. Re-published on every capability change. */</span>
+<span class="w">    </span><span class="n">LocusDescriptor</span><span class="w"> </span><span class="nf">describe</span><span class="p">();</span>
+
+<span class="w">    </span><span class="cm">/** Local catalogue only, by contract. Never mounts, never stats the medium. */</span>
+<span class="w">    </span><span class="n">Residency</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">extentId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ---- read: standing demand, then admission, then delivery ----</span>
+
+<span class="w">    </span><span class="cm">/** Enrol demand the fabric can coalesce. The tape scheduler's real input. */</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="nf">intend</span><span class="p">(</span><span class="n">ReadIntent</span><span class="w"> </span><span class="n">intent</span><span class="p">);</span><span class="w">              </span><span class="c1">// -&gt; intentId</span>
+<span class="w">    </span><span class="n">Intent</span><span class="w">   </span><span class="nf">intentStatus</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">intentId</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">     </span><span class="nf">withdrawIntent</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">intentId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="cm">/** Pure: catalogue + declared cost model. No device I/O, no cross-site RPC. */</span>
+<span class="w">    </span><span class="n">Plan</span><span class="w">     </span><span class="nf">plan</span><span class="p">(</span><span class="n">ReadRequest</span><span class="w"> </span><span class="n">req</span><span class="p">);</span>
+
+<span class="w">    </span><span class="cm">/** Admit (feasibility only) then enqueue. Returns in ms on every binding. */</span>
+<span class="w">    </span><span class="n">Ticket</span><span class="w">   </span><span class="nf">enqueue</span><span class="p">(</span><span class="n">ReadRequest</span><span class="w"> </span><span class="n">req</span><span class="p">);</span><span class="w">               </span><span class="c1">// -&gt; Ticket | Refusal-bearing Ticket</span>
+<span class="w">    </span><span class="n">Ticket</span><span class="w">   </span><span class="nf">ticket</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">ticketId</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">     </span><span class="nf">cancel</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">ticketId</span><span class="p">);</span><span class="w">                </span><span class="c1">// post-condition defined per §6</span>
+
+<span class="w">    </span><span class="c1">// ---- write: ticket is the container; NAS container is one extent ----</span>
+
+<span class="w">    </span><span class="n">WriteTicket</span><span class="w"> </span><span class="nf">beginWrite</span><span class="p">(</span><span class="n">WriteHint</span><span class="w"> </span><span class="n">hint</span><span class="p">);</span>
+<span class="w">    </span><span class="cm">/** Returns a PROVISIONAL ref with its real address NOW, and journals it. */</span>
+<span class="w">    </span><span class="n">ExtentRef</span><span class="w">   </span><span class="nf">append</span><span class="p">(</span><span class="n">WriteTicket</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">ByteSource</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">sha256</span><span class="p">);</span>
+<span class="w">    </span><span class="cm">/** Durability barrier. DURABLE is set only when this ticket completes. */</span>
+<span class="w">    </span><span class="n">Ticket</span><span class="w">      </span><span class="nf">seal</span><span class="p">(</span><span class="n">WriteTicket</span><span class="w"> </span><span class="n">t</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w">        </span><span class="nf">abandonWrite</span><span class="p">(</span><span class="n">WriteTicket</span><span class="w"> </span><span class="n">t</span><span class="p">);</span><span class="w">         </span><span class="c1">// may be a tombstone, not a no-op</span>
+
+<span class="w">    </span><span class="c1">// ---- lifecycle: reclaim is accounting, not erasure ----</span>
+
+<span class="w">    </span><span class="n">Reclaim</span><span class="w">     </span><span class="nf">reclaim</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">extentId</span><span class="p">,</span><span class="w"> </span><span class="n">ReclaimReason</span><span class="w"> </span><span class="n">why</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">token</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Reclaim</span><span class="o">[]</span><span class="w">   </span><span class="nf">reclaimAll</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">extentIds</span><span class="p">,</span><span class="w"> </span><span class="n">ReclaimReason</span><span class="w"> </span><span class="n">why</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">token</span><span class="p">);</span><span class="w"> </span><span class="c1">// capped, enumerated</span>
+
+<span class="w">    </span><span class="c1">// ---- verification: depth is chosen by the caller and priced by the binding ----</span>
+
+<span class="w">    </span><span class="n">Verification</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">extentId</span><span class="p">,</span><span class="w"> </span><span class="n">VerifyDepth</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w">   </span><span class="c1">// CATALOGUE only, free, sync</span>
+<span class="w">    </span><span class="n">Ticket</span><span class="w">       </span><span class="nf">enqueueVerify</span><span class="p">(</span><span class="n">VerifyScope</span><span class="w"> </span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">VerifyDepth</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span>
+
+<span class="w">    </span><span class="cm">/** Explicitly expensive, explicitly scheduled. The honest replacement for `list`. */</span>
+<span class="w">    </span><span class="n">Ticket</span><span class="w">       </span><span class="nf">reconcile</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">mediumId</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="types-in-full">Types, in full<a class="headerlink" href="#types-in-full" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ExtentRef</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">extentId</span><span class="p">;</span><span class="w">        </span><span class="c1">// content-addressed for integrity and stable naming; NOT a dedup key.</span>
+<span class="w">                            </span><span class="c1">// 2026-09-19: flagged deliberately. This is the one place in the set</span>
+<span class="w">                            </span><span class="c1">// where "content-addressed" has no relation to deduplication, and an</span>
+<span class="w">                            </span><span class="c1">// editor executing the dedup retirements must NOT cut it. The same</span>
+<span class="w">                            </span><span class="c1">// protection applies to the sibling sha256, to leaf_root, the per-chunk</span>
+<span class="w">                            </span><span class="c1">// AEAD tag, cid = HMAC(K_mid, ...), HMAC(K_bnd, ...), xid, and the</span>
+<span class="w">                            </span><span class="c1">// fragment id. No measurement bears against any of these: the</span>
+<span class="w">                            </span><span class="c1">// measurements say identical content does not RECUR across objects,</span>
+<span class="w">                            </span><span class="c1">// not that a hash of content is an unsound name or integrity check.</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">bindingId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">opaque</span><span class="p">;</span><span class="w">          </span><span class="c1">// binding-private. The index stores bytes and NEVER parses it.</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">latencyClass</span><span class="p">;</span><span class="w">    </span><span class="c1">// MS | SECONDS | MINUTES | HOURS   &lt;-- the declared branch</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">lengthBytes</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">sha256</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">lockEpoch</span><span class="p">;</span><span class="w">       </span><span class="c1">// fencing token (§6)</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Residency</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">Presence</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">PRESENT_VERIFIED</span><span class="p">,</span><span class="w"> </span><span class="n">PRESENT_CLAIMED</span><span class="p">,</span><span class="w"> </span><span class="n">EXPORTED</span><span class="p">,</span><span class="w"> </span><span class="n">ABSENT</span><span class="p">,</span><span class="w"> </span><span class="n">UNKNOWN</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Presence</span><span class="w"> </span><span class="n">presence</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">asOfEpochMs</span><span class="p">;</span><span class="w">         </span><span class="c1">// staleness of the claim</span>
+<span class="w">    </span><span class="kt">boolean</span><span class="w">  </span><span class="n">requiresMount</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">firstByteP50Ms</span><span class="p">,</span><span class="w"> </span><span class="n">firstByteP95Ms</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">custodian</span><span class="p">;</span><span class="w">           </span><span class="c1">// EXPORTED only</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">failureDomain</span><span class="p">;</span><span class="w">       </span><span class="c1">// slash-path; index groups by prefix</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ReadIntent</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">extentIds</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">earliestEpochMs</span><span class="p">,</span><span class="w"> </span><span class="n">latestEpochMs</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">lane</span><span class="p">;</span><span class="w">                </span><span class="c1">// CLINICAL | INTERACTIVE | BATCH | BACKGROUND | OBLIGATION</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">onInfeasible</span><span class="p">;</span><span class="w">        </span><span class="c1">// WAIT | DEGRADE | WITHDRAW</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">coalesceKey</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">purposeId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">token</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ReadRequest</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">extentIds</span><span class="p">;</span><span class="w">           </span><span class="c1">// batched BY CONSTRUCTION; a single read is a batch of one</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">deadlineEpochMs</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">lane</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">boolean</span><span class="w">  </span><span class="n">orderSensitive</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">sinkId</span><span class="p">;</span><span class="w">              </span><span class="c1">// where bytes land; never a return value</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">purposeId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">token</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Plan</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">planId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Batch</span><span class="o">[]</span><span class="w">  </span><span class="n">batches</span><span class="p">;</span><span class="w">             </span><span class="c1">// Batch { groupKey, extentIds[], estMs }</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">conservedResource</span><span class="p">;</span><span class="w">   </span><span class="c1">// "bytes" | "iops" | "drive_seconds"</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">resourceUnits</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">     </span><span class="n">estWallP50Ms</span><span class="p">,</span><span class="w"> </span><span class="n">estWallP95Ms</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">   </span><span class="n">basis</span><span class="p">;</span><span class="w">               </span><span class="c1">// MEASURED | MODELLED | ASSUMED  (+ model error)</span>
+<span class="w">    </span><span class="kt">boolean</span><span class="w">  </span><span class="n">advisory</span><span class="p">;</span><span class="w">            </span><span class="c1">// ALWAYS true. Never a reservation.</span>
+<span class="w">    </span><span class="n">Refusal</span><span class="w">  </span><span class="n">refusal</span><span class="p">;</span><span class="w">             </span><span class="c1">// null if admissible</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Refusal</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">bindingConstraint</span><span class="p">;</span><span class="w">     </span><span class="c1">// PLEDGE | PLANT | POLICY | COVERAGE | DEGRADED_PLANT | PRESENCE</span>
+<span class="w">    </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">arithmetic</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Rewrite</span><span class="o">[]</span><span class="w"> </span><span class="n">rewrites</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">retryAfterEpochMs</span><span class="p">;</span><span class="w">     </span><span class="c1">// MANDATORY. A refusal without this is an invitation to poll.</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">intentId</span><span class="p">;</span><span class="w">              </span><span class="c1">// demand enrolled, not discarded</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Ticket</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">lane</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">QUEUED</span><span class="p">,</span><span class="w"> </span><span class="n">PLACED</span><span class="p">,</span><span class="w"> </span><span class="n">SCHEDULED</span><span class="p">,</span><span class="w"> </span><span class="n">MOUNTING</span><span class="p">,</span><span class="w"> </span><span class="n">STREAMING</span><span class="p">,</span><span class="w"> </span><span class="n">PARTIAL</span><span class="p">,</span>
+<span class="w">                 </span><span class="n">DRAINING</span><span class="p">,</span><span class="w"> </span><span class="n">DONE</span><span class="p">,</span><span class="w"> </span><span class="n">FAILED</span><span class="p">,</span><span class="w"> </span><span class="n">REPLANNED</span><span class="p">,</span><span class="w"> </span><span class="n">CANCELLED</span><span class="p">,</span><span class="w"> </span><span class="n">PLANT_DEGRADED</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">State</span><span class="w">  </span><span class="n">state</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w">    </span><span class="n">queuePosition</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">projectedStartMs</span><span class="p">,</span><span class="w"> </span><span class="n">revisedHorizonMs</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">batchFrontier</span><span class="p">;</span><span class="w">         </span><span class="c1">// durable checkpoint: batches completed (§6)</span>
+<span class="w">    </span><span class="n">Failure</span><span class="o">[]</span><span class="w"> </span><span class="n">failed</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Refusal</span><span class="w">   </span><span class="n">refusal</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">plantDegradedUntilMs</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Failure</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">extentId</span><span class="p">,</span><span class="w"> </span><span class="n">opaque</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">Cause</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">MISSING</span><span class="p">,</span><span class="w"> </span><span class="n">DEFERRED</span><span class="p">,</span><span class="w"> </span><span class="n">OFFLINE</span><span class="p">,</span><span class="w"> </span><span class="n">MEDIUM_ERROR</span><span class="p">,</span><span class="w"> </span><span class="n">WRONG_POSITION</span><span class="p">,</span><span class="w"> </span><span class="n">HASH_MISMATCH</span><span class="p">,</span>
+<span class="w">                 </span><span class="n">SHORT_TRANSFER</span><span class="p">,</span><span class="w"> </span><span class="n">DEFERRED_WRITE_ERROR</span><span class="p">,</span><span class="w"> </span><span class="n">EOM_REACHED</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_PROTECT</span><span class="p">,</span>
+<span class="w">                 </span><span class="n">DRIVE_FAULT</span><span class="p">,</span><span class="w"> </span><span class="n">CLEANING_REQUIRED</span><span class="p">,</span><span class="w"> </span><span class="n">UNKNOWN</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Cause</span><span class="w">  </span><span class="n">cause</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">senseDetail</span><span class="p">;</span><span class="w">           </span><span class="c1">// sense key / ASC / ASCQ, verbatim</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">symbolOrdinal</span><span class="p">;</span><span class="w">         </span><span class="c1">// from OUR bookkeeping, not from sense INFORMATION (§7)</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Reclaim</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">Kind</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">UNLINKED</span><span class="p">,</span><span class="w"> </span><span class="n">CRYPTO_SHRED_ONLY</span><span class="p">,</span><span class="w"> </span><span class="n">TOMBSTONED</span><span class="p">,</span><span class="w"> </span><span class="n">REFUSED_APPEND_ONLY</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Kind</span><span class="w">   </span><span class="n">kind</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">bytesReclaimed</span><span class="p">,</span><span class="w"> </span><span class="n">bytesUnreclaimable</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Long</span><span class="w">   </span><span class="n">mediumExpiryEpochMs</span><span class="p">;</span><span class="w">   </span><span class="c1">// when the last copy physically ceases to exist</span>
+<span class="p">}</span>
+
+<span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Verification</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">enum</span><span class="w"> </span><span class="n">Result</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">VERIFIED</span><span class="p">,</span><span class="w"> </span><span class="n">BELIEVED</span><span class="p">,</span><span class="w"> </span><span class="n">UNKNOWN</span><span class="p">,</span><span class="w"> </span><span class="n">FAILED</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Result</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">lastVerifiedEpochMs</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">   </span><span class="n">verifyCostUnits</span><span class="p">;</span><span class="w">       </span><span class="c1">// what a deeper check would cost, in conservedResource</span>
+<span class="p">}</span>
+
+<span class="kd">enum</span><span class="w"> </span><span class="n">VerifyDepth</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">CATALOGUE</span><span class="p">,</span><span class="w"> </span><span class="n">PRESENCE</span><span class="p">,</span><span class="w"> </span><span class="n">MEDIA_READ</span><span class="w"> </span><span class="p">}</span>
+<span class="kd">enum</span><span class="w"> </span><span class="n">ReclaimReason</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">POLICY_EXPIRY</span><span class="p">,</span><span class="w"> </span><span class="n">REDACTION</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="n">REPLACED</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p><strong>Wire form.</strong> Extent-id arrays, batch lists and failure lists travel as <code>setCompressedParam</code>, following <code>NodeAgent.hasFragments</code>' <code>frag_ids</code>. Plan ids, counts and cost scalars are plain params. A request exceeding the cap returns a <code>Refusal</code>, never an oversized <code>MsgEvent</code>.</p>
+<p><strong>Authorisation.</strong> <code>reclaim</code>, <code>reclaimAll</code> and <code>reconcile</code> take a token verified with <code>CryptoBox.verifyToken</code> against <code>gfs_secret</code>, with <code>op</code>, the extent-id set hash, an expiry and the authorising user in the claims — the <code>NodeAgent.custodyGet</code> pattern. <code>noRole()</code> answers <em>"am I this kind of node"</em>, never <em>"may you ask me this"</em>, and a <code>REDACTION</code> that nobody authorised is a deletion with a paper trail attached.</p>
+<hr />
+<h2 id="4-each-medium-without-lying-and-what-tape-does-about-delete">4. Each medium, without lying — and what tape does about delete<a class="headerlink" href="#4-each-medium-without-lying-and-what-tape-does-about-delete" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th><code>fs</code></th>
+<th><code>block</code></th>
+<th><code>tape</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>describe</code></td>
+<td>static + live concurrency</td>
+<td>static + live concurrency</td>
+<td>live: drives in pool, changer state, reserve</td>
+</tr>
+<tr>
+<td><code>locate</code></td>
+<td>catalogue hit; <code>PRESENT_VERIFIED</code>; <code>requiresMount=false</code></td>
+<td>extent table; <code>PRESENT_VERIFIED</code></td>
+<td>catalogue + changer inventory epoch; <code>PRESENT_VERIFIED</code> if barcode seen in an element this epoch, else <code>PRESENT_CLAIMED</code>; <code>EXPORTED</code> with custodian; <code>requiresMount=true</code>; p50 ≈ 90 000 ms</td>
+</tr>
+<tr>
+<td><code>intend</code></td>
+<td>accepted, horizon irrelevant</td>
+<td>same</td>
+<td>the real input: coalesced by <code>(coalesceKey, barcode, window)</code></td>
+</tr>
+<tr>
+<td><code>plan</code></td>
+<td>one batch, <code>bytes</code>, len/rate</td>
+<td>+ alignment rounding</td>
+<td>group by barcode, order within by absolute position; <code>drive_seconds</code>; forty scattered reads → one batch per cartridge</td>
+</tr>
+<tr>
+<td><code>enqueue</code></td>
+<td>Jobs pool; usually DONE before first poll</td>
+<td>same</td>
+<td>scheduler coalescing window; <code>MOUNTING</code> with a position</td>
+</tr>
+<tr>
+<td><code>append</code></td>
+<td>write temp, <strong>fsync</strong>, <code>ATOMIC_MOVE</code>, <strong>fsync dir</strong>; provisional ref = final ref</td>
+<td>write + flush</td>
+<td>one <code>write(2)</code> per record via the mover; provisional ref from <code>READ POSITION</code>; journalled before the next record</td>
+</tr>
+<tr>
+<td><code>seal</code></td>
+<td>vacuously satisfied — nothing is staged, ticket returns DONE <em>(sound on node-local storage; </em><em>open on a shared filesystem — see the note at the end of §5</em><em>)</em></td>
+<td>same</td>
+<td>real: close container, single filemark (<code>Immed=0</code>), read back and verify per-symbol hashes, <strong>then</strong> DURABLE</td>
+</tr>
+<tr>
+<td><code>reclaim</code></td>
+<td><code>UNLINKED</code></td>
+<td><code>CRYPTO_SHRED_ONLY</code> by default; <code>UNLINKED</code> only with discard-and-verify proven</td>
+<td><code>TOMBSTONED</code> + <code>mediumExpiry</code>, or <code>REFUSED_APPEND_ONLY</code></td>
+</tr>
+<tr>
+<td><code>verify(CATALOGUE)</code></td>
+<td><code>VERIFIED</code> (it <em>is</em> the medium)</td>
+<td><code>VERIFIED</code></td>
+<td><code>BELIEVED</code> — never <code>VERIFIED</code></td>
+</tr>
+<tr>
+<td><code>verify(PRESENCE)</code></td>
+<td>sentinel + stat</td>
+<td>device identity</td>
+<td><code>READ ELEMENT STATUS</code> — seconds, <strong>no mount</strong></td>
+</tr>
+<tr>
+<td><code>verify(MEDIA_READ)</code></td>
+<td>rehash, cheap</td>
+<td>rehash</td>
+<td>a mount; scheduled, budgeted, never timed</td>
+</tr>
+<tr>
+<td><code>reconcile</code></td>
+<td>rewalk root</td>
+<td>rescan extent table</td>
+<td>one mount per cartridge, backward-linked container footers</td>
+</tr>
+</tbody>
+</table>
+<p>Vacuous satisfaction (<code>seal</code> on disk) is not false satisfaction. That distinction is the line between a harmless no-op and a lie.</p>
+<h3 id="delete">Delete<a class="headerlink" href="#delete" title="Permanent link">&para;</a></h3>
+<p><strong>Tape does not implement delete, and is never asked to. Neither is disk.</strong></p>
+<p><code>delete</code> is not a method on any binding, because erasure was never a storage operation in a system that encrypts at the origin. Erasure is <strong>key destruction</strong>: once, for the whole object, at the key layer that already exists — <code>SiteKeys</code>, <code>NodeAgent.siteKeyDelete</code> (which already requires <code>confirm=yes</code>), and <code>t</code>-of-<code>n</code> Shamir custody. A holding site is blind, so from that site's own point of view the shred is complete without touching the medium.</p>
+<p>What remains below the line is <strong>reclamation of capacity</strong>, and that is accounting:</p>
+<ul>
+<li><strong>NAS</strong> — <code>UNLINKED</code>, <code>bytesReclaimed = len</code>. <code>Files.deleteIfExists</code> plus sidecar.</li>
+<li><strong>Block</strong> — <code>CRYPTO_SHRED_ONLY</code> by default, because freeing an LBA range does not make the bytes unreadable to anyone holding the raw device. <code>UNLINKED</code> only for a binding configured with discard-and-verify that has read back zeros. The weaker honest claim is the default.</li>
+<li><strong>LTO WORM</strong> — <code>TOMBSTONED</code>, <code>bytesReclaimed = 0</code>, <code>bytesUnreclaimable = len</code>, <code>mediumExpiry = &lt;cartridge retirement epoch&gt;</code>. The row is marked dead; the ciphertext stays until the cartridge is destroyed.</li>
+</ul>
+<p>Three consequences that make this honest rather than cosmetic:</p>
+<ol>
+<li><code>LocusDescriptor.capacity</code> carries <code>unreclaimableTombstoned</code> as its own term, so a tape locus at 80 % with 30 % tombstoned does not present to placement as a disk with headroom.</li>
+<li><code>ReclaimReason</code> travels to the binding, because a <code>REDACTION</code> answered <code>TOMBSTONED</code> is a governance event — a redaction that cannot be executed on the medium is a <strong>fact</strong>, not a failure.</li>
+<li><code>retire()</code> may only answer <code>TOMBSTONED</code> for a cartridge whose WORM status was <strong>read from the medium</strong> at commissioning, never from a config file. A rewritable cartridge in a pool configured as WORM would otherwise let the system tell the governance layer that a redaction is physically permanent when the bytes are erasable.</li>
+</ol>
+<p>And the corollary that costs nothing and is worth having anyway: <code>BlockStore.delete()</code> and the <code>delfragment</code> action are <strong>already misnamed on disk</strong>. They are reclaim. Renaming them is a one-line change that stops an operator believing bytes are gone when only a local copy is.</p>
+<p><strong>There is no <code>clearRepo</code>.</strong> No wildcard, no scope-level delete, no directory. <code>reclaimAll</code> takes an explicit, capped, token-authorised enumeration. A plant retires a cartridge by <em>draining</em> it — repairing its contents elsewhere from global parity, then marking the barcode retired — which takes hours, is scheduled, is refusable, and leaves a receipt.</p>
+<hr />
+<h2 id="5-filerepo-unchanged-and-explicitly-out-of-the-storage-path">5. <code>filerepo</code>: unchanged, and explicitly out of the storage path<a class="headerlink" href="#5-filerepo-unchanged-and-explicitly-out-of-the-storage-path" title="Permanent link">&para;</a></h2>
+<p><strong>Not the NAS binding. Not a thing to retire. Kept, running, and declared out of scope.</strong></p>
+<p>The code settles it three ways:</p>
+<ol>
+<li>
+<p><strong>It is a directory mirror with a jar repository attached.</strong> Of its seventeen actions, nine are directory replication (<code>repolist</code>, <code>getrepofilelist</code>, <code>repolistin</code>, <code>repoconfirm</code>, <code>putfilesremote</code>, <code>putfiles</code>, <code>getscandir</code>, <code>removefile</code>, <code>clearrepo</code>), two are plugin-jar distribution (<code>getjar</code>, <code>putjar</code>), three move bytes. Its Derby catalogue is keyed by absolute <code>filepath</code>. Its scanner diffs a directory every <code>scan_period</code>, default <strong>15 000 ms</strong> (<code>RepoEngine.java:114</code>).</p>
+</li>
+<li>
+<p><strong><code>clearRepo</code> is the operation that must never be inheritable.</strong> <code>RepoEngine.java:716-749</code>: wait on the <code>inScan</code> gate, delete every catalogued row and its file, then <code>Files.walk(getRepoDir())</code> <code>.filter(Files::isRegularFile)</code> <code>.map(Path::toFile)</code> <code>.forEach(File::delete)</code> over everything else. For a mirror that is <em>correct</em> — idempotent, refilled from the producer on the next broadcast. For durable storage it is unrecoverable. The containment is not to guard it; it is to keep it inside a plugin where it stays correct, and to ensure no durable binding ever inherits the path-shaped surface that makes it expressible.</p>
+</li>
+<li>
+<p><strong>It is not retirable on any timeline that includes deploying its replacement.</strong> <code>agent/src/main/resources</code> embeds <code>filerepo.jar</code> alongside <code>controller</code>, <code>core</code>, <code>executor</code>, <code>library</code>, <code>logger</code>, <code>repo</code> and <code>stunnel</code>. <code>gfs.jar</code> is not embedded. <code>filerepo</code> is part of the bootstrap that would deliver a plant bundle to the host wired to the changer.</p>
+</li>
+</ol>
+<p><strong>The <code>fs</code> binding is new code</strong> — <code>io.cresco.gfs.extent.fs.FsBinding</code> — and it is <code>BlockStore</code> promoted behind the SPI, not <code>filerepo</code> adapted. <code>BlockStore</code> is already the honest core: <code>fragPath()</code> validates <code>[A-Za-z0-9._-]{1,128}</code> and resolves flat under root with no directory shape; <code>put()</code> is verify-then-store; the sidecar carries size/sha256/owner_site; <code>scrub()</code> rehashes against it. Two things must change and one must be added:</p>
+<ul>
+<li><code>get(fragId) -&gt; byte[]</code> (<code>Files.readAllBytes</code>) retires in favour of <code>enqueue</code>/<code>ticket</code> + dataplane delivery. This is the one method that cannot survive.</li>
+<li><code>has(fragId)</code> (<code>Files.isRegularFile</code>) becomes catalogue-backed <code>locate()</code> + <code>verify(PRESENCE)</code>.</li>
+<li><strong><code>put()</code> gets a durability barrier.</strong> There is no <code>fsync</code>, no <code>FileChannel.force</code>, and no <code>SYNC</code>/<code>DSYNC</code> anywhere in the gfs module — verified by grep over <code>src/main/java</code>. <code>Files.write(tmp)</code> + <code>ATOMIC_MOVE</code> is atomic with respect to <em>readers</em>; it does not persist the data or the directory entry. So the fs binding's <code>DURABLE</code> is <strong>already false today</strong>, and it is the same lie shape the two-state write receipt exists to prevent on tape. <code>fsync</code> the temp file and <code>fsync</code> the containing directory after rename, before returning <code>DURABLE</code>.</li>
+</ul>
+<p><strong>Measured</strong> (<code>eval/results/fsync_cost.json</code>, 2026-09-19, 256 KiB fragments, 200 writes): the shipped barrier — data fsync + directory fsync — costs <strong>0.737 ms per fragment at 339 MB/s</strong> on a Linux node-local path (dgx-03 compute node), against 6.14 ms on macOS, where Java <code>force(true)</code> maps to <code>F_FULLFSYNC</code>. The cost is per-call, not per-byte. <strong>No batching redesign is needed.</strong> <strong>The sidecar is deliberately not synced</strong>: adding it took the macOS barrier from 6.14 ms to 11.15 ms — about half the total — and it carries only reconstructible data. Do not add it back. The barrier is affordable only on node-local storage; see the fourth deployment invariant below.</p>
+<p><strong>Three deployment invariants</strong>, enforced as refusals in the binding (a Felix HealthCheck only <em>reports</em>, is cached and grace-sticky ~60 s, and gfs registers it only on the success path):</p>
+<ul>
+<li>No binding root and no tape staging directory may lie under any <code>filerepo</code> <code>scan_dir</code> or <code>repo_dir</code>. Ask every co-located <code>filerepo</code> for <code>getscandir</code> at start and on config change; if the path is under one, refuse the drive-touching actions and report CRITICAL — while still starting (§9, F-13).</li>
+<li>Extend the same rule to <code>PublisherEngine</code>'s <code>root_path</code>. <code>readCatalog()</code> pages <code>getrepofilelist</code> every <code>export_period_ms</code> (default 10 000) and calls <code>Files.isRegularFile(ap)</code> on <strong>every row</strong> to filter deletions (<code>PublisherEngine.java:91</code>) — timer-driven per-object contact with the medium, free on a NAS, and precisely the pattern banned at the binding layer. State the rule as a property: <em>no timer-driven per-object medium contact anywhere in the stack, by any plugin.</em></li>
+<li>Better than the directory rule: <strong>remove the window</strong>. The source copy is retained until seal-and-verify flips a container to DURABLE, so the staging area is never the only copy.</li>
+<li><strong>A binding root's rate is measured, not declared (added 2026-09-19).</strong> At start and on config change the binding writes and fsyncs a short sequence of fragment-sized blocks at <code>root_path</code> and records the achieved rate into <code>LocusDescriptor.sustainedBytesPerSec</code> (§7), so the descriptor reports what the path did rather than what the node was configured to be. Basis: <code>eval/results/fsync_cost.json</code> — the same Linux host delivers <strong>339 MB/s at a node-local path and 8.1–8.8 MB/s at the shared project filesystem</strong>, with <code>bindingKind</code>, <code>mediaClass</code> and <code>node_class</code> identical across both. The 40× is determined solely by where <code>root_path</code> points and is invisible to every declared field. <strong>What a low measured rate should cause is not decided here</strong> — no floor is configured, and the arbitration between a measured rate and a declared <code>latencyClass</code> is recorded as an open hole in §7.</li>
+</ul>
+<p><strong>Open, not resolved (2026-09-19): whether <code>fsync</code> on a network filesystem is a durability barrier at all.</strong> On node-local storage the vacuous <code>seal</code> of §4 is sound and cheap — the barrier is in <code>append</code> and costs 0.737 ms per fragment. On the shared project filesystem the measurement cannot tell a real barrier from a no-op: <strong>8.1 MB/s with no barrier, 8.8 with data fsync, 8.6 with data+dir</strong>, all within noise of one another and with the no-barrier case nominally the slowest (<code>eval/results/fsync_cost.json</code>). The results file reads that as the network round-trip dominating so completely that fsync is free; it is equally consistent with fsync being satisfied from a server-side cache, and the measurement cannot separate the two. The fs binding returns <code>DURABLE</code> on the strength of <code>fsync</code> returning zero, and <strong>we have not verified that a network filesystem's fsync is a durability barrier at all.</strong> Recorded as an unanswered question, not repaired here: answering it needs a power-cut or server-kill test we have not run.</p>
+<hr />
+<h2 id="6-the-mount-scheduler">6. The mount scheduler<a class="headerlink" href="#6-the-mount-scheduler" title="Permanent link">&para;</a></h2>
+<p><strong>Inside the <code>plant</code> role, in-process with the mover socket, one instance per medium changer — not per site and not per drive.</strong> The changer is the arbitration unit: two schedulers issuing <code>MOVE MEDIUM</code> to one robot puts a cartridge in the wrong drive, which is a correctness failure, not a slowdown. A site with three drives behind one library has one scheduler owning all three. A site with two independent libraries has two schedulers with no coordination, because they share nothing conserved.</p>
+<p>It runs on its own dedicated thread. The plugin's <code>MsgEvent</code> handlers only <code>intend</code>, <code>plan</code>, <code>enqueue</code> and read cached state; they never touch a device, because <code>executeEXEC</code> runs on <code>PluginBuilder</code>'s <code>msgInProcessQueue</code> — <code>max(4, cores)</code> threads, 1024 queue, <strong>CallerRunsPolicy</strong> — so four blocking ioctls saturate the pool and the fifth runs on the JMS delivery thread, stalling the agent's inbound control plane. That is the shape of W-GFS-6.</p>
+<h3 id="fencing-in-order-of-authority">Fencing, in order of authority<a class="headerlink" href="#fencing-in-order-of-authority" title="Permanent link">&para;</a></h3>
+<ol>
+<li>~~<strong>SCSI Persistent Reserve is the authority.</strong> <code>PERSISTENT RESERVE OUT</code> — register with a per-host key, then reserve <code>EXCLUSIVE ACCESS – REGISTRANTS ONLY</code> — on the changer LUN <strong>and on every drive LUN</strong>. Takeover after a dead host is <code>PREEMPT AND ABORT</code>.~~ <strong>RETIRED 2026-09-19.</strong> <code>PERSISTENT RESERVE IN/OUT</code> is not a reachable opcode in any process we write (<code>BAREOS-RECOMMENDATION.md</code> §1), and SCSI Persistent Reserve is listed under <em>Deleted outright</em> in <code>SPECIFICATION.md</code> §2.3. Authority becomes <strong>operational rather than protocol</strong>: exactly one changer initiator, <code>bareos-sd</code> (<code>BAREOS-RECOMMENDATION.md</code> §8, finding F-C), and exactly one submitter to the Director, the plant scheduler. <code>PREEMPT AND ABORT</code> has no referent. <strong>HOLE: single-host-per-changer becomes a deployment rule with no enforcement, and multi-host fencing is unsolved — <code>BAREOS-RECOMMENDATION.md</code> §11.3 states the STONITH procedure "is owed now" and it exists in no document</strong> (recorded as §9 A-8). The rest of the original reasoning is preserved because it is still why no cheaper mechanism works: <code>O_EXCL</code> does not do the job — it is a block-device property, <code>/dev/sg*</code> is a character device, and neither crosses hosts; a Java <code>FileLock</code> is per-OS-file and would make the singleton depend on the NAS binding being mounted; <code>st</code> takes no reservation at all; and <strong>the drives, not the changer, are where the data loss happens</strong>.</li>
+<li><strong>The lease epoch is the reservation key.</strong> A monotonic epoch, persisted locally and recorded in every container header and on every <code>objectupdate</code>/<code>repairupdate</code>. <code>PREEMPT</code> is permitted only on presentation of an epoch strictly newer than the reserving key, so recovery-after-death and theft are distinguishable after the fact. The index rejects any update bearing a stale epoch.</li>
+<li><strong>The index lease is advisory bookkeeping, and the failure rule is inverted.</strong> <code>registernode</code> gains <code>(site, library_serial, library_partition_id)</code> — read from <code>INQUIRY</code>/<code>REPORT ELEMENT STATUS</code>, <em>not</em> a changer serial, because one physical changer with two library partitions exposes two changer LUNs with disjoint drives and two schedulers over them are legitimate. But the lease <strong>never authorises a robot move</strong>, because <code>IndexEngine</code> has one statically-configured writable primary (<code>index_primary</code>, line 105; replicas throw at line 195) with no election, so fail-closed on lease renewal turns an index outage into a <em>global</em> tape outage — including during the disaster restore the tape tier exists for. Therefore: <strong>fail-closed on the reservation, fail-static on the lease.</strong> A holder that cannot renew but still holds an uncontested reservation completes admitted work and refuses only <em>new</em> admissions. It drains only on a reservation conflict or unit attention.</li>
+<li><strong>Renewal is on its own thread.</strong> Never <code>NodeAgent</code>'s <code>Timer</code> — which is single-threaded, runs <code>tick()</code> and <code>scrubAndReport()</code> on the same thread, and makes blocking <code>rpc.call(..., 10000)</code> and <code>rpc.call(..., 8000)</code> <em>on the timer thread</em> (<code>NodeAgent.java:79-110</code>). One scrub over a few hundred GB blows a 15 s TTL and, worse, pushes the node past <code>lost_ms</code> (25 000) and starts a repair storm. <strong>That is a live bug for disk nodes today</strong>, independent of tape.</li>
+</ol>
+<h3 id="policy">Policy<a class="headerlink" href="#policy" title="Permanent link">&para;</a></h3>
+<p>Standing demand from <code>intend</code>, coalesced by <code>(coalesceKey, barcode, window)</code>; waves formed per cartridge group; within a mount, ordered by <strong>absolute logical object position</strong> — stated honestly as an approximation to physical order, since LTO is serpentine and ascending LBA is not ascending physical position. <code>GENERATE</code>/<code>RECEIVE RECOMMENDED ACCESS ORDER</code> sits behind a descriptor flag and is a procurement input.</p>
+<p><strong>Preemption is cartridge-atomic only.</strong> Stripe-boundary preemption was considered and rejected: resuming a preempted cartridge costs another mount plus a reposition, so a clinical order's bound is bought by silently invalidating every other already-published window. <code>Batch</code> completion is the durable checkpoint, so a drive lost mid-wave costs at most one cartridge's sweep. <code>cancel()</code> is defined as <em>unload, re-inventory before the next write, return the batch boundary reached</em>.</p>
+<p><strong>Admission is feasibility only, and never refuses without enrolling demand.</strong> Coverage, pledge, plant residual after the obligation reserve, policy. <code>plan()</code> is <code>advisory: true</code>. A refusal carries <code>retry_after</code> <strong>and</strong> an <code>intentId</code> — demand is enrolled, never discarded. Reject-and-discard was considered and rejected: it deletes the standing coalescable demand the economics depend on, and against <code>repairSweep</code>'s unconditional 5 s retry it is a livelock, not a refusal.</p>
+<p><strong>The fabric's own obligations are a reserving tenant.</strong> Repair, scrub, proof-of-possession, reconcile and verify consume a published, non-tradeable reserved fraction and <strong>bypass admission entirely</strong>. Durability must never depend on authorisation.</p>
+<p><code>ReadRequest</code> has no <code>maxParallel</code> field the caller can assert; real concurrency is the scheduler's drive pool.</p>
+<hr />
+<h2 id="7-locus-descriptor-and-what-changes-in-classweightnetfactor">7. Locus descriptor, and what changes in <code>classWeight</code>/<code>netFactor</code><a class="headerlink" href="#7-locus-descriptor-and-what-changes-in-classweightnetfactor" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LocusDescriptor</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">capabilityEpoch</span><span class="p">;</span><span class="w">      </span><span class="c1">// bumped on EVERY capability change; rides the heartbeat</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">bindingKind</span><span class="p">;</span><span class="w">          </span><span class="c1">// FS | BLOCK | TAPE</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">mediaClass</span><span class="p">;</span><span class="w">           </span><span class="c1">// ext4 | zfs | nvme | LTO10-WORM | LTO10-RW</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">latencyClass</span><span class="p">;</span><span class="w">         </span><span class="c1">// MS | SECONDS | MINUTES | HOURS</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">firstByteP50Ms</span><span class="p">,</span><span class="w"> </span><span class="n">firstByteP95Ms</span><span class="p">;</span><span class="w">   </span><span class="c1">// MEASURED over last N ops, not declared</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">sustainedBytesPerSec</span><span class="p">;</span><span class="w"> </span><span class="c1">// MEASURED WRITE rate, from a commissioning write probe at</span>
+<span class="w">                                  </span><span class="c1">// root_path (section 5), and re-probed; never declared.</span>
+<span class="w">                                  </span><span class="c1">// 2026-09-19: a shared-filesystem root delivers 8 MB/s where a</span>
+<span class="w">                                  </span><span class="c1">// node-local root on the SAME host delivers 339 MB/s</span>
+<span class="w">                                  </span><span class="c1">// (eval/results/fsync_cost.json) and no declared field</span>
+<span class="w">                                  </span><span class="c1">// distinguishes them. The READ rate is NOT measured by that</span>
+<span class="w">                                  </span><span class="c1">// probe; one field cannot yet serve accessCost honestly.</span>
+<span class="w">    </span><span class="kt">int</span><span class="w">     </span><span class="n">maxConcurrentReads</span><span class="p">;</span><span class="w">   </span><span class="c1">// LIVE: owned by the scheduler, not config</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">conservedResource</span><span class="p">;</span><span class="w">    </span><span class="c1">// "bytes" | "iops" | "drive_seconds"</span>
+<span class="w">    </span><span class="kt">boolean</span><span class="w"> </span><span class="n">appendOnly</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">reclaimSemantics</span><span class="p">;</span><span class="w">     </span><span class="c1">// UNLINK | CRYPTO_SHRED_ONLY | TOMBSTONE_UNTIL_MEDIA_EXPIRY</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">minWriteUnit</span><span class="p">,</span><span class="w"> </span><span class="n">maxExtentBytes</span><span class="p">,</span><span class="w"> </span><span class="n">alignment</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Capacity</span><span class="w"> </span><span class="n">capacity</span><span class="p">;</span><span class="w">            </span><span class="c1">// pledged, used, reclaimable, unreclaimableTombstoned, orphaned</span>
+<span class="w">    </span><span class="n">CostModel</span><span class="w"> </span><span class="n">cost</span><span class="p">;</span><span class="w">               </span><span class="c1">// mountSeconds, repositionSeconds, bytesPerSecond, verifyFactor</span>
+<span class="w">                                  </span><span class="c1">// 2026-09-19: these constants are now the input to EVERY capacity</span>
+<span class="w">                                  </span><span class="c1">// figure in the document set, and ALL OF THEM ARE MODELLED — the</span>
+<span class="w">                                  </span><span class="c1">// plant simulation assumed 90 s mount (sigma 15%), 20 s unload, a</span>
+<span class="w">                                  </span><span class="c1">// 172 s full-length pass, 2 s settle and 400 MB/s, against</span>
+<span class="w">                                  </span><span class="c1">// SPECIFICATION 3.4's settled O = 265 s. SPECIFICATION 3.4 records</span>
+<span class="w">                                  </span><span class="c1">// that a 45% error in the mount cycle moves plant output ~23%, and</span>
+<span class="w">                                  </span><span class="c1">// 16 item 1 already makes measuring O the FIRST commissioning</span>
+<span class="w">                                  </span><span class="c1">// task. THE HOLE: nothing in this struct or its SPI binds these</span>
+<span class="w">                                  </span><span class="c1">// fields to that measurement, records which basis a value came</span>
+<span class="w">                                  </span><span class="c1">// from, or distinguishes a commissioned value from a default.</span>
+<span class="w">                                  </span><span class="c1">// Recorded, not designed — no mechanism is proposed here.</span>
+<span class="w">    </span><span class="kt">double</span><span class="w">  </span><span class="n">obligationReserveFraction</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">inventoryEpoch</span><span class="p">;</span><span class="w">       </span><span class="c1">// last changer inventory; staleness bound for PRESENT_VERIFIED</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">attest</span><span class="p">;</span><span class="w">               </span><span class="c1">// TRUSTED | DEGRADED | UNTRUSTED</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">plantState</span><span class="p">;</span><span class="w">           </span><span class="c1">// READY | NO_HARDWARE | NO_RESERVATION | DRAINING | MAINTENANCE</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">maintenanceUntilMs</span><span class="p">;</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">failureDomain</span><span class="p">;</span><span class="w">        </span><span class="c1">// "site:lex/rack:3/host:a" | "site:lex/library:1/frame:2"</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">scrubModel</span><span class="p">;</span><span class="w">           </span><span class="c1">// ONLINE_CHEAP | MOUNT_COSTED</span>
+<span class="w">    </span><span class="n">String</span><span class="w">  </span><span class="n">verifyRate</span><span class="p">;</span><span class="w">           </span><span class="c1">// FULL | SAMPLED{rate} — per drive model + firmware</span>
+<span class="w">    </span><span class="kt">long</span><span class="w">    </span><span class="n">lostMsOverride</span><span class="p">,</span><span class="w"> </span><span class="n">repairGraceMsOverride</span><span class="p">;</span><span class="w">   </span><span class="c1">// per-tier, not one federation constant</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>failureDomain</code> is a slash-path the index groups by prefix, so a rack and a tape frame are both just domains — and <code>cartridge</code> is a first-class level below <code>host</code>, because one cartridge carries containers belonging to thousands of objects and a cartridge loss is massively correlated.</p>
+<h3 id="the-scoring-change">The scoring change<a class="headerlink" href="#the-scoring-change" title="Permanent link">&para;</a></h3>
+<p>Today (<code>IndexEngine.java:602-604</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">score</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">.</span><span class="na">pledge</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">classWeight</span><span class="p">(</span><span class="n">n</span><span class="p">.</span><span class="na">node_class</span><span class="p">)</span>
+<span class="w">         </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">0.5</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.5</span><span class="o">*</span><span class="n">availability</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">0.5</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.5</span><span class="o">*</span><span class="n">netFactor</span><span class="p">(</span><span class="n">n</span><span class="p">));</span>
+</code></pre></div>
+<p>with <code>classWeight</code> a four-case string switch (<code>usb-single</code> 0.4, <code>desktop-single</code> 0.6, <code>server-raid</code> 0.9, <code>clustered-fs</code> 1.0) and <code>netFactor = min(1, probe_mbps/net_cap_mbps)</code>, <code>net_cap_mbps</code> default 100.0, fed by <code>probeSweep</code> every 30 s.</p>
+<p><strong>Three defects, one of which is already a defect for disk.</strong></p>
+<ol>
+<li><strong>One scalar conflates two things.</strong> "How much can you durably hold" and "how fast can you give it back" diverge by five orders of magnitude on tape — and, <strong>measured 2026-09-19, they are anti-correlated on plain disk</strong>. The configuration this document's own ladder ranks most durable, <code>clustered-fs</code> at 1.0, is a shared filesystem, and a shared project filesystem measured <strong>8.6 MB/s</strong> where a node-local path on the same Linux host measured <strong>339 MB/s</strong>, with identical <code>bindingKind</code>, <code>mediaClass</code> and <code>node_class</code> (<code>eval/results/fsync_cost.json</code>). Rate is not predictable from the attributes the durability ladder keys on, so any single number is wrong for one of its two uses, <strong>and the split is owed to disk before it is owed to tape</strong>. (Only the rate term is measured here; nothing in this campaign measures the durability of either path — §9 A-9.) ~~correlate on disk and~~ Split:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">durabilityScore</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">.</span><span class="na">pledge</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">mediaDurability</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">0.5</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.5</span><span class="o">*</span><span class="n">availability</span><span class="p">(</span><span class="n">n</span><span class="p">));</span><span class="w">   </span><span class="c1">// placement</span>
+<span class="n">accessCost</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">plan</span><span class="p">)</span><span class="w">                                                                 </span><span class="c1">// read planning</span>
+</code></pre></div>
+<p><code>netFactor</code> leaves placement entirely. This is a correction for disk too: a slow-NIC <code>server-raid</code> node is a fine place to put a durable copy and a bad place to read from, and today's formula cannot say that.</p>
+<ol>
+<li><strong><code>classWeight</code> is the wrong axis for tape and becomes a fallback.</strong> The ladder is a <em>durability</em> ladder. Adding <code>case "tape-worm": return 1.0</code> would make a tape locus win placement for hot objects on a durability argument — correct in the term measured, catastrophic in the term not measured. So: <code>mediaDurability</code> reads the descriptor when one is present, falls back to the existing switch when it is not (every node registered today keeps its exact number), and the actual durability arithmetic stays where it belongs, in the coding layer (<code>SPECIFICATION.md</code> §8.1 — RS(j,4) local over RS(2,1) global; ~~RS 32+2~~ is superseded, see §8 below).</li>
+</ol>
+<p><strong>Measured caveat on the fallback, 2026-09-19.</strong> The ladder's top entry, <code>clustered-fs</code> = 1.0, names the configuration class a shared project filesystem falls in, and such a filesystem measured <strong>8.1–8.8 MB/s</strong>, while a node-local path on the same Linux host — the kind of path a <code>server-raid</code> node at 0.9 presents — measured <strong>339 MB/s</strong> (<code>eval/results/fsync_cost.json</code>). The ladder is therefore <strong>throughput-inverted at its top</strong>, and no measurement validates its durability ordering either. It survives only as a placement default for a locus that has not yet returned a descriptor, and <strong>it must never be read as a speed proxy anywhere.</strong> What an unprobed locus should score, and whether it is eligible for placement at all, is not decided here (§9 A-10).</p>
+<ol>
+<li><strong><code>netFactor</code> is meaningless for a library and must not be silently reused.</strong> <code>probe_mbps</code> for a plant measures the staging host's NIC. Where a network term is still wanted it belongs in <code>accessCost</code> as an egress leg alongside mount and reposition. ~~Exclude <code>PLANT_SCHEDULED</code> loci from <code>probeSweep</code>~~, or relabel the field <code>staging_net_mbps</code> in <code>nodeView</code> so nobody re-wires it into a decision later.</li>
+</ol>
+<p><strong>Widened 2026-09-19: this is not a tape-only defect.</strong> <code>probe_mbps</code> measures a NIC on every locus kind. A node whose medium measures <strong>8.6 MB/s</strong> — about 69 Mb/s, below the 100.0 Mb/s <code>net_cap_mbps</code> default — still scores <code>netFactor</code> from a link that is not its constraint, and on a well-provisioned host that score is ~1.0 (<code>eval/results/fsync_cost.json</code>; the NIC itself was not probed in that campaign, so this is conditional on the host's link rather than measured). So the fix is defect 1's: <strong><code>netFactor</code> leaves placement for <em>every</em> locus kind</strong>, which is strictly wider than the struck per-class carve-out — that narrower remedy is superseded. Relabelling the field <code>staging_net_mbps</code> still stands, and <code>probeSweep</code> stays a network probe with a network name; the medium's rate comes from the commissioning write probe (§5), never from it.</p>
+<p><strong>And two gates that must change or none of the above operates:</strong></p>
+<ul>
+<li>
+<p><code>score()</code> returns 0 for any node whose <code>roles</code> lacks <code>storage</code>. A <code>plant</code> node registers, heartbeats, shows UP in <code>listnodes</code> and <strong>receives not one fragment</strong>. Gate on the declared descriptor capability, not a substring match.</p>
+<blockquote>
+<p><strong>Unresolved (2026-09-19): a declared <code>latencyClass</code> and a measured rate can disagree, and nothing arbitrates.</strong> <code>firstByteP50Ms</code>/<code>firstByteP95Ms</code> and (per §5) <code>sustainedBytesPerSec</code> are measured; <code>latencyClass</code> is declared; stripe homogeneity below and the caller's per-stripe deadline (F-1) both key off the declared value. A shared-filesystem locus measured at <strong>8.6 MB/s and 29.0 ms per 256 KiB write</strong> can declare <code>MS</code> and be striped with a <strong>339 MB/s</strong> node-local locus (<code>eval/results/fsync_cost.json</code>). No rule here says which wins. Recorded as a hole rather than filled: the choice between refusing the declaration, demoting the locus, or refusing the stripe is a design decision, not an editorial one (§9 A-11).</p>
+</blockquote>
+</li>
+<li>
+<p><strong><code>place()</code> must enforce stripe homogeneity</strong>: the <code>n</code> fragments of a stripe share a latency class, enforced the way <code>domainKey</code> already enforces failure-domain spread. This is what collapses the caller's branch from per-fragment to once-per-stripe, makes mixed-media k-of-n unrepresentable rather than merely discouraged, and stops <code>replaceHolder</code> — a <em>write-path</em> handler that re-picks after a 5 s <code>push_timeout_ms</code> miss — from permanently migrating an object from milliseconds to minutes because of a transient blip, with no caller deciding it and no record that a class changed.</p>
+</li>
+</ul>
+<p><code>availability(n)</code> is a lifetime cumulative ratio never windowed or decayed, and <code>registered</code> survives re-registration — so every maintenance window permanently lowers a plant's placement score and a plant that never services its drives outscores one that does. Make it a decayed window (the code already has the pattern: <code>probe_mbps</code> is a 0.7/0.3 EWMA) and exclude declared maintenance from the denominator.</p>
+<hr />
+<h2 id="8-scsi-risk-register">8. SCSI risk register<a class="headerlink" href="#8-scsi-risk-register" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Re-scoped 2026-09-19 by <code>SPECIFICATION.md</code> §2.3 and <code>BAREOS-RECOMMENDATION.md</code> §12.</strong></p>
+<ul>
+<li><strong>Rows 2–9, 11, 15, 16 and 20 become <em>configure and assert</em> against Bareos rather than <em>implement</em>.</strong> They are not retired as risks; they stop being code we write.</li>
+<li><strong>Row 1's 4 KiB plaintext symbol header is superseded.</strong> It carries <code>extent id</code>, <code>payload hash</code> and <code>write epoch</code> <strong>in the clear on unerasable media</strong>, which is the confirmation-oracle defect of <code>BAREOS-RECOMMENDATION.md</code> §5 condition 1 reproduced in our own format. The replacement is the 24 cleartext bytes per parcel of <code>SPECIFICATION.md</code> §7.1 (<code>magic "STELE\0\2" | parcel ordinal u32 | flags u8 | crc32</code>).</li>
+<li><strong>Row 20's fourteen-opcode allowlist is replaced by <code>gfs-probe</code>'s five</strong> (<code>INQUIRY</code>, <code>LOG SENSE</code>, <code>MODE SENSE</code>/<code>MODE SELECT</code>, <code>READ</code>/<code>WRITE ATTRIBUTE</code>, <code>SECURITY PROTOCOL IN</code>).</li>
+<li><strong>Row 12 is an accepted loss, not a design.</strong> We do not own the retry policy (<code>SPECIFICATION.md</code> §2.3 cost 2), so a marginal cartridge can consume a drive in a Bareos-internal retry storm and local-parity reconstruction moves from during-the-pass to after-the-error at one extra mount. <strong>Its drive-second exposure is in no capacity table</strong> — not <code>SPECIFICATION.md</code> §14.4, not <code>eval/results/plant_contention.json</code> (§9 A-12).</li>
+<li><strong>Row 15's <code>commission(barcode)</code> is deleted with <code>gfs-mover</code>, which leaves the WORM-status-at-commissioning read unassigned</strong> — required by <code>SPECIFICATION.md</code> §5.4 and its conformance checklist, and the only thing standing between the governance layer and a claim that a redaction is physically permanent when the bytes are erasable. Bareos commissioning is <code>label barcodes</code> and reads no WORM status. <code>gfs-probe</code>'s five opcodes include <code>MODE SENSE</code>, so the read is <em>possible</em>, but it is assigned to nobody (§9 A-13).</li>
+<li><strong>The geometry in rows 7, 9, 12 and 13 and in <em>Residual</em> is superseded</strong> — see the geometry note below the table.</li>
+</ul>
+</blockquote>
+<p>Verdict is the outcome <strong>as designed here</strong>, not as the hardware behaves by default.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Failure mode</th>
+<th>Default outcome</th>
+<th>Mechanism</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Error localisation</strong></td>
+<td>Sense <code>INFORMATION</code> on a <em>stream</em> device is a <strong>residue</strong>, not an LBA. Taken as an address it rebuilds a healthy symbol and reports success.</td>
+<td>Localise from our own read-loop bookkeeping (<code>LOCATE</code> to a known absolute position, read <code>N</code> in a loop we control), confirmed by <code>READ POSITION</code>, authoritative check by per-symbol hash. A 4 KiB plaintext-structure header per 1 GB symbol (4 ppm overhead) carries format version, barcode, container id, symbol ordinal, extent id, length, payload hash, write epoch.</td>
+<td><strong>Prevent.</strong> <em>The premise is corrected: we own SCSI for mount policy, erasure-not-retry, encryption control and MAM/Log Sense — not for LBA-precise localisation, which the coding layer already provides.</em></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>End of data / append point</strong></td>
+<td>Append point taken from the catalogue. On RW media a stale catalogue logically erases everything beyond the write point; the drive reports success.</td>
+<td>Never derive EOD from the catalogue. On every load of a writable cartridge: <code>SPACE</code>-to-EOD, <code>READ POSITION</code>, compare against the catalogue. On divergence refuse to write, mark <code>RECONCILING</code>, raise a job. New causes <code>EOD_DIVERGENCE</code>, <code>DATA_PROTECT</code>. RW pool is a distinct, more dangerous descriptor mode.</td>
+<td><strong>Prevent.</strong> WORM also protected by the drive (sense 07h/30h 0Ch).</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Filemarks at end of data</strong></td>
+<td>A double filemark at EOD blocks append: positioning between the two overwrites the second. WORM refuses; RW silently changes meaning.</td>
+<td><strong>Single filemark per container. No EOD sentinel.</strong> Containers self-delimiting: header + footer with a monotonic sequence number and the previous container's absolute position — a backward-linked chain. Trailing index written at cartridge <em>seal</em>, with its position and generation in MAM.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Filemark-count addressing</strong></td>
+<td><code>st</code> writes a filemark on close of a written device. Any unplanned close shifts every subsequent <code>MTFSF n</code> count; the read lands in the wrong container and presents as <code>HASH_MISMATCH</code>, i.e. as media decay.</td>
+<td>Hold each <code>/dev/nst*</code> fd for the mover's life; set the close behaviour explicitly via <code>MTSETDRVBUFFER</code>. <strong>Address exclusively by absolute position from <code>READ POSITION</code> at write time.</strong> <code>spaceToFilemark</code> is post-error resync only, bounded by a recorded absolute block. Header mismatch → <code>WRONG_POSITION</code>, never <code>fragmentbad</code>.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Short writes / record framing</strong></td>
+<td>The JDK loops on short writes (<code>FileOutputStream.write</code>, <code>IOUtil</code>): one record becomes two blocks and every downstream read is mis-framed. <code>st</code> returns short counts near early warning.</td>
+<td>No <code>FileOutputStream</code>/<code>FileChannel</code> on the record path. <strong>One <code>write(2)</code> per record via the mover</strong>; any return != requested length is a hard job failure. Never set <code>SILI</code>; any non-zero residue or ILI on read is fatal. Pin <code>/dev/nst0</code> and assert the no-rewind node at open.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Buffered writes / deferred errors</strong></td>
+<td><code>write(2)</code> means "in the driver buffer". A permanent error surfaces later as a deferred error (sense response 71h/73h) attributed to no command; positions computed host-side name bytes that never landed.</td>
+<td>Durability point is <code>WRITE FILEMARKS</code> <code>Immed=0</code> returning GOOD <strong>and</strong> a subsequent <code>READ POSITION</code> showing the expected block. <code>close(2)</code> errno is fatal. Classify by sense <strong>response code</strong> before sense key; on any deferred error invalidate every container acknowledged since the last confirmed flush. Refs come from <code>READ POSITION</code> after the flush, never from host arithmetic.</td>
+<td><strong>Prevent</strong> (blast radius one container).</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Early warning / end of medium</strong></td>
+<td>Drive-set EW is small. Programmable EW (<code>PEWS</code>, 16-bit MB) caps near <strong>64 GB</strong> — about a third of a 200 GB container. So EW arrives mid-container as the normal case, and on WORM the tail is spent.</td>
+<td>Do not rely on EW. Poll <strong>Log Sense page 0x31</strong> (remaining capacity) during the write and stop at our own threshold = max symbol + 2 parity symbols + trailer + index + margin. Set <code>PEWS</code> to the achievable maximum as a backstop that should never fire. Mid-EW behaviour defined: abandon the partial symbol as dead tape. <strong>If the measured <code>PEWS</code> maximum forces it, the write unit becomes an RS stripe (~34 GB), not a container</strong> — that decision is made before the format is frozen.</td>
+<td><strong>Detect</strong>, and the reserve is honest. <em>Container size is now a hardware-measured input, not an assumption.</em></td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Compression</strong></td>
+<td>On by default. Yields ~1.0 on AEAD ciphertext but makes host-bytes → media-bytes non-deterministic, so remaining capacity cannot be tracked by counting.</td>
+<td><code>MODE SELECT</code> off at every mount; <code>MODE SENSE</code> back and assert it took.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Block mode</strong></td>
+<td>Fixed mode pads silently and hides short reads. Variable mode: a record larger than the read buffer fails while the tape advances past it.</td>
+<td>Variable, 512 KiB–1 MiB, exact length in the catalogue <strong>and in the symbol header</strong>, so the reader sizes its buffer from the medium rather than from config. <code>READ BLOCK LIMITS</code> at load, clamp. <code>MODE SENSE</code> records the <strong>observed</strong> block size into MAM, not the intended one; compare drive-observed against MAM-recorded at every mount. Enable <strong>Logical Block Protection</strong> (CRC-32C per block).</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Recoverable vs unrecoverable</strong></td>
+<td>Recovered-error reporting is off by default (<code>PER=0</code>). The four-cause enum is read-shaped and cannot express write, protection, EOM or cleaning.</td>
+<td><code>MODE SELECT PER=1</code> at load, verify it stuck. Poll Log Sense 02h/03h and TapeAlert at every unload into a <strong>cartridge × drive</strong> matrix. Full sense table with ASC/ASCQ for the position-invalidating cases. <strong>"Position unknown" is a first-class state</strong> entered on every unit attention (0x06), reset, aborted command (0x0B) and medium error — exited only by an absolute <code>LOCATE</code>. Drive faults (0x04) leave the pool; media faults mark symbols.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Reposition after error</strong></td>
+<td>Generalising "<code>LOCATE</code> back and retry" to <strong>writes</strong> sets EOD at that point and orphans everything beyond it on RW media.</td>
+<td><strong>Reposition-and-retry is read-only, asserted in code: no <code>LOCATE</code> on a handle opened for write.</strong> A write error is handled forward: <code>READ POSITION</code>, close the container short, single filemark, record actual length, continue on the next cartridge, and append a <strong>tombstone record</strong> naming the abandoned extent so a scan skips it deterministically and orphaned bytes are charged to capacity.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Read-error recovery policy</strong></td>
+<td>Blind retry in place spends 3 × (20–60 s) re-reading what the drive has already retried internally, and a marginal cartridge consumes a drive for an hour.</td>
+<td><strong>At most one same-drive retry, then rebuild the symbol from the surviving intra-cartridge parity on the pass in progress</strong> — zero external mounts. Escalate to a different drive only on a TapeAlert media flag or when parity is exhausted, and express it as a scheduler request. Bound recovery in <strong>drive-seconds</strong>, not attempts.</td>
+<td><strong>Prevent.</strong> <em>This rule is the honest justification for owning the path.</em></td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Write verification</strong></td>
+<td>LTO already verifies read-while-write in hardware. A same-drive read-back is close to blind to the failure that matters (readable on the writer, unreadable everywhere else) and costs <strong>2.2–2.5×</strong> write drive-seconds once repositions are counted, on the conserved resource.</td>
+<td>Cheap half always: hash on the way out of memory against the manifest; read Log Sense 02h/03h write-error counters at unmount and fail the container on a budget breach. Honest half: <strong>100 % read-back while the format and path are unproven — scoped per drive model and per firmware revision — then a sampled, cross-drive, later-mount pass</strong> sized from the media-error budget. <code>verifyRate</code> is in the descriptor. ~~<strong>The verify pass is in the capacity model.</strong>~~ <strong>CORRECTED 2026-09-19: it is not, and it must be entered before the policy is adopted.</strong> <code>SPECIFICATION.md</code> §14.4's standing obligations total 8.6 % of the plant-year with a 1 % cross-drive verify at 0.01 %, and the measured standing-obligation model (<code>eval/results/plant_contention.json</code>) prices scrub, repack, migration and rebuild only — <strong>there is no read-back line in either.</strong> A 100 % read-back at the 2.2–2.5× write drive-seconds this row itself states is in neither and does not fit the reserve. Either price it into §14.4 as an explicit commissioning-period obligation with an end date, or open the first cartridges under the sampled policy; do not leave the two documents asserting different policies. <strong>The row's underlying finding is preserved and is why this matters: a same-drive read-back is close to blind to the failure that matters — readable on the writer, unreadable everywhere else.</strong></td>
+<td><strong>Detect</strong>, cost declared. <em>The taper is a stated rule, not a future capitulation.</em></td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Drive encryption</strong></td>
+<td>The library ships with a key manager and an encryption chip. If library-managed encryption is on, the holding site holds key material — the blind-holder invariant fails <strong>silently</strong>: every write succeeds and every same-key read-back passes.</td>
+<td><code>SECURITY PROTOCOL OUT</code> sets the mode explicitly at every mount; <code>SECURITY PROTOCOL IN</code> reads Data Encryption Status back <strong>before the first write or read</strong>; observed state recorded in the container manifest and MAM; refuse any cartridge whose observed state disagrees. Default: <strong>disabled</strong> — our own <strong>per-object keys</strong> already discharge confidentiality and are what crypto-shred acts on. <em>(CORRECTED 2026-09-19. This previously read "per-container DEKs", naming a third key granularity that is neither the retired per-domain nor the restored per-object: a container DEK cannot be the shred unit, because destroying it would shred every object in the container. If a container-level DEK exists in addition, say so explicitly and state that it is a transport/at-rest wrapper that is </em><em>never</em><em> the shred unit; otherwise this document tells the governance layer that per-object erasure is available while the implementation holds a per-container key. Note that the inconsistency with §4's own "erasure is key destruction: once, for the whole object … <code>SiteKeys</code>, <code>NodeAgent.siteKeyDelete</code>" </em><em>pre-dates 2026-09-19</em><em> — the measurement did not create it, it removed the ambiguity that let it stand. Everything else in this row is unaffected.)</em> "Encryption verified off" is a precondition of the first write.</td>
+<td><strong>Prevent.</strong> <em>Was unaddressed; this is net-new.</em></td>
+</tr>
+<tr>
+<td>15</td>
+<td><strong>Partitioning</strong></td>
+<td><code>MODE SELECT</code> page 0x11 + <code>FORMAT MEDIUM</code> is one-shot on WORM and destroys a 30 TB cartridge if wrong.</td>
+<td><strong>One medium partition, partition 0, no index partition.</strong> Asserted on write and read. A <code>commission(barcode)</code> action, operator-gated and <strong>not in the mover's normal CDB allowlist</strong>, does the one-time format: read WORM status from the medium, <code>READ BLOCK LIMITS</code>, initialise MAM, bind barcode to volume identity. Never on a cartridge whose MAM shows prior use. <em>Library</em> partitions are renamed throughout so the two never collide again.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>16</td>
+<td><strong>TapeAlert</strong></td>
+<td>Flags are <strong>cleared on report</strong>. Three racing readers (health poll, <code>tapeinfo</code>, post-error classification) mean the loser mis-classifies a failing <strong>drive</strong> as failing <strong>media</strong>, retiring good cartridges and keeping a bad drive writing.</td>
+<td><strong>Exactly one reader: the mover</strong>, at every unload and after every error, writing straight to the catalogue. <code>tapeinfo</code> and the HealthCheck read the catalogue. Two distinct drives must implicate a cartridge before retirement. TapeAlert 4/5/6 <strong>enqueue a migration job with a deadline</strong>, not increment a gauge. Cleaning (20/21/22) is a first-class scheduler job with its own budget.</td>
+<td><strong>Prevent.</strong></td>
+</tr>
+<tr>
+<td>17</td>
+<td><strong>Catalogue loss</strong></td>
+<td>Opaque ciphertext plus no on-media identity means a full traversal recovers <em>bytes with no identity</em>. Recovery-by-traversal is not unimplemented — it is impossible.</td>
+<td>Symbol headers (#1) + per-container footer with backlink (#3) + append-only, <strong>encrypted</strong> cartridge index at seal + its position and generation in <strong>MAM</strong> (read at load, no tape motion, writable independently of WORM). The catalogue becomes a <strong>cache</strong>; <code>reconcile(barcode)</code> is the bounded recovery.</td>
+<td><strong>Prevent.</strong> <em>This also discharges the published-format and reference-reader obligations, which the format spec + reader are deliverables for.</em></td>
+</tr>
+<tr>
+<td>18</td>
+<td><strong>Changer contention</strong></td>
+<td><code>O_EXCL</code> on <code>/dev/sg*</code> excludes nothing; an index lease is software state that does not bind a second host on the same fabric.</td>
+<td>SCSI Persistent Reserve on the changer LUN <strong>and every drive LUN</strong>, epoch-keyed, <code>PREEMPT AND ABORT</code> for takeover (§6). Reservation conflict (status 0x18) is an immediate fence-and-alarm, never a retry. On rejection: release reservations, unload, refuse to serve.</td>
+<td><strong>Prevent</strong>, conditional on the PR gate in §10.</td>
+</tr>
+<tr>
+<td>19</td>
+<td><strong>Management-plane bypass</strong></td>
+<td>The library's ReST API can move media with no SCSI reservation, and our own telemetry authenticates against it.</td>
+<td>The scheduler owns that credential; the plant HealthCheck asserts no other session holds move capability. A cartridge found in the transport element on takeover <strong>quarantines the changer</strong> and requires operator acknowledgement — guessing its source slot overwrites an occupied slot.</td>
+<td><strong>Detect.</strong> <em>Residual: SAN zoning and physical access are stated requirements, not mechanisms we implement.</em></td>
+</tr>
+<tr>
+<td>20</td>
+<td><strong>Privilege scope</strong></td>
+<td>Once the JVM can issue CDBs, every bundle in it can issue <code>FORMAT MEDIUM</code> and <code>ERASE</code>.</td>
+<td>Mover in its own process, non-root, device nodes group-owned, <code>CAP_SYS_RAWIO</code> only there. <strong>CDB allowlist</strong>: <code>WRITE(6)</code>, <code>WRITE FILEMARKS</code>, <code>LOCATE(16)</code>, <code>READ(6)</code>, <code>READ POSITION</code>, <code>LOG SENSE</code>, <code>MODE SENSE/SELECT</code> (enumerated pages), <code>READ/WRITE ATTRIBUTE</code>, <code>SECURITY PROTOCOL IN/OUT</code>, <code>MOVE MEDIUM</code>, <code>REPORT/READ ELEMENT STATUS</code>, <code>PERSISTENT RESERVE IN/OUT</code>. <code>FORMAT MEDIUM</code> and <code>ERASE</code> are <strong>not reachable opcodes</strong>.</td>
+<td><strong>Prevent.</strong> <em>Enforceable and auditable, unlike "a role with no write path in its action set" — <code>noRole()</code> is a config string, not a capability.</em></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Geometry superseded 2026-09-19 by <code>SPECIFICATION.md</code> §3.</strong> Throughout this section, read <em>container</em> as <strong>fragment</strong> (96 parcels contiguous on one volume, 103.1 GB written / 90.2 GB payload) and <em>symbol</em> as <strong>parcel</strong> (exactly <code>PARCEL_BYTES</code> = 1073741824, never varying). Intra-cartridge coding is <strong>RS(j, 4) with <code>j ≤ 28</code> over 1 GiB parcels, contiguous within a band, local parity at the end of the band (1.1429×)</strong> — <strong>not RS 32+2</strong>; global coding is <strong>RS(2, 1) across three sites (1.5×)</strong>; combined <strong>1.714×</strong>. Row 7's escalation ("if the measured <code>PEWS</code> maximum forces it, the write unit becomes an RS stripe (~34 GB), not a container") is <strong>moot</strong>: the fixed 1 GiB parcel is the write unit, and a short band uses <code>j =</code> its actual data-parcel count, so a forced seal costs at most one parcel of padding. Row 9's "exact length in the catalogue <strong>and in the symbol header</strong>" is superseded by the same §7.1 cleartext head as row 1.</p>
+</blockquote>
+<p><strong>Residual, stated plainly.</strong> We are trading a decade of field hardening for a write path of one function and a read path of one function. That trade is defensible only because those paths are that narrow, because every extent is AEAD ciphertext with a manifest hash under RS 32+2 intra-cartridge and global coding across sites, and because the fake-drive suite injects EW, <code>MEDIUM_ERROR</code> at a position, deferred errors, <code>pos_unknown</code>, short reads, ILI and unit-attention-mid-sweep from day one. <strong>mhvtl catches the command grammar and the framing; it does not reproduce deferred errors, <code>pos_unknown</code> after a reset, real backhitch, WORM firmware enforcement or vendor sense.</strong> Five of the twenty rows above live in that gap, and the gate in §10 exists for them.</p>
+<hr />
+<h2 id="9-findings-resolution">9. Findings: resolution<a class="headerlink" href="#9-findings-resolution" title="Permanent link">&para;</a></h2>
+<p>Every FATAL and SERIOUS class raised, with the code that proves it and the disposition. <strong>R</strong> = resolved by this decision; <strong>A</strong> = accepted as a cost we are paying knowingly; <strong>G</strong> = deferred behind a named gate.</p>
+<h3 id="caller-and-index">Caller and index<a class="headerlink" href="#caller-and-index" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Finding</th>
+<th>Proof</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F-1</td>
+<td>Callers branch implicitly on medium via wall-clock timeouts, and that branch is invisible</td>
+<td><code>DurabilityEngine</code>: <code>push_timeout_ms</code> 5000, <code>fetch_timeout_ms</code> 4000, round deadline 8 s, <code>fetch_rounds</code> 10 with <code>sleep(500*round)</code> ≈ 22 s total patience</td>
+<td><strong>R</strong> — <code>FragRef.lc</code> carries the declared latency class; <code>fetchStripe</code> derives its per-fetch deadline from it, not from one global constant; stripe homogeneity makes the branch once-per-stripe</td>
+</tr>
+<tr>
+<td>F-2</td>
+<td>Hedging races and <code>cancel(true)</code> the losers — on tape every loser has already burnt a mount</td>
+<td><code>fetchStripe</code>, <code>fs.get(i).cancel(true)</code>; <code>fetch_redundancy</code> 1</td>
+<td><strong>R</strong> — redundancy racing is restricted to one latency class (automatic under homogeneity); for a mount-class locus the binding, not the caller, decides which of <em>n</em> to read</td>
+</tr>
+<tr>
+<td>F-3</td>
+<td><code>pushWithFallback</code> makes tape structurally unplaceable, or silently re-places a fragment whose bytes are already on WORM</td>
+<td>2 attempts × 5 s, then <code>replaceholder</code>, 6 rounds</td>
+<td><strong>R</strong> — two-phase accept: <code>ACCEPTED_FOR_CONTAINER</code> on receipt, <code>DURABLE</code> only on seal+verify; re-placement forbidden while a write ticket is open; the manifest records the ticket at reservation time</td>
+</tr>
+<tr>
+<td>F-4</td>
+<td><code>derivedState</code> computes durability from <strong>holder liveness</strong></td>
+<td><code>IndexEngine:1312-1328</code>, <code>lost_ms</code> 25000, <code>repair_grace_ms</code> 15000, <code>repairSweep</code> on a 5 s timer, <code>auto_repair</code> true</td>
+<td><strong>R</strong> — two-axis: durability (independent copies) and reachability (time to first byte), derived separately. A holder UP with a cold medium is <code>PRESENT_COLD</code>: never an available copy for read planning, never a missing copy for repair. <code>lost_ms</code>/<code>repair_grace_ms</code> come from the descriptor per tier</td>
+</tr>
+<tr>
+<td>F-5</td>
+<td>Planned maintenance is indistinguishable from death and its default response is a federation-wide repair wave</td>
+<td>same</td>
+<td><strong>R</strong> — <code>plantState: MAINTENANCE{reason, until}</code> journalled, not overridable by <code>livenessSweep</code>; <code>DEGRADED_PLANT{reason, until}</code> as a refusal; repair accrues <code>durability_debt</code> instead of re-placing</td>
+</tr>
+<tr>
+<td>F-6</td>
+<td><code>auditSweep</code> becomes a tautology on tape: catalogue asked about a catalogue decision</td>
+<td><code>NodeAgent.hasFragments</code> → <code>store.has()</code> → <code>Files.isRegularFile</code>; <code>IndexEngine:1470</code> then calls <code>repairSweep(null, true)</code> with <strong>grace ignored</strong></td>
+<td><strong>R</strong> — <code>hasfragments</code> is three-valued (<code>PRESENT</code>/<code>ABSENT</code>/<code>UNKNOWN</code>); the index treats <code>UNKNOWN</code> as <em>suppress repair, alarm, hold state</em>. <code>verify(PRESENCE)</code> on tape is <code>READ ELEMENT STATUS</code> — seconds, no mount, genuinely physical. <code>ignoreGrace</code> is never used against a non-<code>ONLINE</code> locus</td>
+</tr>
+<tr>
+<td>F-7</td>
+<td>Catalogue loss reads as data loss and is answered by writing fresh WORM that can never be reclaimed</td>
+<td>as above + <code>reclaimSemantics</code></td>
+<td><strong>R</strong> — F-6 plus risk row 17 (self-describing media)</td>
+</tr>
+<tr>
+<td>F-8</td>
+<td>Crash mid-write orphans WORM bytes; <code>commit</code>-returns-refs means the caller holds nothing durable for minutes</td>
+<td>no journal anywhere in gfs</td>
+<td><strong>R</strong> — <code>append</code> returns a <strong>provisional ref with its real address immediately</strong> and journals it (fsync) before the next record; a write-intent row is committed to the index before the first byte</td>
+</tr>
+<tr>
+<td>F-9</td>
+<td><code>repairsInFlight</code> is a hardcoded 60 s lease, shorter than one mount, so repair re-dispatches while the first is still mounting</td>
+<td><code>IndexEngine:1517</code></td>
+<td><strong>R</strong> — lease = the plan's <code>estWallP95</code> + margin; repairer heartbeats the job; <code>repairFailed</code> backs off exponentially instead of retrying at once; repairer selection prefers co-location with surviving fragments</td>
+</tr>
+<tr>
+<td>F-10</td>
+<td>Repair/scrub routed through admission can be refused → livelock against a 5 s sweep</td>
+<td><code>repairSweep</code> unconditional retry</td>
+<td><strong>R</strong> — obligations bypass admission and draw on the published reserve; a refused obligation sets a distinct state, never a silent retry</td>
+</tr>
+<tr>
+<td>F-11</td>
+<td><code>absentFragments</code> is a permanent, process-lifetime, cross-job blacklist keyed on status <code>9</code></td>
+<td><code>DurabilityEngine:123, 131, 298</code> — three references, never cleared. Note <code>9</code> is also <code>noRole</code>, <code>unknown job</code> and <code>no such fragment</code></td>
+<td><strong>R</strong> — <code>Cause.DEFERRED</code>/<code>OFFLINE</code> distinct from <code>MISSING</code>; blacklist scoped to one job and given an expiry</td>
+</tr>
+<tr>
+<td>F-12</td>
+<td>Returning a new status on an existing action reads as failure to every <code>Rpc.ok</code> caller</td>
+<td><code>Rpc.ok</code> is <code>"10".equals(status)</code></td>
+<td><strong>R</strong> — no new status codes on existing actions. Tape is reachable only through new action names; <code>getfragment</code>'s ack gains <code>{state: SENT\|QUEUED, ticket, window}</code> as an additive param the old path ignores</td>
+</tr>
+<tr>
+<td>F-13</td>
+<td>A plugin whose hardware is absent/claimed reports ACTIVE, registers no HealthCheck, and silently drops messages</td>
+<td><code>PluginAdmin</code> ~1336; gfs <code>Plugin.isStarted()</code> registers HC on the success path only; <code>msgIn</code> guards <code>executor != null</code></td>
+<td><strong>R</strong> — <strong>a hardware condition never fails <code>isStarted()</code>.</strong> Always construct, always register the HC, always register with the index, always serve <code>nodeinfo</code>/<code>describe</code>/<code>ticket</code>/<code>tapeinfo</code>; refuse only drive-touching actions, with <code>plantState</code> as a gauge and the HC verdict. Also latch <code>startFailed</code> so a failed start stays failed</td>
+</tr>
+<tr>
+<td>F-14</td>
+<td>Placement selects a plant that has no write contract; and a plant holding Shamir shares destroys crypto-shred</td>
+<td><code>custodyPut</code> gates only on <code>store == null</code></td>
+<td><strong>R</strong> — <code>custodyplan</code> excludes and <code>custodyput</code> refuses any locus whose descriptor says <code>reclaimSemantics != UNLINK</code>. <strong>Key material never lands on a medium that cannot destroy it.</strong></td>
+</tr>
+<tr>
+<td>F-15</td>
+<td>Restore is an ordered streaming decoder that cannot poll and caps outstanding demand at <code>stripe_window × k</code></td>
+<td><code>runRestore</code> blocks on <code>pending.get(si).get()</code> with <strong>no timeout</strong>, <code>stripe_window</code> 4</td>
+<td><strong>R, and named as scope</strong> — two-phase restore: <code>intend</code>/<code>plan</code> the whole ref set, <code>enqueue</code> once, decode into a bounded out-of-order stripe buffer, write out in order. This is the largest single piece of work in the programme and is sequenced accordingly (§10 step 3)</td>
+</tr>
+<tr>
+<td>F-16</td>
+<td><code>Jobs</code> evicts still-RUNNING jobs at 256 in insertion order, loses everything on restart, and inserts before <code>submit</code> so a rejection leaves a phantom</td>
+<td><code>Jobs.java:31-33, 42-52</code>; <code>jobstatus</code> → <code>"9" "unknown job"</code></td>
+<td><strong>R</strong> — never evict a non-terminal job; evict terminal by completion age; insert only after a successful <code>submit</code>; separate pool for drive work sized to drives+1; persist ticket records; distinguish <code>UNKNOWN_TICKET</code> from <code>EXPIRED_TICKET</code> from <code>RECOVERED_UNKNOWN</code></td>
+</tr>
+<tr>
+<td>F-17</td>
+<td><code>FrameBus</code> cannot carry container-scale delivery and has no backpressure; a stalled consumer shoe-shines a drive</td>
+<td><code>MAX_FRAME = 700*1024</code>, one frame = one fragment, <code>PARK_TTL_MS</code> 60 000 (shorter than a mount)</td>
+<td><strong>R</strong> — the drive is decoupled from the network: a sweep writes into local staging at streaming rate and delivery uses the existing fragment-at-a-time path from staging. <code>PARK_TTL</code> derived from the ticket's projected start. <strong>No direct drive→network streaming in the first build</strong></td>
+</tr>
+<tr>
+<td>F-18</td>
+<td><code>NodeAgent</code> RPCs from a single-threaded <code>Timer</code> that also runs a whole-store rehash</td>
+<td><code>NodeAgent.java:79-110, 147-154</code>; <code>scrub_period_ms</code> 60 000</td>
+<td><strong>R</strong> — liveness on a dedicated <code>ScheduledExecutorService</code> catching <code>Throwable</code> (JNA failures arrive as <code>Error</code>), never blocking on a device; scrub onto the Jobs pool; "last successful heartbeat age" as a gauge. <strong>A live bug today, fixed regardless of tape</strong></td>
+</tr>
+<tr>
+<td>F-19</td>
+<td>The fs binding's <code>DURABLE</code> is already false</td>
+<td>no <code>fsync</code>/<code>force</code>/<code>SYNC</code>/<code>DSYNC</code> anywhere in gfs</td>
+<td><strong>R</strong> — §5</td>
+</tr>
+<tr>
+<td>F-20</td>
+<td>A vanished NAS mount reports used=0 and becomes the <em>most attractive</em> placement target, then mass-MISSING</td>
+<td><code>BlockStore</code> constructor <code>createDirectories(root)</code>; <code>rescan</code> → used=0; <code>place()</code> weight <code>score × free</code></td>
+<td><strong>R</strong> — <code>.gfs-store-id</code> sentinel + <code>getFileStore</code> device identity checked before every rescan, scrub and presence answer. Absent/mismatched → <code>UNAVAILABLE</code> (distinct from EMPTY): refuse to report capacity at all, answer presence <code>UNKNOWN</code>, fail the HC. <strong><code>capacity.used = 0</code> and <code>capacity = UNKNOWN</code> must be different facts</strong></td>
+</tr>
+<tr>
+<td>F-21</td>
+<td>The publisher converts absence-from-disk into deletion from the federation index</td>
+<td><code>PublisherEngine.java:91</code></td>
+<td><strong>R</strong> — same sentinel discipline on the publisher root, plus a gate: a pass that would delete more than a set fraction of a dataset refuses and raises</td>
+</tr>
+</tbody>
+</table>
+<h3 id="design-level">Design-level<a class="headerlink" href="#design-level" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Finding</th>
+<th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S-22</td>
+<td>A binding-level <code>prospect</code>/<code>realise</code> installs a second planner under ENTAIL's</td>
+<td><strong>R</strong> — binding <code>plan()</code> is a pure cost declaration; coalescing, wave formation and deadline ordering happen once, in the scheduler, driven by <code>intend</code>; the index composes the joint plan across loci, because only it knows placement</td>
+</tr>
+<tr>
+<td>S-23</td>
+<td>Admission that refuses without enrolling demand deletes the batchability the economics depend on</td>
+<td><strong>R</strong> — every refusal carries <code>retry_after</code> <strong>and</strong> an <code>intentId</code></td>
+</tr>
+<tr>
+<td>S-24</td>
+<td>Descriptor leaks a per-peer load oracle (cartridge ids, instantaneous queue depth) that ENTAIL closes deliberately</td>
+<td><strong>R</strong> — static capability descriptor on <code>registernode</code>; dynamic terms published only as <strong>buckets</strong> in the Calendar; <code>Order</code> carries extent ids and a locus id, never a locator</td>
+</tr>
+<tr>
+<td>S-25</td>
+<td><code>grant_ttl_ms</code> 600 000 and a 15 s <code>streamfile</code> RPC are calibrated to a NAS</td>
+<td><strong>R</strong> — grant lifetime is a function of the ticket's projected window; <code>extend</code> renews against the ticket</td>
+</tr>
+<tr>
+<td>S-26</td>
+<td>A cartridge physically exported is counted as a live copy</td>
+<td><strong>R</strong> — <code>Residency.presence = EXPORTED{custodian, since}</code> fed by a periodic cheap changer inventory; export/import are explicit custody transfers that move durability credit atomically; <code>plan()</code> refuses on <code>EXPORTED</code> naming the custodian</td>
+</tr>
+<tr>
+<td>S-27</td>
+<td>A drive lost mid-wave silently invalidates every admitted window</td>
+<td><strong>R</strong> — <code>maxConcurrentReads</code> is live scheduler state, not config; a pool change bumps <code>capabilityEpoch</code>, republishes, and <strong>re-plans every admitted-but-unstarted ticket</strong>, refusing or re-windowing explicitly. Health checks are for humans and are never load-bearing for scheduling</td>
+</tr>
+<tr>
+<td>S-28</td>
+<td><code>Ticket</code> states shorter than ENTAIL's drop the vocabulary of degraded operation</td>
+<td><strong>R</strong> — ENTAIL's <code>Job</code> states adopted verbatim, plus <code>PLANT_DEGRADED{until}</code></td>
+</tr>
+<tr>
+<td>S-29</td>
+<td>Plugin data directory is keyed by a <code>pluginID</code> that is a fresh UUID unless <code>inode_id</code> is pinned</td>
+<td><strong>R</strong> — pinned <code>inode_id</code> is a hard deployment requirement; the binding refuses READY without it (visibly, per F-13); the catalogue lives at a configured absolute path outside plugin-data; the cartridge is the record of truth</td>
+</tr>
+<tr>
+<td>S-30</td>
+<td>OSGi bundle refresh is not process restart; device fds are process-scoped</td>
+<td><strong>R</strong> — moot for the drives (the mover is a separate process), but the mover socket gets explicit close-on-deactivate with a bounded join and a re-acquire retry window; HC distinguishes "held by a previous incarnation" from "unavailable"</td>
+</tr>
+<tr>
+<td>S-31</td>
+<td><code>healthSummary</code> returns <code>CRITICAL: block store not writable</code> from <code>rootFile().canWrite()</code></td>
+<td><strong>R</strong> — the plant has its own predicate (drives claimed, changer responsive, staging writable, sealed-but-unverified containers), never this one</td>
+</tr>
+<tr>
+<td>S-32</td>
+<td>Verify + scrub economics unbudgeted; <code>scrub_period_ms</code> 60 000 is a robot campaign on tape</td>
+<td><strong>R</strong> — on any locus with <code>latencyClass</code> MINUTES/HOURS the node-side scrub timer is <strong>off by default</strong>; <code>verify(MEDIA_READ)</code> is a sampled campaign inside the obligation reserve with a stated annual drive-second allocation; the verify pass is in the capacity model</td>
+</tr>
+<tr>
+<td>S-33</td>
+<td>The cartridge is the real failure domain and nothing can name it</td>
+<td><strong>R</strong> — <code>cartridge</code> as a <code>domainKey</code> level and a reverse index barcode → {object, stripe, idx} maintained at container commit, so drain is one scheduled campaign rather than ten thousand independent repairs</td>
+</tr>
+<tr>
+<td>S-34</td>
+<td>Serpentine ordering ≠ ascending LBA; RAO availability unknown</td>
+<td><strong>A + G</strong> — stated honestly as an approximation; RAO behind a descriptor flag; a procurement question</td>
+</tr>
+<tr>
+<td>S-35</td>
+<td>The proposed validation gate cannot fail</td>
+<td><strong>R</strong> — §10: the simulator is a <strong>fault</strong> injector, and the pass condition is <em>degrades explicitly</em>, not <em>still repairs</em></td>
+</tr>
+</tbody>
+</table>
+<h3 id="accepted-costs">Accepted costs<a class="headerlink" href="#accepted-costs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>A-1 — The tape staging area is a new single point of loss.</strong> "No filesystem" holds for the media, not for the node. Mitigated by retaining the source copy until seal-and-verify, by the directory refusal, and by never naming staging as a repo. It remains real.</li>
+<li><strong>A-2 — Every tape <code>estWall</code> is a declared guess until commissioning measures <code>O</code> and the reposition term.</strong> <strong>MEASURED 2026-09-19 (<code>eval/results/plant_sim.json</code>): the plant-level spread is 3.8× between scattered and clustered placement at identical scheduling policy (172.3 → 653.3 GB/drive-hour) and 9.4× for policy alone (69.5 → 653.3).</strong> That is <strong>not</strong> the same quantity as this line's ~14×: the harness's scattered and clustered cases differ in bytes-per-mount by 8.4× (13.3 vs 111.1) and separate mainly on mount count (601 vs 72), whereas <strong>~14× is scattered-vs-contiguous <em>at identical bytes-per-mount</em> — a within-cartridge reposition question that remains UNMEASURED and is not closed by the plant simulation.</strong> Also still modelled, not measured: the mount cycle itself (the simulation assumed 90 s mount, 20 s unload, 172 s full-length pass, 2 s settle and first-order serpentine, against <code>SPECIFICATION.md</code> §3.4's settled <code>O = 265 s</code>) and the reposition figure inherited from LTO-8/9-class media. <code>basis: MODELLED</code> with model error is carried in every plan. The SPI makes the guess visible and revisable; it does not make it true.</li>
+<li><strong>A-3 — Splitting the score changes placement for every node already registered.</strong> <code>score()</code> is used twice in <code>place()</code> — as the best-per-domain comparator and as the sampling weight — and the SCALE results were produced under both. The migration gets its own before/after comparison; it is not a clean substitution.</li>
+<li><strong>A-4 — The block binding is the least examined.</strong> Partial-write atomicity across power loss, discard that does not discard, reordering across a flush. It satisfies every method as specified, by analogy to the filesystem case rather than by its own examination. <strong>If the intended device is SMR or a zoned namespace — append-only with sequential write constraints — it groups with tape and this grouping is wrong.</strong> That is a question to answer before the block binding is written, not after.</li>
+<li><strong>A-5 — Container packing above the SPI is unscoped, and 2026-09-19 made it the busiest open question in the set.</strong> Grouping extents into containers by retention class and consent unit is effectively irreversible on WORM, and the citation-pinning problem makes it consequential. It now carries: (i) <strong>object-granular purity</strong>, whose ½-parcel-per-object padding <code>SPECIFICATION.md</code> §8.4 rule 1 shows is ruinous for small objects; (ii) the conflict between <em>never cluster by consent unit</em> (disclosure, §8.4 rule 2) and <em>cluster by co-access</em> (capacity), which for longitudinal clinical data are the same axis; and (iii) <strong><code>pooled(n)</code> becoming the default mode</strong>, whose three costs §8.4 enumerates. Co-access clustering is worth <strong>3.8× in GB per drive-hour</strong> and the difference between <strong>11.9 and 45.0 PB/yr</strong> delivered (<code>eval/results/plant_sim.json</code>, <code>eval/results/plant_contention.json</code>), so this is a <strong>capacity decision, not a layout preference</strong> — and it is irreversible on WORM. Provenance: those figures come from a simulated plant with synthetic cartridge assignment (<code>plant_sim.json</code> <code>model_limits</code>: real co-occurrence must be mined from an actual request log), which makes that log-mining a <strong>prerequisite</strong> to this decision rather than a refinement of it. Real work hidden behind a clean interface boundary — now with its contents named.</li>
+<li><strong>A-6 — "Our write path is narrow" is unfalsifiable until it has run against real media.</strong> Every team that wrote its own tape format believed this. The read-back verify and the reference reader are what make the belief testable, which is why both are early rather than deferred. <em>(2026-09-19: largely mooted by Bareos owning Layer 0 — we no longer write the tape format — but the staged-until-verified gate and the fault injector survive on their own merits.)</em></li>
+</ul>
+<p><strong>Opened 2026-09-19 by the coherence and measurement pass. Recorded, not solved.</strong></p>
+<ul>
+<li><strong>A-7 — <code>ExtentBinding</code> has no layer.</strong> <code>VolumeMover</code> is Layer 0 and the ten-call block plane is Layer 1, each by its own document's statement. Nothing assigns <code>ExtentBinding</code> a layer or states how the three compose, and §1's "One SPI" is withdrawn without a replacement claim. An implementer working from §3 cannot tell which interface they are building against.</li>
+<li><strong>A-8 — Multi-host changer fencing has no mechanism.</strong> Deleting SCSI Persistent Reserve removes the only cross-host mechanism in the design. What replaces it is a deployment rule — single host per changer — with no enforcement. <code>BAREOS-RECOMMENDATION.md</code> §11.3 states the STONITH procedure "is owed now"; it exists in no document. A second host on one fabric is currently prevented by convention only.</li>
+<li><strong>A-9 — The durability half of the <code>durabilityScore</code>/<code>accessCost</code> split is unmeasured.</strong> That the ladder's most-durable class is also the slowest path is evidence the two axes do not track each other; it is not a measurement of durability. Nothing in <code>eval/results/</code> measures the durability of a node-local path against a shared one.</li>
+<li><strong>A-10 — An unprobed locus has no defensible score.</strong> Placement must rank a node at its first registration, before any commissioning write probe has run, and the existing ladder is throughput-inverted at its top. No rule is proposed for what an unprobed locus scores, or whether it is eligible for placement at all.</li>
+<li><strong>A-11 — A declared <code>latencyClass</code> and a measured rate can contradict each other by 40×, and nothing arbitrates.</strong> Stripe homogeneity and the caller's per-stripe deadline both key off the declared value. Whether the declaration is refused, the locus demoted, or the stripe refused is a design decision, deliberately not made here. Related and also open: the re-probe cadence, and what happens to in-flight stripes when a live locus's measured rate changes underneath open placements (<code>capabilityEpoch</code> is the obvious vehicle and its in-flight behaviour is unspecified).</li>
+<li><strong>A-12 — The retry and error-recovery policy is an accepted loss with no price.</strong> §8 row 12 is retired as something we implement; nothing specifies what the policy now is, and the resulting drive-second exposure appears in no capacity table.</li>
+<li><strong>A-13 — The WORM-status-at-commissioning read is unassigned.</strong> Required by <code>SPECIFICATION.md</code> §5.4 and its conformance checklist; the only process that did it (<code>gfs-mover</code>'s operator-gated <code>commission(barcode)</code>) is deleted, and Bareos's <code>label barcodes</code> reads no WORM status.</li>
+</ul>
+<hr />
+<h2 id="10-build-order">10. Build order<a class="headerlink" href="#10-build-order" title="Permanent link">&para;</a></h2>
+<h3 id="step-0-honest-acks-and-three-live-bug-fixes-simulation-now-no-tape-hardware-useful-even-if-the-tape-tier-is-never-bought">Step 0 — Honest acks and three live bug fixes <em>(simulation now; no tape hardware; useful even if the tape tier is never bought)</em><a class="headerlink" href="#step-0-honest-acks-and-three-live-bug-fixes-simulation-now-no-tape-hardware-useful-even-if-the-tape-tier-is-never-bought" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>FragRef.lc</code> + <code>LocusDescriptor</code> carried on <code>registernode</code>/<code>heartbeat</code>, with <code>classWeight</code> demoted to fallback and the descriptor consumed nowhere yet.</li>
+<li><code>getfragment</code>'s ack gains <code>{state: SENT | QUEUED, ticket, window{p50,p95}}</code>; <code>fetchFragment</code> derives its await budget from the returned window instead of a constant.</li>
+<li>Fix, today, independent of tape: <code>fsync</code> in <code>BlockStore.put</code> (temp + directory); the <code>.gfs-store-id</code> mount sentinel and three-valued presence; <code>NodeAgent</code>'s liveness off the shared <code>Timer</code> and scrub onto the Jobs pool; <code>Jobs</code> eviction by completion age with insert-after-submit.</li>
+</ol>
+<p><strong>This is the smallest step that is genuinely useful and not throwaway</strong>: it fixes four defects that exist now on disk, and it is the change that lets a mount-class locus be added later without every caller branching.</p>
+<h3 id="step-1-the-spi-and-the-fs-binding-simulation-now">Step 1 — The SPI and the <code>fs</code> binding <em>(simulation now)</em><a class="headerlink" href="#step-1-the-spi-and-the-fs-binding-simulation-now" title="Permanent link">&para;</a></h3>
+<p><code>io.cresco.gfs.extent</code> interfaces and plain classes. <code>FsBinding</code> = <code>BlockStore</code> promoted: <code>put</code>/<code>meta</code>/<code>scrub</code> survive; <code>get()</code> retires in favour of <code>enqueue</code>/<code>ticket</code>; <code>has()</code> becomes catalogue-backed <code>locate()</code> + <code>verify</code>. <code>reclaim</code> replaces <code>delete</code> on every medium, <code>delfragment</code> renamed. Prove the existing <strong>D1</strong> durability-transition run re-executed through the new path with no regression on disk.</p>
+<h3 id="step-2-the-index-becomes-two-axis-simulation-now">Step 2 — The index becomes two-axis <em>(simulation now)</em><a class="headerlink" href="#step-2-the-index-becomes-two-axis-simulation-now" title="Permanent link">&para;</a></h3>
+<p><code>durabilityScore</code>/<code>accessCost</code> split; <code>netFactor</code> out of placement; the role gate; <strong>stripe homogeneity</strong>; <code>PRESENT_COLD</code>; three-valued <code>hasfragments</code>; per-tier <code>lost_ms</code>/<code>repair_grace_ms</code>; declared maintenance; the obligation reserve; repair lease from the plan; <code>cartridge</code> as a failure domain; decayed availability. Re-run SCALE and publish the before/after distribution (A-3).</p>
+<h3 id="step-3-restore-and-repair-learn-to-wait-simulation-now">Step 3 — Restore and repair learn to wait <em>(simulation now)</em><a class="headerlink" href="#step-3-restore-and-repair-learn-to-wait-simulation-now" title="Permanent link">&para;</a></h3>
+<p>Two-phase restore (F-15), <code>intend</code>/<code>coalesceKey</code>, out-of-order stripe buffer, bounded blocking gets. This is the largest piece and it is the precondition for any tape read being economically worth taking.</p>
+<h3 id="step-4-simtapebinding-the-scheduler-and-a-fault-injector-simulation-now">Step 4 — <code>SimTapeBinding</code>, the scheduler, and a <strong>fault</strong> injector <em>(simulation now)</em><a class="headerlink" href="#step-4-simtapebinding-the-scheduler-and-a-fault-injector-simulation-now" title="Permanent link">&para;</a></h3>
+<p>Full descriptor, cost model, container packing, staging, seal-and-verify, single filemark, absolute positioning, symbol headers, container footers with backlinks, tombstone records. <em>(2026-09-19: the fault injector moves from inside <code>SimTapeBinding</code> to the <code>VolumeMover</code> boundary — <code>BAREOS-RECOMMENDATION.md</code> §12 — and </em><em>the 90 s mount constant is replaced by the four-term cycle <code>O = 265 s</code></em><em>, <code>SPECIFICATION.md</code> §3.4, which identifies the single-term 90 s figure as the error every candidate design made.)</em> <code>FakeDrive</code> over files, injecting ~~90 s~~ <strong>265 s</strong> mounts, 40 s repositions, <code>MEDIUM_ERROR</code> at a position, deferred errors, <code>pos_unknown</code> after reset, short writes, ILI, unit-attention mid-sweep, EW mid-container. Scheduler with coalescing windows and cartridge-atomic preemption, driven by the Jobs pool, never a timer thread.</p>
+<p><strong>Pass condition is <em>degrades explicitly</em>, not <em>still repairs</em>.</strong> For each of: library offline with deadlines pending; reservation preempted by a second host; drive lost mid-sweep; control host killed mid-ticket; cartridge exported; catalogue stale since last eject; NAS mount vanished — assert a <strong>named</strong> refusal or declared state reaches the index and the caller within a bounded time, and that <strong>no repair traffic is generated by an announced absence</strong>. Assert no object ever reports DURABLE while its fragments are only <code>PRESENT_CLAIMED</code>. Run the planner against a <code>FakeDrive</code> whose reposition cost differs from the planner's by 14× and assert the plan degrades gracefully and <code>estWallP95</code> is not violated silently.</p>
+<h3 id="step-5-gfs-mover-one-drive-no-changer-step-6-changer-persistent-reserve-takeover-superseded-2026-09-19">~~Step 5 — <code>gfs-mover</code>, one drive, no changer~~ / ~~Step 6 — Changer, Persistent Reserve, takeover~~ — <strong>SUPERSEDED 2026-09-19</strong><a class="headerlink" href="#step-5-gfs-mover-one-drive-no-changer-step-6-changer-persistent-reserve-takeover-superseded-2026-09-19" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Both steps are replaced by <code>BAREOS-RECOMMENDATION.md</code> §9 (test plan) and §10 (rig checklist). The three hardware questions they existed to answer — the achievable <code>PEWS</code> maximum, whether Persistent Reserve is honoured on an ADI-relayed changer LUN, and real deferred-error and backhitch behaviour — are now either Bareos's problem or are R-1…R-16 on the mhvtl rig. <strong>The gate they carried is preserved verbatim and moves with them: <em>the first WORM cartridge is not written until this step passes on rewritable media, with an independently written reference reader opening the result on a different drive.</em></strong> The bodies below are kept as the record of what was to be proven.</p>
+</blockquote>
+<h3 id="step-5-gfs-mover-one-drive-no-changer-needs-hardware-we-do-not-have">Step 5 — <code>gfs-mover</code>, one drive, no changer <em>(needs hardware we do not have)</em><a class="headerlink" href="#step-5-gfs-mover-one-drive-no-changer-needs-hardware-we-do-not-have" title="Permanent link">&para;</a></h3>
+<p>Separate process, CDB allowlist, <code>SECURITY PROTOCOL IN/OUT</code> encryption assertion, compression off, <code>PER=1</code>, <code>READ BLOCK LIMITS</code>, LBP on, <code>commission(barcode)</code> reading WORM status from the medium. Write one container, filemark, read back and verify, footer, unmount, remount, position by absolute block, read by plan. <strong>Read MAM barcode and medium serial at every mount before any write and refuse on mismatch — one command, present with or without a changer, and the bug it prevents would not appear until the changer arrives.</strong> Ship <code>cartridgescan</code>: reconstruct the container list from media alone. Calibrate the cost model here, once.</p>
+<p><strong>This step answers, before money is committed, the three questions that cannot be answered in simulation:</strong> the achievable <code>PEWS</code> maximum (which may force the write unit down to an RS stripe, risk row 7); whether <code>PERSISTENT RESERVE</code> is honoured on an ADI-relayed changer LUN against initiators reaching the robot through a different exporting drive (risk row 18 — a harder gate than the WORM question); and the real deferred-error, <code>pos_unknown</code> and backhitch behaviour of the procured drive and driver version. <strong>Gate: the first WORM cartridge is not written until this step passes on rewritable media, with an independently written reference reader opening the result on a different drive.</strong></p>
+<h3 id="step-6-changer-persistent-reserve-takeover-needs-hardware-we-do-not-have">Step 6 — Changer, Persistent Reserve, takeover <em>(needs hardware we do not have)</em><a class="headerlink" href="#step-6-changer-persistent-reserve-takeover-needs-hardware-we-do-not-have" title="Permanent link">&para;</a></h3>
+<p><code>MOVE MEDIUM</code>, <code>REPORT</code>/<code>READ ELEMENT STATUS</code>, PR register/reserve/preempt keyed on the lease epoch, transport-element quarantine on takeover, restart recovery from element status + MAM + the journal.</p>
+<h3 id="step-7-ltfs-export-as-a-conversion">Step 7 — LTFS export as a conversion<a class="headerlink" href="#step-7-ltfs-export-as-a-conversion" title="Permanent link">&para;</a></h3>
+<p>An ordinary admitted, costed, refusable scheduler job on a drive pair, discharging the portability obligation on demand and never on the data path. <em>(2026-09-19: this is now the </em><em>only</em><em> surviving role for LTFS in the document set. <code>TAPE-RESEARCH-PROMPT.md</code>'s LTFS addendum is closed as superseded and <code>STORAGE-DIRECTION.md</code>'s "LTFS underneath" is withdrawn; the addendum's four disclosure conditions — opaque filenames, fixed-size padded containers, coarsened timestamps, no extended attributes — carry over to this export unchanged.)</em></p>
+<hr />
+<p><strong>What we are not building:</strong> a second bundle; a filesystem on the media; a <code>list</code> verb; a <code>delete</code> method on any binding; a binding-level planner; a scheduler whose authority lives across a WAN.</p>
+<p><strong>What we are betting:</strong> that a write path of one function and a read path of one function, behind an allowlist, with every byte AEAD-sealed under a manifest hash, under RS 32+2 intra-cartridge and global coding across sites, and with nothing marked DURABLE until it has been read back, buys back more than a decade of somebody else's field hardening. That bet is only defensible with the staged-until-verified gate, the fault injector, and the reference reader — and it is void if any of the three is ever made optional for throughput.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,4019 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/EVALUATION-PLAN/">
+      
+      
+        <link rel="prev" href="../CORE-PRINCIPLES/">
+      
+      
+        <link rel="next" href="../PROTOTYPE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Evaluation plan - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cresco-gfs-exhaustive-evaluation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Evaluation plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/gfs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/gfs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#methodology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methodology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e1-deployment-and-fabric-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1 — Deployment and fabric integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e2-node-registry-liveness-probing-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2 — Node registry, liveness, probing, scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e3-publication-and-catalog-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E3 — Publication and catalog consistency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e4-projects-and-the-authorization-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E4 — Projects and the authorization matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-access-path-routed-to-origin-enforced-at-origin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — Access path (routed to origin, enforced at origin)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e6-durability-tier-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E6 — Durability tier correctness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e7-failure-injection-and-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E7 — Failure injection and repair
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e8-integrity-scrub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E8 — Integrity (scrub)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e9-key-custody" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E9 — Key custody
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e10-reciprocity-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E10 — Reciprocity ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e11-index-consistency-replication-observability-regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E11 — Index consistency, replication, observability, regression
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e12-security-and-tenant-isolation-zero-trust" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E12 — Security and tenant isolation (zero trust)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e13-performance-and-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E13 — Performance and scale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e14-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E14 — Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e15-compliance-traceability-nist-800-53-rev5-cmmc-l2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E15 — Compliance traceability (NIST 800-53 rev5 / CMMC L2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e16-pilot-readiness-btsa-nine-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E16 — Pilot readiness (BTSA, nine sites)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e17-failure-benchmarks-soak-repeatability-claims-executed-by-gfs_failurepy-gfs_claimspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E17 — Failure benchmarks, soak, repeatability, claims (executed by gfs_failure.py / gfs_claims.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-exit-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase exit criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#methodology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methodology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e1-deployment-and-fabric-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1 — Deployment and fabric integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e2-node-registry-liveness-probing-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2 — Node registry, liveness, probing, scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e3-publication-and-catalog-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E3 — Publication and catalog consistency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e4-projects-and-the-authorization-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E4 — Projects and the authorization matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-access-path-routed-to-origin-enforced-at-origin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — Access path (routed to origin, enforced at origin)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e6-durability-tier-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E6 — Durability tier correctness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e7-failure-injection-and-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E7 — Failure injection and repair
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e8-integrity-scrub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E8 — Integrity (scrub)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e9-key-custody" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E9 — Key custody
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e10-reciprocity-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E10 — Reciprocity ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e11-index-consistency-replication-observability-regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E11 — Index consistency, replication, observability, regression
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e12-security-and-tenant-isolation-zero-trust" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E12 — Security and tenant isolation (zero trust)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e13-performance-and-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E13 — Performance and scale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e14-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E14 — Operations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e15-compliance-traceability-nist-800-53-rev5-cmmc-l2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E15 — Compliance traceability (NIST 800-53 rev5 / CMMC L2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e16-pilot-readiness-btsa-nine-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E16 — Pilot readiness (BTSA, nine sites)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e17-failure-benchmarks-soak-repeatability-claims-executed-by-gfs_failurepy-gfs_claimspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E17 — Failure benchmarks, soak, repeatability, claims (executed by gfs_failure.py / gfs_claims.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-exit-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase exit criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition info">
+<p class="admonition-title">Status: Proven (prototype)</p>
+<p>Every evaluation check with its method, pass criterion and status.</p>
+</div>
+<h1 id="cresco-gfs-exhaustive-evaluation-plan">Cresco GFS — Exhaustive Evaluation Plan<a class="headerlink" href="#cresco-gfs-exhaustive-evaluation-plan" title="Permanent link">&para;</a></h1>
+<p><em>Companion to <code>CORE-PRINCIPLES.md</code>. Each check has an id, a method, a pass criterion and a status:</em>
+<strong>RUN</strong> = executed by <code>run/gfs/gfs_eval.py</code> on the local 8-node prototype fabric (results in
+<code>run/gfs/results/</code>), <strong>UNIT</strong> = executed by the standalone codec self-test, <strong>PLAN</strong> = specified, needs
+the next phase (multi-host mesh, tenant-namespaced fabric, identity provider, scale data), <strong>INFRA</strong> =
+needs the pilot environment. Ids map to the harness sections (E1–E11) plus planned sections (E12–E16).</p>
+<p><strong>Latest results (2026-09-17): functional suite 99/99 (run 5), codec self-test 23/23, and the scale
+campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file index) — see
+<code>RESULTS.md</code> and <code>SCALE-RESULTS.md</code>. Rows marked RUN (SCALE) are executed by <code>run/gfs/gfs_scale.py</code>.</strong></p>
+<h2 id="methodology">Methodology<a class="headerlink" href="#methodology" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Environment.</strong> Local: 1 global (index core) + 7 site agents on one host (<code>launch_gfs_fabric.sh</code>),
+  sites uky (publisher+storage, server-raid, 24 MiB pledge), uofl (clustered-fs), wku (server-raid),
+  murray (desktop-single), eku (usb-single), nku (server-raid, also index replica), morehead
+  (desktop-single), each 2 GiB pledge. Next: DGX 8-host mesh (region per site), then WAN emulation
+  (<code>tc netem</code> latency/loss/bandwidth per site), then the BTSA nine-site pilot.</li>
+<li><strong>Harness.</strong> Python (<code>gfs_client.py</code> over pycrescolib) drives every action through the same public
+  Cresco message API a real client uses; Java internals are exercised only through the fabric. Kills
+  and restarts use the launcher. Each check records PASS/FAIL + detail to JSON and Markdown.</li>
+<li><strong>Repeatability.</strong> Fresh fabric per run (<code>up</code> wipes node state); deterministic test data (seeded);
+  timing budgets are explicit per check; perf numbers are recorded, not asserted, except where a
+  floor is stated.</li>
+<li><strong>Pass policy.</strong> A section passes when every RUN check passes. Phase exit criteria are listed at
+  the end.</li>
+<li><strong>Independence.</strong> Where the harness verifies a cryptographic property it does so from <em>outside</em>
+  the Java code (reading fragment files off disk, forging tokens, computing SHA-256 locally).</li>
+</ul>
+<h2 id="e1-deployment-and-fabric-integration">E1 — Deployment and fabric integration<a class="headerlink" href="#e1-deployment-and-fabric-integration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>method</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E1.1</td>
+<td>all agents join the global region</td>
+<td><code>get_agent_list</code></td>
+<td>8 present</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.2</td>
+<td>dataset staged</td>
+<td>local files + sha256</td>
+<td>8 files</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.3</td>
+<td>bundle uploaded to every agent</td>
+<td><code>upload_plugin_agent</code></td>
+<td>is_updated on all</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.4</td>
+<td>primary index deploys</td>
+<td><code>add_plugin_agent</code> roles=index</td>
+<td>pluginid</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.5</td>
+<td>replica index deploys</td>
+<td>roles=index, primary=false</td>
+<td>pluginid</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.6</td>
+<td>filerepo on the publisher</td>
+<td>configured scan_dir</td>
+<td>pluginid</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.7</td>
+<td>gfs node on all 7 sites</td>
+<td>roles per site</td>
+<td>7 pluginids</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.8</td>
+<td>index answers</td>
+<td><code>nodeinfo</code></td>
+<td>status 10</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.9</td>
+<td>capability inventory</td>
+<td><code>getcapabilities</code></td>
+<td>document returned</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E1.10</td>
+<td>fail-closed start</td>
+<td>deploy without <code>gfs_secret</code> / without <code>index_addr</code></td>
+<td>plugin refuses to start, logged</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E1.11</td>
+<td>OSGi reload</td>
+<td>remove + re-add gfs instance 20×</td>
+<td>no leaked threads/listeners (metrics)</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E1.12</td>
+<td>region-per-site topology</td>
+<td>7 regional controllers federated to a global</td>
+<td>E2–E11 pass unchanged</td>
+<td>PLAN (multi-host)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e2-node-registry-liveness-probing-scoring">E2 — Node registry, liveness, probing, scoring<a class="headerlink" href="#e2-node-registry-liveness-probing-scoring" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>method</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E2.1</td>
+<td>registration</td>
+<td><code>listnodes</code></td>
+<td>7 UP</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.2</td>
+<td>site/class recorded</td>
+<td>compare config</td>
+<td>equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.3</td>
+<td>network probe</td>
+<td>probe_mbps &gt; 0</td>
+<td>all</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.4</td>
+<td>class ordering of score</td>
+<td>equal pledges, classes</td>
+<td>clustered &gt; server &gt; desktop &gt; usb</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.5</td>
+<td>availability</td>
+<td>ratio of heartbeats</td>
+<td>&gt; 0.8</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.6</td>
+<td>SUSPECT→LOST timing</td>
+<td>kill node, sample states</td>
+<td>LOST after lost_ms (+ sweep): 12–20 s measured</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E2.7</td>
+<td>non-member site refused</td>
+<td>register with site=foo</td>
+<td>status 6</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E2.8</td>
+<td>spoofed node id</td>
+<td>message with forged src</td>
+<td>ignored: identity from cert-bound src</td>
+<td>PLAN (needs D4 signing)</td>
+</tr>
+<tr>
+<td>E2.9</td>
+<td>availability decay</td>
+<td>node down 50 % of window</td>
+<td>availability ≈ 0.5, score halves</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E2.10</td>
+<td>probe under load</td>
+<td>probe during a saturating restore</td>
+<td>RTT within control-plane SLO (isolation)</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e3-publication-and-catalog-consistency">E3 — Publication and catalog consistency<a class="headerlink" href="#e3-publication-and-catalog-consistency" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>method</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E3.1</td>
+<td>dataset visible with all files</td>
+<td><code>listdatasets</code></td>
+<td>file_count = 8</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.2</td>
+<td>hashes equal local sha256</td>
+<td><code>listfiles</code></td>
+<td>all equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.3</td>
+<td>availability state per file</td>
+<td><code>listfiles</code></td>
+<td>ONLINE</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.4</td>
+<td>non-owner cannot list raw index</td>
+<td><code>listfiles</code> as outsider</td>
+<td>status 6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.5</td>
+<td>non-admin cannot search</td>
+<td><code>search</code></td>
+<td>status 6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.6</td>
+<td>admin search works</td>
+<td><code>search</code></td>
+<td>5 hits</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.7</td>
+<td>modify + add + delete propagate</td>
+<td>edit files, poll</td>
+<td>delta within 60 s</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E3.8</td>
+<td>rename</td>
+<td>rename a file</td>
+<td>old rel deleted, new rel added, object STALE/ORPHANED handled</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.9</td>
+<td>nested dirs / unicode / long paths</td>
+<td>fixtures</td>
+<td>preserved</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.10</td>
+<td>large catalogs</td>
+<td>100k, 1M files</td>
+<td>10^6 files ingested at ~150k files/s (paged deltas of 2000); index heap 1.2–1.8 GB at 1.85 M files; real filerepo publication 50k files in 10 s</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E3.11</td>
+<td>publisher restart</td>
+<td>restart uky-pub</td>
+<td>re-publish idempotent, seq continues, no duplicate rows</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.12</td>
+<td>index restart</td>
+<td>restart global</td>
+<td>journal replay = same state (statehash), publishers re-register</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.13</td>
+<td>stale/duplicate delta</td>
+<td>replay old seq</td>
+<td>ignored</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.14</td>
+<td>source changed after promote</td>
+<td>edit promoted file</td>
+<td>manifest → STALE, file object cleared</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E3.15</td>
+<td>source deleted after promote</td>
+<td>delete promoted file</td>
+<td>manifest → ORPHANED, ledger no longer charges</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e4-projects-and-the-authorization-matrix">E4 — Projects and the authorization matrix<a class="headerlink" href="#e4-projects-and-the-authorization-matrix" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E4.1</td>
+<td>owner creates project</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.2</td>
+<td>owner adds member</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.3</td>
+<td>owner adds project delegate</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.4</td>
+<td>outsider self-add</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.5</td>
+<td>dataset owner commits files</td>
+<td>ok ×3</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.6</td>
+<td>dataset delegate commits</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.7</td>
+<td>project member (not dataset delegate) commits</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.8</td>
+<td>outsider commits</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.9</td>
+<td>commit uncataloged path</td>
+<td>9</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.10</td>
+<td>member sees exactly committed files</td>
+<td>4</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.11</td>
+<td>outsider lists project</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.12</td>
+<td>outsider's project list empty</td>
+<td>[]</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E4.13</td>
+<td>full matrix: {owner, project delegate, member, dataset delegate, admin, outsider} × {create, add member, add delegate, commit, uncommit, list, resolve, promote, getmanifest, delegate dataset}</td>
+<td>table of expected statuses</td>
+<td>PLAN (extend harness)</td>
+</tr>
+<tr>
+<td>E4.14</td>
+<td>commit "*" (whole dataset)</td>
+<td>all files visible; later-added files appear</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E4.15</td>
+<td>uncommit revokes</td>
+<td>resolve → 6 after uncommit; outstanding grants expire</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E4.16</td>
+<td>dataset delegate removal</td>
+<td>delegate can no longer commit</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e5-access-path-routed-to-origin-enforced-at-origin">E5 — Access path (routed to origin, enforced at origin)<a class="headerlink" href="#e5-access-path-routed-to-origin-enforced-at-origin" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E5.1</td>
+<td>member resolve → origin + grant</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.2</td>
+<td>8 MiB fetch over dataplane, sha256 verified</td>
+<td>equal; MB/s recorded</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.3</td>
+<td>inline fetch of a small file</td>
+<td>equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.4</td>
+<td>outsider resolve</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.5</td>
+<td>uncommitted file resolve</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.6</td>
+<td>forged grant at origin</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.7</td>
+<td>tampered claims at origin</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.8</td>
+<td>expired grant at origin</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.9</td>
+<td>garbage grant at origin</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E5.10</td>
+<td>grant replay window</td>
+<td>reuse within TTL allowed (documented); single-use option</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E5.17</td>
+<td>verified streaming</td>
+<td>origin per-chunk SHA-256; missing/corrupt chunks re-requested by range</td>
+<td>RUN (SCALE transport, both topologies)</td>
+</tr>
+<tr>
+<td>E5.11</td>
+<td>grant for dataset A presented to publisher B</td>
+<td>6</td>
+<td>PLAN (second publisher)</td>
+</tr>
+<tr>
+<td>E5.12</td>
+<td>byte-range fetch</td>
+<td>start/len honoured</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E5.13</td>
+<td>32 concurrent fetches</td>
+<td>all verified; p99 latency</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E5.14</td>
+<td>1 GiB fetch</td>
+<td>streamed with bounded memory</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E5.15</td>
+<td>origin offline, DURABLE_ONLY</td>
+<td>resolve reports DURABLE_ONLY; restore-through-read from a gateway</td>
+<td>PLAN (Phase 5)</td>
+</tr>
+<tr>
+<td>E5.16</td>
+<td>filerepo actions bypass</td>
+<td>direct <code>streamfile</code>/<code>getfile</code> to the origin filerepo without a grant must be refused</td>
+<td>PLAN (FR-D1 authz)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e6-durability-tier-correctness">E6 — Durability tier correctness<a class="headerlink" href="#e6-durability-tier-correctness" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U1</td>
+<td>RS(k,m) reconstructs from every ≤ m loss pattern for (3,2),(4,2),(10,4),(2,1)</td>
+<td>240 trials</td>
+<td>UNIT</td>
+</tr>
+<tr>
+<td>U2</td>
+<td>RS refuses k-1 shards</td>
+<td>throws</td>
+<td>UNIT</td>
+</tr>
+<tr>
+<td>U3</td>
+<td>Shamir t-of-n recovers, t-1 does not</td>
+<td>ok</td>
+<td>UNIT</td>
+</tr>
+<tr>
+<td>U4</td>
+<td>wrap/unwrap, wrong KEK fails, GCM tamper detected</td>
+<td>ok</td>
+<td>UNIT</td>
+</tr>
+<tr>
+<td>U5</td>
+<td>token verify / forged / wrong secret</td>
+<td>ok</td>
+<td>UNIT</td>
+</tr>
+<tr>
+<td>E6.1</td>
+<td>outsider cannot promote</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.2</td>
+<td>owner promotes</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.3</td>
+<td>placement on 5 distinct non-origin sites</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.4</td>
+<td>encode job DONE</td>
+<td>ok; MB/s recorded</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.5</td>
+<td>DURABLE at index</td>
+<td>ok; seconds recorded</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.6</td>
+<td>11 stripes × 5; overhead ≈ 1.67</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.7</td>
+<td>every fragment present with manifest hash</td>
+<td>all</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.8</td>
+<td>fragments are ciphertext (entropy &gt; 7.9)</td>
+<td>all</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.9/10</td>
+<td>plaintext marker absent from every holder's bytes</td>
+<td>0 hits</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.11</td>
+<td>no KEK material on holders</td>
+<td>none</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.12</td>
+<td>restore at origin, sha256 equal, no decode needed</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.13</td>
+<td>holder with manifest access but no key cannot restore</td>
+<td>FAILED "no key material"</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.14</td>
+<td>manifest denied to outsider</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E6.15</td>
+<td>AAD binding: swap two fragments between stripes/objects</td>
+<td>decryption fails, restore FAILED</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E6.16</td>
+<td>IV uniqueness</td>
+<td>assert nonce ‖ stripe unique per DEK across all objects</td>
+<td>PLAN (static analysis + fuzz)</td>
+</tr>
+<tr>
+<td>E6.17</td>
+<td>policy jurisdiction</td>
+<td><code>allowed_state_codes</code> honored; unsatisfiable refused with reason</td>
+<td>RUN (SCALE policy)</td>
+</tr>
+<tr>
+<td>E6.18</td>
+<td>capacity exhaustion</td>
+<td>pledge too small → node excluded; store refuses beyond pledge</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E6.19</td>
+<td>promote of 0-byte and 1-byte files</td>
+<td>manifest with one stripe; restore equal</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E6.20</td>
+<td>large object (4 GiB)</td>
+<td>streaming encode, bounded memory, resumable</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E6.21</td>
+<td>k+m &gt; available domains</td>
+<td>refused with reason (site/agent/region domains, allow-lists)</td>
+<td>RUN (SCALE policy)</td>
+</tr>
+<tr>
+<td>E6.23</td>
+<td>survivability profiles</td>
+<td>12 profiles: domain=site/agent/region, min_regions, allow/deny sites, jurisdiction, dataset default</td>
+<td>RUN (SCALE policy, 12/12 both topologies)</td>
+</tr>
+<tr>
+<td>E6.22</td>
+<td>duplicate promote</td>
+<td>refused "already durable"</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e7-failure-injection-and-repair">E7 — Failure injection and repair<a class="headerlink" href="#e7-failure-injection-and-repair" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E7.1</td>
+<td>pick 2 victims, 1 spare</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.2</td>
+<td>index marks LOST</td>
+<td>seconds recorded</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.3</td>
+<td>object DEGRADED</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.4</td>
+<td>restore with 2 sites down; RS decode on all stripes</td>
+<td>sha256 equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.5</td>
+<td>auto-repair re-places a lost index on the spare</td>
+<td>ok; seconds recorded</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.6</td>
+<td>11 regenerated fragments present</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.7</td>
+<td>second lost index explicitly DEGRADED awaiting a site</td>
+<td>reason contains "awaiting"</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.8</td>
+<td>returning site → DURABLE again</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.9</td>
+<td>all UP</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E7.10</td>
+<td>&gt; m losses</td>
+<td>objects beyond m marked LOST explicitly (8/100 when 17 % of sites vanish at once)</td>
+<td>RUN (SCALE storm)</td>
+</tr>
+<tr>
+<td>E7.11</td>
+<td>loss during encode</td>
+<td>holder killed mid-encode: every encode completes via fallback placement (12/12, 52–69 fallbacks), audited</td>
+<td>RUN (SCALE tolerance)</td>
+</tr>
+<tr>
+<td>E7.12</td>
+<td>restore with a dead holder</td>
+<td>raced multi-round fetch completes and verifies (5/5)</td>
+<td>RUN (SCALE tolerance)</td>
+</tr>
+<tr>
+<td>E7.13</td>
+<td>index restart mid-repair</td>
+<td>in-flight repair re-planned after replay</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E7.14</td>
+<td>repairer loss mid-repair</td>
+<td>repair re-dispatched to another node; idempotent fragment ids</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E7.15</td>
+<td>network partition (bridge down)</td>
+<td>SUSPECT not LOST until lost_ms; no repair storm; heals on reconnect</td>
+<td>PLAN (multi-host)</td>
+</tr>
+<tr>
+<td>E7.16</td>
+<td>repair storm</td>
+<td>40 of 240 sites lost at once: 83–88 objects repaired in 15–79 s, control p99 &lt; 1 ms</td>
+<td>RUN (SCALE storm)</td>
+</tr>
+<tr>
+<td>E7.17</td>
+<td>orphan cleanup</td>
+<td>fragments left on a returned site after re-placement are garbage-collected</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e8-integrity-scrub">E8 — Integrity (scrub)<a class="headerlink" href="#e8-integrity-scrub" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E8.1</td>
+<td>scrub detects corruption</td>
+<td>bad id reported</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E8.2</td>
+<td>index marks BAD → DEGRADED</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E8.3</td>
+<td>auto-repair in place → DURABLE</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E8.4</td>
+<td>on-disk fragment matches again</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E8.5</td>
+<td>fragment deleted outright (data + sidecar)</td>
+<td>index-driven audit marks MISSING → repaired in place</td>
+<td>RUN (E8.5/E8.6 + SCALE durability)</td>
+</tr>
+<tr>
+<td>E8.6</td>
+<td>malicious holder returns garbage on getfragment</td>
+<td>hash check rejects; restore uses another fragment</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E8.7</td>
+<td>periodic scrub cadence by class</td>
+<td>usb scrubbed more often than clustered-fs</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E8.8</td>
+<td>scrub cost</td>
+<td>10 GiB store scrub time, IO throttled</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e9-key-custody">E9 — Key custody<a class="headerlink" href="#e9-key-custody" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E9.1</td>
+<td>KEK custodied t=3/n=5</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.2</td>
+<td>holders on 5 distinct non-origin sites</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.3</td>
+<td>reconstruct refused with 0 approvals</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.4</td>
+<td>non-approver cannot approve</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.5</td>
+<td>first approval 1/2</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.6</td>
+<td>refused below quorum</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.7</td>
+<td>holder refuses share without valid authorization</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.8</td>
+<td>quorum → token</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.9</td>
+<td>approvals consumed</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.10</td>
+<td>KEK destroyed at origin</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.11</td>
+<td>restore without key fails closed</td>
+<td>FAILED</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.12</td>
+<td>restore at another site with token (3 of 5 shares)</td>
+<td>sha256 equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.13</td>
+<td>origin re-establishes KEK (persist)</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.14</td>
+<td>audit records approvals/issue/reads/denials</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E9.15</td>
+<td>t-1 holders online</td>
+<td>reconstruction fails with count</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E9.16</td>
+<td>token expiry / wrong key id / wrong op</td>
+<td>6</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E9.17</td>
+<td>key rotation</td>
+<td>new KEK, new custody round, old objects still restorable</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E9.18</td>
+<td>approver signatures instead of index-minted token</td>
+<td>holders verify approver keys</td>
+<td>PLAN (Phase 2)</td>
+</tr>
+<tr>
+<td>E9.19</td>
+<td>HSM-backed KEK</td>
+<td>PKCS#11 provider</td>
+<td>PLAN (Phase 6)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e10-reciprocity-ledger">E10 — Reciprocity ledger<a class="headerlink" href="#e10-reciprocity-ledger" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E10.1</td>
+<td>consumed = fragment bytes stored elsewhere</td>
+<td>&gt; 13 MB</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.2</td>
+<td>holders' stored_for_others &gt; 0</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.3</td>
+<td>entitlement from formula</td>
+<td>15–22.6 MB</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.4</td>
+<td>promote within entitlement</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.5</td>
+<td>promote beyond entitlement refused</td>
+<td>6</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.6</td>
+<td>headroom shrinks</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.7</td>
+<td>network factor capped</td>
+<td>≤ 1</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E10.8</td>
+<td>ledger after repair</td>
+<td>consumed unchanged; stored moves from lost to new site</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E10.9</td>
+<td>ledger after delete/orphan</td>
+<td>charge released</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E10.10</td>
+<td>false class claim</td>
+<td>usb registered as clustered → scrub failures reduce effective score</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E10.11</td>
+<td>paid-in credits</td>
+<td>manual credit entry → entitlement</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E10.12</td>
+<td>fairness across sites</td>
+<td>no site can consume another's headroom</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e11-index-consistency-replication-observability-regression">E11 — Index consistency, replication, observability, regression<a class="headerlink" href="#e11-index-consistency-replication-observability-regression" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E11.1</td>
+<td>replica converges (seq)</td>
+<td>equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E11.2</td>
+<td>replica statehash equals primary</td>
+<td>equal</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E11.3</td>
+<td>MeasurementEngine gauges</td>
+<td>present</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E11.4</td>
+<td>audit retrievable</td>
+<td>ok</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E11.5</td>
+<td>filerepo functional regression</td>
+<td>10/10</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>E11.6</td>
+<td>journal replay determinism</td>
+<td>restart primary; statehash equal before/after</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E11.7</td>
+<td>replica promotion</td>
+<td>kill primary; replica becomes primary; nodes re-home</td>
+<td>PLAN (Phase 3)</td>
+</tr>
+<tr>
+<td>E11.12</td>
+<td>replication at scale</td>
+<td>replica converges at 10^6 files (hash equal, lag 8 s) when sized like the primary</td>
+<td>RUN (SCALE index)</td>
+</tr>
+<tr>
+<td>E11.8</td>
+<td>journal corruption</td>
+<td>truncated last line tolerated; corrupted middle detected</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E11.9</td>
+<td>snapshot + compaction</td>
+<td>state equal after compaction</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E11.10</td>
+<td>Raft ×4</td>
+<td>linearizable manifests under partition</td>
+<td>PLAN (Phase 3)</td>
+</tr>
+<tr>
+<td>E11.11</td>
+<td>health inventory</td>
+<td><code>gethealthinventory</code> shows gfs OK/WARN/CRITICAL correctly (kill index → WARN on nodes)</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e12-security-and-tenant-isolation-zero-trust">E12 — Security and tenant isolation (zero trust)<a class="headerlink" href="#e12-security-and-tenant-isolation-zero-trust" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E12.1</td>
+<td>site admission fail-closed</td>
+<td>storage node refuses fragments/shares from a non-member owner site</td>
+<td>PLAN (add to harness: second publisher with site=foo)</td>
+</tr>
+<tr>
+<td>E12.2</td>
+<td>tenant-namespaced fabric</td>
+<td>with <code>tenant_namespacing=true</code>, site tenants cannot reach each other's inboxes/topics except via the flow policy (W-GFS-1)</td>
+<td>PLAN (Phase 1)</td>
+</tr>
+<tr>
+<td>E12.3</td>
+<td>federation core tenant</td>
+<td>core cannot read site dataplane topics beyond gfs sinks</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E12.4</td>
+<td>per-tenant QoS</td>
+<td>one site's restore flood does not raise another site's control RTT beyond SLO</td>
+<td>PLAN (W6)</td>
+</tr>
+<tr>
+<td>E12.5</td>
+<td>message signing</td>
+<td>forged src on <code>manifestput</code>/<code>catalogdelta</code> rejected by signature</td>
+<td>PLAN (D4)</td>
+</tr>
+<tr>
+<td>E12.6</td>
+<td>crypto inventory</td>
+<td>static scan: only SHA-256/384, AES-GCM, HMAC-SHA-384, DRBG, RSA-3072/P-384</td>
+<td>PLAN (CI check)</td>
+</tr>
+<tr>
+<td>E12.7</td>
+<td>secrets in logs</td>
+<td>grep logs for KEK/DEK/share/grant material</td>
+<td>none</td>
+</tr>
+<tr>
+<td>E12.8</td>
+<td>fuzz message params</td>
+<td>malformed JSON/ids/sizes</td>
+<td>no exceptions leak, statuses only</td>
+</tr>
+<tr>
+<td>E12.9</td>
+<td>data-at-rest on holders</td>
+<td>fragments are ciphertext (E6.8) — and the index journal/manifests encrypted at rest</td>
+<td>PLAN (SC-28)</td>
+</tr>
+<tr>
+<td>E12.10</td>
+<td>filerepo direct access</td>
+<td>origin filerepo refuses non-gfs callers</td>
+<td>PLAN (FR-D1)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e13-performance-and-scale">E13 — Performance and scale<a class="headerlink" href="#e13-performance-and-scale" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>metric</th>
+<th>method</th>
+<th>target / record</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E13.1</td>
+<td>encode MB/s vs block size (256K/512K), k/m (3,2 / 6,3 / 10,4), sizes 1 MiB–1 GiB</td>
+<td>sweep</td>
+<td>210–300 MB/s at ≥ 64 MiB; codec ceiling 420–850 MB/s single thread</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E13.2</td>
+<td>restore MB/s, all-data vs decode path</td>
+<td>same</td>
+<td>280–530 MB/s; decode path 0.18 s per 8 MiB</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E13.3</td>
+<td>fetch MB/s vs filerepo baseline (566 MB/s at 128 MiB)</td>
+<td>128 MiB</td>
+<td>≥ 80 % of baseline</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E13.4</td>
+<td>repair time per lost site for 1 GiB</td>
+<td></td>
+<td>205–410 fragments regenerated in 7.3–8.4 s</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E13.5</td>
+<td>index op latency at 10^5, 10^6 files</td>
+<td>listfiles/resolve p50/p99</td>
+<td>resolve p50 0.2 ms, p99 0.4 ms at 10^6; 6.6k resolves/s from 16 clients</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E13.6</td>
+<td>delta throughput</td>
+<td>100k changed files</td>
+<td>&lt; 60 s to converge</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E13.7</td>
+<td>concurrent promotes</td>
+<td>8 × 64 MiB; 100 × 16 MiB</td>
+<td>250–330 MB/s aggregate; 100 objects DURABLE in 5 s</td>
+<td>RUN (SCALE)</td>
+</tr>
+<tr>
+<td>E13.8</td>
+<td>64-node DGX mesh</td>
+<td>E1–E11</td>
+<td>pass</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E13.9</td>
+<td>WAN emulation</td>
+<td>30 ms/50 ms/1 % loss per site</td>
+<td>throughput model; repair completes</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E13.10</td>
+<td>control-plane isolation under bulk</td>
+<td>RPC p99 during a 32-way 512 KiB flood</td>
+<td>1.1 ms at 539 MB/s (single broker); 4.2 ms across bridges at 377 MB/s</td>
+<td>RUN (SCALE transport)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e14-operations">E14 — Operations<a class="headerlink" href="#e14-operations" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E14.1</td>
+<td>Felix health for gfs per role (index seq, registered, store writable)</td>
+<td>RUN (implicit) / PLAN (assert via <code>gethealthinventory</code>)</td>
+</tr>
+<tr>
+<td>E14.2</td>
+<td>metric inventory across the mesh includes gfs gauges (per role: <code>gfs.index.*</code> on an index, <code>gfs.store.*</code> on a store)</td>
+<td>RUN (D1: the dashboard detects the deployment and the index address from the inventory alone)</td>
+</tr>
+<tr>
+<td>E14.7</td>
+<td>live storage monitoring: mesh dashboard Storage tab fed by <code>storagesummary</code> + the pushed <code>gfs_state</code> beacon</td>
+<td>RUN (D1)</td>
+</tr>
+<tr>
+<td>E14.3</td>
+<td>capability inventory lists gfs actions with params</td>
+<td>RUN (E1.9)</td>
+</tr>
+<tr>
+<td>E14.4</td>
+<td>ToS nag pipeline: downtime → notification → escalation → re-encode</td>
+<td>PLAN (Phase 4)</td>
+</tr>
+<tr>
+<td>E14.5</td>
+<td>operator runbooks: add site, retire site, rotate key, promote replica</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>E14.6</td>
+<td>ledger statements per site per month</td>
+<td>PLAN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e15-compliance-traceability-nist-800-53-rev5-cmmc-l2">E15 — Compliance traceability (NIST 800-53 rev5 / CMMC L2)<a class="headerlink" href="#e15-compliance-traceability-nist-800-53-rev5-cmmc-l2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>control</th>
+<th>GFS evidence</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AC-3, AC-6</td>
+<td>project ACLs, owner/delegate checks, origin grant verification (E4, E5)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>AC-4</td>
+<td>site admission + inter-tenant flow policy (E12.1–E12.3)</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>AU-2/3/10/12</td>
+<td>audit journal of privileged actions (E9.14), signed events (D4)</td>
+<td>RUN / PLAN</td>
+</tr>
+<tr>
+<td>IA-2/3</td>
+<td>ORCID/InCommon identities, cert-bound nodes</td>
+<td>PLAN</td>
+</tr>
+<tr>
+<td>SC-8</td>
+<td>mTLS hops + dataplane frames hashed</td>
+<td>RUN (hash) / PLAN (mTLS on)</td>
+</tr>
+<tr>
+<td>SC-12/13</td>
+<td>AES-256-GCM, SHA-256/384, DRBG, Shamir custody (U1–U5, E6, E9)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>SC-28</td>
+<td>fragments ciphertext at rest (E6.8); index/journal at rest</td>
+<td>RUN / PLAN</td>
+</tr>
+<tr>
+<td>SI-7</td>
+<td>scrub + hash verification on every fetch (E8)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>CP-9/10</td>
+<td>restore drills incl. site loss and key loss (E7, E9)</td>
+<td>RUN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e16-pilot-readiness-btsa-nine-sites">E16 — Pilot readiness (BTSA, nine sites)<a class="headerlink" href="#e16-pilot-readiness-btsa-nine-sites" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E16.1</td>
+<td>DUA workflow: site onboarding → federation_members update → first publication</td>
+<td>INFRA</td>
+</tr>
+<tr>
+<td>E16.2</td>
+<td>InCommon login → project membership → fetch</td>
+<td>INFRA</td>
+</tr>
+<tr>
+<td>E16.3</td>
+<td>S3 gateway acceptance with a real tool (aws cli / boto3) against a project bucket</td>
+<td>INFRA</td>
+</tr>
+<tr>
+<td>E16.4</td>
+<td>quarterly restore drill from pledged capacity at two sites</td>
+<td>INFRA</td>
+</tr>
+<tr>
+<td>E16.5</td>
+<td>reciprocity statement accepted by site representatives</td>
+<td>INFRA</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e17-failure-benchmarks-soak-repeatability-claims-executed-by-gfs_failurepy-gfs_claimspy">E17 — Failure benchmarks, soak, repeatability, claims (executed by <code>gfs_failure.py</code> / <code>gfs_claims.py</code>)<a class="headerlink" href="#e17-failure-benchmarks-soak-repeatability-claims-executed-by-gfs_failurepy-gfs_claimspy" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>check</th>
+<th>pass</th>
+<th>status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>repairer dies mid-repair</td>
+<td>another node completes; object DURABLE</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>source holder dies mid-repair</td>
+<td>repair completes from remaining sources</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>holder serves corrupt bytes</td>
+<td>restore verifies via other fragments; scrub marks BAD; repaired</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>custody holders lost</td>
+<td>reconstruct works with exactly t alive; fails closed below t</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>index primary restart</td>
+<td>journal replay, all nodes re-register, state hash preserved, replica equal, promote/restore after</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>publisher restart</td>
+<td>dataset online, sequence resynced, restore + fetch after</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>beyond-m loss then return</td>
+<td>LOST explicit, restore fails closed, DURABLE after sites return</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>mixed load during a storm</td>
+<td>≥ 90 % promotes succeed, all repaired</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>F9</td>
+<td>global-controller restart ×3 (<code>globalrestart --runs 3</code>)</td>
+<td>every agent re-registers on its own (no manual restart), zero <code>STUCK IN CONNECTION FAULT</code> lines, promote+restore work after each restart (W-GFS-6 fixed in the Cresco controller)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>20-min soak with random kills</td>
+<td>error rate ≤ 5 %, all DURABLE at end, RSS &lt; 2×</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>repeatability ×3</td>
+<td>throughput CV ≤ 25 %</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>Java clientlib verified fetch</td>
+<td>5/5 verified quiet and under soak load; median ≥ 200 MB/s quiet</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>C1</td>
+<td>claims registry</td>
+<td>every documented claim PROVEN by executed evidence (<code>CLAIMS.md</code>)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>plugin identity across an agent restart (W-GFS-4)</td>
+<td>a plugin deployed without a pinned id comes back under the same id after a real JVM restart</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>B1</td>
+<td>same-host bridge stability (W-GFS-5)</td>
+<td>8 bridged regions on one host: zero <code>Controller Path Lost</code> events in a 150 s settle window</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>encode geometry (<code>gfs_encode_geometry_check.py</code>)</td>
+<td>for 8+3, 6+3, 4+2 and 10+4: a file that is an EXACT multiple of k x block_size, and one byte either side, yields <code>ceil(size/(k*block))</code> stripes and restores with a verified SHA-256 (defect 19)</td>
+<td>RUN</td>
+</tr>
+<tr>
+<td>D1</td>
+<td>dashboard storage monitoring (<code>gfs_dashboard_check.py</code>)</td>
+<td>GFS + index auto-detected from the metric inventory, every tab renders (playwright), an agent kill shows its stores LOST and objects not DURABLE on the dashboard within 40 s, all objects DURABLE again within 90 s, poll path healthy while the beacon feeds the UI</td>
+<td>RUN</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Executed 2026-09-18 on the final build</strong> (<code>run_final_proof.sh</code>, <code>run_cresco_fix_proof.sh</code>, <code>run_failure_final.sh</code>):
+F1–F9, S1 (0.0 % errors), R1, J1 (5/5 at 393–395 MB/s), I1 (same id back in 17.2 s), B1 (0 flaps), D1 (<code>run_dashboard_proof.sh</code>:
+GFS + index auto-detected, not-DURABLE objects visible 16.2 s after the kill, 8 stores LOST at 26.2 s, all DURABLE again at 36.3 s,
+8 tabs / 0 render errors), G1 (12/12 geometries complete and verified after defect 19 was fixed) and C1
+(<strong>59 of 59 claims proven</strong>) all pass; functional E1–E11 99/99 on the same build.</p>
+<h2 id="phase-exit-criteria">Phase exit criteria<a class="headerlink" href="#phase-exit-criteria" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Phase 0 (this prototype):</strong> all RUN checks pass; perf recorded; codec UNIT tests pass.</li>
+<li><strong>Phase 1:</strong> E12.1–E12.5 pass on a tenant-namespaced, mTLS-enabled multi-region fabric; E5.16/E12.10 pass.</li>
+<li><strong>Phase 3:</strong> E11.6–E11.10 pass; E13.5 at 10^7 files.</li>
+<li><strong>Phase 4:</strong> E6.20, E7.10–E7.17, E13.1–E13.4 at target sizes; LRC hierarchy evaluated against RS on WAN emulation.</li>
+<li><strong>Pilot:</strong> E16 complete with signed drill reports.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
