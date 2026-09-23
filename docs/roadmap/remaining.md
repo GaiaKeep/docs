@@ -20,6 +20,9 @@ Nothing in phase 1 can be specified exactly until these are answered. See
 
 ## Phase 1: durable storage core
 
+!!! success "Built and tested in-process (2026-09-23)"
+    Tenancy and dedup domains, grants, per-block hashing and keys, chunkers, versioning and extracts, reference counting, replica placement, the RAM binding, and the engine (publish, derive, compose, read, withdraw, repair, scrub): **203 tests, 0 failures**. Remaining in this phase: the module decisions ([MODULE-DECISIONS](../design/MODULE-DECISIONS.md)), engine performance (sync at seal, parallel site writes, streaming reads), trimming surplus copies, reference storage at scale, and wiring the engine into the federation index for quorum commit across hosts.
+
 **Goal:** an agent publishes a versioned dataset into a collection under policy; three sites each
 hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
 hash-verified, with no human action.

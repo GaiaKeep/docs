@@ -1,7 +1,10 @@
 # Status at a glance
 
 Every component with its label: **Proven**, **Built**, **Designed**, **Proposed** or **Open**
-(see the [home page](../index.md) for definitions). Updated 2026-09-23 at `GaiaKeep/gfs` `d7792cb`.
+(see the [home page](../index.md) for definitions). Updated 2026-09-23 at `GaiaKeep/gfs` `b616948`.
+
+!!! success "Durable storage core: built and tested"
+    All eleven components are built under `io.cresco.gfs.core` (in-process, all I/O through `ExtentBinding`): **203 tests, 0 failures**, including a 120-cell integration matrix. Decisions with their measurements: [Module decisions](../design/MODULE-DECISIONS.md).
 
 ## Foundation
 
@@ -23,19 +26,20 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 | Shamir t-of-n site-key custody with an approver quorum | **Proven** | E9 |
 | Reciprocity ledger (entitlement follows contribution) | **Proven** | E10 |
 | Real fsync durability barrier in the block store | **Built** | `dd6328a`; measured cost |
-| 3-way replication across three sites (phase 1 design of record) | **Designed** | [Durability](../concepts/durability.md) |
+| Replication with repair, scrub and failure-domain placement (in-process engine) | **Built**, 120-cell matrix | R−1 site loss survivable in every cell |
 | Erasure coding reached by repack | **Designed** | |
-| Versions, runs, extracts, derivations | **Designed** | [Versioning](../concepts/versioning.md) |
-| Tenant / collection / deduplication domain model | **Designed** (design of record 2026-09-23) | [Tenancy and dedup](../concepts/tenancy-and-dedup.md) |
-| Per-block hashing and domain-dependent block identity | **Designed** | SHA-384 default, per-block keys in shared modes |
-| Chunking method | **Designed**: a per-domain setting | content-defined by default; fixed allowed; parameters still to be measured |
+| Versions, runs, branches, extracts, citations | **Built** (in-process; quorum commit via the index is next) | VersionTest, engine tests |
+| Derivations | **Designed** | |
+| Tenant / collection / deduplication domain model, grants | **Built** | PolicyEngineTest (every rule), engine owner cases |
+| Per-block hashing and domain-dependent block identity and keys | **Built** | BlockCodecTest; oracle rule holds end to end |
+| Chunkers: fixed, content-defined, keyed content-defined | **Built** and measured | content-defined 64 KiB recommended (D-C1-1) |
 
 ## Placement and media
 
 | Component | Status | Evidence / note |
 |---|---|---|
 | `ExtentBinding` interface and filesystem binding | **Built** | BindingTest 23/23 |
-| Live write path routed through the interface | **Open**: first build item | Live path calls the store directly |
+| New engine does all I/O through the interface | **Built** | the prototype's live plugin path still calls the store directly |
 | Placement from measured write rate | **Built**, on the live placement path | `2842891`; wire-contract lint |
 | Fail-closed durability barrier in placement | **Built**, on the live placement path | `fc5d81b`; BarrierTest 13/13 |
 | Retention floors and refusing `reclaim` | **Built** | `a3b7d0f` |
@@ -44,7 +48,8 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 | Media-life admission rule | **Built** | `a3b7d0f` |
 | Raw SCSI tape binding (`st`/`sg`) | **Designed** | Bareos removed |
 | Independent on-media reference reader | **Designed**; blocking before media | |
-| Raw NVMe, raw disk and RAM bindings | **Designed** | |
+| RAM binding (`MemBinding`) | **Built**, contract-tested | |
+| Raw NVMe and raw disk bindings | **Designed** | |
 
 ## Security
 
