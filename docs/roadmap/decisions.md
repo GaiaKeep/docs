@@ -15,7 +15,7 @@ what changed and why.
 | 2026-09-19 | No filesystem, no LTFS: the system manages its own blocks | Owner | In force |
 | 2026-09-19 | Bareos adopted as the tape volume manager | Design | **Superseded** 2026-09-20 |
 | 2026-09-19 | Deduplication and content-derived block ids retired (checkpoints share no blocks) | Design | **Superseded**: never owner-approved; reversed 2026-09-23 |
-| 2026-09-19 | Content chunking at fixed 64 KiB | Design | **Open again** under the dedup requirement |
+| 2026-09-19 | Content chunking at fixed 64 KiB | Design | **Superseded** 2026-09-23: per-domain chunker |
 | 2026-09-19 | Per-object keys; GCM counter discipline (`SegmentCipher`) | Design | In force for sealed data |
 | 2026-09-19 | No plaintext-derived identifier on write-once media | Design | **Becomes policy**: mandatory in sealed domains, relaxed in global |
 | 2026-09-20 | Write-once is not hard and fast; things must be removable; group and repack over time | Owner | In force |
@@ -29,6 +29,8 @@ what changed and why.
 | 2026-09-20 | Tape is one binding among many: "just a block of data" | Owner | In force |
 | 2026-09-23 | Placement uses measured properties; durability fails closed | Design | In force |
 | 2026-09-23 | Block-level deduplication is critical | Owner | In force |
-| 2026-09-23 | Deduplication configurable from complete isolation to global; tenant = legal entity; collection = versioned dataset with compliance rules; hash every block before storage | Owner | In force; mechanism **Proposed** |
+| 2026-09-23 | Deduplication configurable from complete isolation to global; tenant = legal entity; collection = versioned dataset with compliance rules; hash every block before storage | Owner | In force |
+| 2026-09-23 | Design of record: four dedup modes (NONE, COLLECTION, GROUP, GLOBAL), sealed tenants, grants with withdrawal terms, per-block keys in shared modes; unmade choices become policy with defaults ([TENANCY-AND-DEDUP](../design/TENANCY-AND-DEDUP.md)) | Design, on owner direction | In force |
+| 2026-09-23 | Fixed 64 KiB content chunking | Design | **Superseded**: chunker is a per-domain setting |
 | 2026-09-23 | filerepo = local copies, cache, and publishing new versions; advanced caching tier after durable storage | Owner | In force |
 | 2026-09-23 | Code lives in `GaiaKeep/gfs` only; `CrescoEdge/gfs` removed (archived pending deletion) | Owner | In force |

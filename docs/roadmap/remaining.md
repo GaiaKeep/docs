@@ -9,12 +9,12 @@ phase ends with an end-to-end proof rather than unit tests alone.
 Nothing in phase 1 can be specified exactly until these are answered. See
 [Open questions](open-questions.md).
 
-- [ ] Approve the **tenant / collection / deduplication domain** model and its five decisions
-- [ ] Re-decide **chunking** (fixed or content-defined) under the deduplication requirement
+- [x] **Tenant / collection / deduplication domain** model: design of record written 2026-09-23; open choices are policy settings with defaults
+- [x] **Chunking**: a per-domain setting (content-defined by default)
 - [ ] Redo **S1**, the metadata-key IV discipline, under the dedup model
 - [ ] Choose the **first consumers** and the **first dataset** (P1, P2); proposed: the panAtlas index
 - [ ] Decide whether the **DGX copy is kept** after archiving (P3); this decides whether two sites could ever suffice
-- [ ] **Hash function**: SHA-256 or SHA-384
+- [x] **Hash function**: SHA-384 by default, fixed per domain
 - [ ] **Java toolchain** for raw SCSI: JDK 22+, JNA or a C helper
 - [ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)
 

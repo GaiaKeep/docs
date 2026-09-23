@@ -26,9 +26,9 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 | 3-way replication across three sites (phase 1 design of record) | **Designed** | [Durability](../concepts/durability.md) |
 | Erasure coding reached by repack | **Designed** | |
 | Versions, runs, extracts, derivations | **Designed** | [Versioning](../concepts/versioning.md) |
-| Tenant / collection / deduplication domain model | **Proposed** | [Tenancy and dedup](../concepts/tenancy-and-dedup.md) |
-| Per-block hashing and domain-dependent block identity | **Proposed** | |
-| Chunking method (fixed or content-defined) | **Open** | Must be re-decided under the dedup requirement |
+| Tenant / collection / deduplication domain model | **Designed** (design of record 2026-09-23) | [Tenancy and dedup](../concepts/tenancy-and-dedup.md) |
+| Per-block hashing and domain-dependent block identity | **Designed** | SHA-384 default, per-block keys in shared modes |
+| Chunking method | **Designed**: a per-domain setting | content-defined by default; fixed allowed; parameters still to be measured |
 
 ## Placement and media
 
