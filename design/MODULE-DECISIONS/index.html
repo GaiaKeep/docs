@@ -1435,6 +1435,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#status-of-every-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status of every decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#summary-of-verdicts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1588,6 +1599,17 @@
     <span class="md-ellipsis">
       
         Update 2026-09-23 (evening): on DGX servers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-night-the-core-on-the-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (night): the core on the fabric
       
     </span>
   </a>
@@ -2140,6 +2162,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#status-of-every-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status of every decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#summary-of-verdicts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2299,6 +2332,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-night-the-core-on-the-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (night): the core on the fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2329,6 +2373,93 @@ deployment figure, and macOS fsync is about 8× costlier than Linux node-local f
 (<code>eval/results/fsync_cost.json</code>).</em></p>
 <p>Each decision is labelled <strong>D-Cn-k</strong> after its component. Where I have a recommendation it is marked
 <strong>Rec</strong>, and accepting it is a valid answer.</p>
+<h2 id="status-of-every-decision">Status of every decision<a class="headerlink" href="#status-of-every-decision" title="Permanent link">&para;</a></h2>
+<p>Every decision below now runs on its recommended default. <strong>These are adopted defaults, not owner
+approvals:</strong> each one is reversible, and each one stays open until the owner confirms or overrides it.</p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Running default</th>
+<th>Where it lives</th>
+<th>Reversible by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D-C1-1 default chunker</td>
+<td><code>cdc:65536:8192:131072</code></td>
+<td><code>ChunkerSpec.DEFAULT_CDC</code></td>
+<td>per-domain <code>chunker</code> at creation (existing domains keep theirs)</td>
+</tr>
+<tr>
+<td>D-C1-2 16 KiB CDC per collection</td>
+<td>offered, not default</td>
+<td>any <code>cdc:</code> spec is accepted per domain</td>
+<td>policy</td>
+</tr>
+<tr>
+<td>D-C1-3 reject 256 KiB CDC</td>
+<td>not a default; still accepted if asked</td>
+<td>policy</td>
+<td>policy</td>
+</tr>
+<tr>
+<td>D-C2-1 default hash</td>
+<td>SHA-384 (CNSA)</td>
+<td><code>BlockHash.DEFAULT</code></td>
+<td>per-domain <code>hash</code> at creation</td>
+</tr>
+<tr>
+<td>D-C5-1 keyed ids</td>
+<td>HMAC-SHA-384, 96 hex</td>
+<td><code>BlockCodec</code></td>
+<td>new domains only (ids are permanent)</td>
+</tr>
+<tr>
+<td>D-C6-1 reference storage at scale</td>
+<td>holder sets, in memory, journaled</td>
+<td><code>RefIndex</code> + journal</td>
+<td>open: needs a decision before petabyte scale</td>
+</tr>
+<tr>
+<td>D-C8-1 site weighting</td>
+<td><code>log10(measured write rate)</code></td>
+<td><code>ReplicaPlacer</code></td>
+<td>code constant</td>
+</tr>
+<tr>
+<td>D-C10-1 trim</td>
+<td>surplus kept through a grace period, never below R</td>
+<td><code>StorageEngine.trim</code></td>
+<td><code>grace_ms</code> per call</td>
+</tr>
+<tr>
+<td>D-C10-2 sync at seal</td>
+<td>one barrier per write per site</td>
+<td><code>FsBinding.seal</code></td>
+<td>built</td>
+</tr>
+<tr>
+<td>D-C10-3 batched streaming reads</td>
+<td>window of 64 blocks per site</td>
+<td><code>StorageEngine.readWindow</code></td>
+<td>field</td>
+</tr>
+<tr>
+<td>D-C11-1 minimum replication</td>
+<td>R ≥ 1 enforced; R=3 used everywhere tested</td>
+<td><code>PolicyEngine</code></td>
+<td>open: R ≥ 2 for durable collections is not yet enforced</td>
+</tr>
+<tr>
+<td>D-C11-2 supported configurations</td>
+<td>all tested combinations (now 180 cells incl. remote)</td>
+<td><code>IntegrationMatrixTest</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
 <h2 id="summary-of-verdicts">Summary of verdicts<a class="headerlink" href="#summary-of-verdicts" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2848,6 +2979,67 @@ server-class evidence, but it costs 2.5× on x86.</p>
 <p><strong>What limits a single stream now:</strong> content-defined chunking runs single-threaded per file at
 ~600 MB/s on x86. That is the next ceiling above one LTO-10 drive (400 MB/s). Several files publish in
 parallel; one very large file does not yet.</p>
+<h2 id="update-2026-09-23-night-the-core-on-the-fabric">Update 2026-09-23 (night): the core on the fabric<a class="headerlink" href="#update-2026-09-23-night-the-core-on-the-fabric" title="Permanent link">&para;</a></h2>
+<p>The three outstanding items are closed or explicitly handed back.</p>
+<p><strong>1. The engine runs across hosts, with agreement.</strong> The storage core now runs inside the federation
+index (<code>coresvc/CoreService</code>). The index is its journal and its replication.</p>
+<ul>
+<li><strong>One apply path.</strong> Every persistent change is a <code>Delta</code> applied through <code>StorageEngine.apply</code>. That
+  one function runs live, on replay after a restart, and on every replica, so the three cannot
+  diverge.</li>
+<li><strong>Journaling.</strong> Each operation's changes go out as one <code>core.batch</code> through the index's commit path.
+  The batch is forced to disk before the operation returns, then shipped to the replicas.
+  <code>statehash</code> now carries <code>core_hash</code>; snapshots carry the core too.</li>
+<li><strong>Storage nodes.</strong> The index reaches them through <code>RemoteBinding</code>: the unchanged <code>ExtentBinding</code>
+  contract over Cresco RPC. Each node serves its own <code>FsBinding</code> through <code>ExtentServer</code>, and only to
+  the index that owns it.</li>
+<li><strong>Crash safety.</strong> Before any seal, the blocks and sites a write is about to create are journaled as
+  an <em>intent</em>. Recovery reclaims every copy an intent names that the index never recorded.</li>
+<li><strong>Tenant roots.</strong> They leave memory only wrapped under <code>core_master_key</code>. Without that key the core
+  does not start.</li>
+</ul>
+<p>Evidence:
+- JUnit 294/294. <code>JournalReplayTest</code> 12/12: replay and snapshot give an identical hash; a crash
+  between seal and commit leaves no orphans; a refused seal cleans up; no root in the clear. The new
+  REMOTE locus runs the binding contract and all 60 extra integration-matrix cells over the protocol.
+- Live Cresco fabric, 9 JVMs, <code>eval/core_fabric_check.py</code>: <strong>61/61</strong>
+  (<code>eval/results/core_fabric_20260923-180417.json</code>). Covered:
+  - all four dedup modes, and v2 of a 3.5 MB file stores 234 KB at R=3;
+  - cross-tenant GLOBAL dedup stores 0 blocks, and compose stores 0 bytes;
+  - a grant-derived publish stores only the addition;
+  - a sealed tenant is refused by rule;
+  - the replica's hash equals the primary's;
+  - no plaintext on any disk;
+  - a storage node killed: every read survives, repair and trim work;
+  - the index killed -9: the replayed hash equals the pre-crash hash, and dedup survives the restart;
+  - the index halted between seal and commit: 1,128 sealed orphans are reclaimed from the journaled
+    intent, leaving 1,125 files on disk = 1,125 recorded copies.</p>
+<p>Found live and fixed:
+- <strong>A dead node stalled liveness.</strong> The core's one timer thread blocked on an RPC to it. Fix: liveness
+  sync gets its own thread, a timed-out node is quarantined at once, and control calls time out at 10 s.
+- <strong>An index restart marked every node LOST.</strong> Replayed <code>last_seen</code> values were stale. That would
+  also start the prototype's repair storm. Fix: each node gets a full grace window from start.
+- <strong>Control messages are capped at 1 MiB</strong> by the websocket. Bulk bytes now arrive by chunked
+  <code>core.upload</code>, and reads are ranged: <code>core.readrange</code> fetches only the covering blocks.</p>
+<p><strong>Throughput through the fabric is low, and the cause is known.</strong> One Mac running 9 JVMs, R=3:
+engine publish 15–18 MB/s and engine read 59–78 MB/s. Bytes travel base64-encoded inside
+control-plane MsgEvents. In-process on the same machine the engine does 568–604 MB/s. The fix is to
+move the extent data onto the Cresco dataplane (FrameBus), as the prototype's fragment path does.
+That is the next performance item.</p>
+<p><strong>2. A single large file no longer caps at one core.</strong>
+- Parallel content-defined chunking is byte-identical to sequential (proven in <code>ChunkerTest</code>), and the
+  whole-file hash overlaps the rest of the work.
+- <code>MemBinding</code> usage is O(1): <code>describe()</code> had summed every stored extent on every placement call.
+- One 1 GiB file publishes at <strong>568–604 MB/s</strong> (was 186).</p>
+<p><strong>3. Decisions.</strong> The table at the top records every decision as an adopted, reversible default, not
+an owner approval. Two remain open and matter at scale: <strong>D-C6-1</strong> (reference storage) and
+<strong>D-C11-1</strong> (enforce R ≥ 2 for durable collections).</p>
+<p>Known limits, stated plainly:
+- Core RPCs have no per-tenant authorization yet. Anyone holding the Cresco service key can call
+  <code>core.*</code>, and tenant-level authorization is an open question.
+- Per-block metadata is journaled at roughly 130 bytes per block, about 2 MB per GiB. Journal
+  compaction exists only as snapshot install.
+- The index keeps retained log entries in memory.</p>
 
 
 

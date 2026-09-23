@@ -2125,8 +2125,19 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 </ul>
 <h2 id="phase-1-durable-storage-core">Phase 1: durable storage core<a class="headerlink" href="#phase-1-durable-storage-core" title="Permanent link">&para;</a></h2>
 <div class="admonition success">
-<p class="admonition-title">Built and tested in-process (2026-09-23)</p>
-<p>Tenancy and dedup domains, grants, per-block hashing and keys, chunkers, versioning and extracts, reference counting, replica placement, the RAM binding, and the engine (publish, derive, compose, read, withdraw, repair, scrub): <strong>203 tests, 0 failures</strong>. Remaining in this phase: the module decisions (<a href="../../design/MODULE-DECISIONS/">MODULE-DECISIONS</a>), engine performance (sync at seal, parallel site writes, streaming reads), trimming surplus copies, reference storage at scale, and wiring the engine into the federation index for quorum commit across hosts.</p>
+<p class="admonition-title">Built, and running on the fabric (2026-09-23)</p>
+<p>Built and tested: tenancy and dedup domains, grants, per-block hashing and keys, chunkers,
+versioning, reference counting, placement, and the engine. The engine is journaled through the
+federation index and replicated, crash-safe through write intents, and reaches storage nodes over
+<code>RemoteBinding</code>. Evidence: 294 tests, and 61/61 on a live fabric.</p>
+<p>Remaining in this phase:</p>
+<ul>
+<li>carry extent bytes on the dataplane instead of control messages (fabric throughput is 15–18 MB/s
+  against 568–604 MB/s in-process);</li>
+<li>per-tenant authorization on <code>core.*</code>;</li>
+<li>reference storage at scale (D-C6-1), and enforcing R ≥ 2 for durable collections (D-C11-1);</li>
+<li>journal compaction.</li>
+</ul>
 </div>
 <p><strong>Goal:</strong> an agent publishes a versioned dataset into a collection under policy; three sites each
 hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,

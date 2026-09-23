@@ -2130,10 +2130,23 @@
 
 <h1 id="status-at-a-glance">Status at a glance<a class="headerlink" href="#status-at-a-glance" title="Permanent link">&para;</a></h1>
 <p>Every component with its label: <strong>Proven</strong>, <strong>Built</strong>, <strong>Designed</strong>, <strong>Proposed</strong> or <strong>Open</strong>
-(see the <a href="../../">home page</a> for definitions). Updated 2026-09-23 at <code>GaiaKeep/gfs</code> <code>b616948</code>.</p>
+(see the <a href="../../">home page</a> for definitions). Updated 2026-09-23 (night) at <code>GaiaKeep/gfs</code> <code>f055e07</code>.</p>
 <div class="admonition success">
-<p class="admonition-title">Durable storage core: built and tested</p>
-<p>All eleven components are built under <code>io.cresco.gfs.core</code> (in-process, all I/O through <code>ExtentBinding</code>): <strong>208 tests, 0 failures</strong>, including a 120-cell integration matrix and the smoke test, run by CI on every push. Engine fixes after measurement: disk publish 1.6–2.0 → 46–78 MB/s at R=3, verified reads 30–36 → 230–380 MB/s, repair 72 → ~1,500 copies/s. Decisions with their measurements: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>.</p>
+<p class="admonition-title">Durable storage core: running on the Cresco fabric</p>
+<p>All eleven components are built under <code>io.cresco.gfs.core</code>, and the core now runs inside the
+federation index. Its metadata is journaled and replicated through the index, and storage nodes
+are reached through <code>RemoteBinding</code>.</p>
+<ul>
+<li><strong>Unit tests: 294/294.</strong> This includes a 180-cell integration matrix, of which 60 cells run over
+  the remote protocol, and journal replay, snapshot and crash tests.</li>
+<li><strong>Live fabric: 61/61</strong> (<code>core_fabric_check.py</code>). Covered: every dedup mode; cross-tenant dedup
+  and compose store nothing new; replica hash equals primary; a storage node killed; the index
+  killed -9 with the replayed hash identical; the index halted between seal and commit with 1,128
+  orphans reclaimed from the journaled intent.</li>
+<li><strong>Throughput.</strong> One 1 GiB file publishes in-process at 568–604 MB/s. Through the fabric it is
+  15–18 MB/s, because bytes still ride control messages; moving them to the dataplane is next.</li>
+</ul>
+<p>Decisions: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>.</p>
 </div>
 <h2 id="foundation">Foundation<a class="headerlink" href="#foundation" title="Permanent link">&para;</a></h2>
 <table>
@@ -2213,9 +2226,9 @@
 <td><code>dd6328a</code>; measured cost</td>
 </tr>
 <tr>
-<td>Replication with repair, scrub and failure-domain placement (in-process engine)</td>
-<td><strong>Built</strong>, 120-cell matrix</td>
-<td>R−1 site loss survivable in every cell</td>
+<td>Replication with repair, scrub, trim and failure-domain placement</td>
+<td><strong>Proven</strong> on the fabric</td>
+<td>180-cell matrix; live: node killed, reads survive, repair restores</td>
 </tr>
 <tr>
 <td>Erasure coding reached by repack</td>
@@ -2224,8 +2237,8 @@
 </tr>
 <tr>
 <td>Versions, runs, branches, extracts, citations</td>
-<td><strong>Built</strong> (in-process; quorum commit via the index is next)</td>
-<td>VersionTest, engine tests</td>
+<td><strong>Proven</strong>: commits journaled and replicated through the index</td>
+<td>JournalReplayTest; live F3, F5, F8</td>
 </tr>
 <tr>
 <td>Derivations</td>
