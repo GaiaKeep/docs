@@ -37,7 +37,7 @@ flowchart TB
 | Layer | What it does | Status |
 |---|---|---|
 | Agent interface | `prospect` returns costed options for getting a version somewhere; `realise` is the only call that moves bytes; `publish` creates a version | **Designed** (Entail) |
-| Governance | Tenants own collections; each collection carries compliance and deduplication policy; grants allow cross-collection and cross-tenant references | **Proposed** (tenant/collection defined by owner; dedup domain mechanism proposed) |
+| Governance | Tenants own collections; each collection carries compliance and deduplication policy; grants allow cross-collection and cross-tenant references | **Designed** (design of record 2026-09-23) |
 | Versioning | Immutable versions built from runs; extracts as citable, pinnable point-in-time objects | **Designed** |
 | Block layer | Split content into blocks, hash every block before storage, derive its identity and key according to the collection's domain | **Designed**; per-object counter discipline **Built** |
 | Placement engine | Chooses where copies go using measured properties and policy; repairs lost copies | **Proven** in the prototype for erasure-coded placement; measured placement and fail-closed durability **Built** (reaches the live placement path) |

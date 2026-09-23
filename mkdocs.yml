@@ -73,6 +73,7 @@ nav:
   - Design record:
       - design/index.md
       - "From-scratch decision": design/FROM-SCRATCH-DECISION.md
+      - "Tenancy and deduplication": design/TENANCY-AND-DEDUP.md
       - "Block fabric specification": design/SPECIFICATION.md
       - "Entail: the agent interface": design/ENTAIL-AGENT-NATIVE-FS.md
       - "Storage bindings decision": design/STORAGE-BINDINGS-DECISION.md

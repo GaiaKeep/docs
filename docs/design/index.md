@@ -5,6 +5,7 @@ The engineering documents behind this site, copied from `GaiaKeep/gfs` `docs/` w
 | Document | Status | What it is |
 |---|---|---|
 | [From-scratch decision](FROM-SCRATCH-DECISION.md) | Current | The statement of purpose and the decision to remove Bareos (2026-09-20) |
+| [Tenancy and deduplication](TENANCY-AND-DEDUP.md) | Current | Design of record for tenants, collections, dedup domains (NONE, COLLECTION, GROUP, GLOBAL), grants and per-block hashing (2026-09-23) |
 | [Block fabric specification](SPECIFICATION.md) | Partly superseded | The write-once block fabric specification, written tape-first |
 | [Entail: the agent interface](ENTAIL-AGENT-NATIVE-FS.md) | Partly superseded | The agent-native interface: prospect/realise, Derivations, Coverage, extracts |
 | [Storage bindings decision](STORAGE-BINDINGS-DECISION.md) | Mostly current | The one-interface-many-media binding decision and its findings table |

@@ -24,6 +24,9 @@ GITHUB = "https://github.com/GaiaKeep/gfs/blob/1.3/"
 DOCS = [
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",
      "The statement of purpose and the decision to remove Bareos (2026-09-20). Current."),
+    ("TENANCY-AND-DEDUP.md", "Tenancy and deduplication", "Current",
+     "Design of record for tenants, collections, dedup domains (NONE, COLLECTION, GROUP, GLOBAL), grants "
+     "and per-block hashing (2026-09-23). Every owner-unmade choice is a policy setting with a default."),
     ("SPECIFICATION.md", "Block fabric specification", "Partly superseded",
      "The write-once block fabric specification, written tape-first. **Superseded in part:** "
      "deduplication and content-derived block ids were retired here (§12.3, §18.4) without owner "
