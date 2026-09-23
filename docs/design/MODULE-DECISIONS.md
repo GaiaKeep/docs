@@ -220,3 +220,50 @@ after every restart.
 - Both are classes in the bundle (`io.cresco.gfs.core.tools`), so they run on any deployment host.
 - CI (`.github/workflows/test.yml`) runs the suite, the wire-contract lint, the smoke test and a
   small benchmark on every push, and uploads the results. The first run passed.
+
+## Update 2026-09-23 (evening): on DGX servers
+
+The smoke test and benchmark ran on DGX compute nodes via SLURM: job 221777 on dgx-03, then job
+221810 on dgx-01 after the fixes below. Logs and JSON are in `eval/results/bench/dgx/`. Both are
+x86-64 with 32 cores, JDK 21.
+
+**Two defects the server found, both fixed:**
+
+1. **The durability probe was a single timing pass.** On dgx-03 it classified one of four identical
+   node-local directories INDETERMINATE and the other three COSTS_TIME: the first site probed ran on
+   a cold JVM. The probe now warms up, runs five rounds alternating which pass goes first, and counts
+   a locus durable only when **every** round agrees (`classifyRounds`). The per-round ratios are kept
+   for audit. On dgx-01 all four node-local sites came back unanimous, and the smoke test passed
+   25/25.
+2. **The engine was CPU-bound on one thread.** On x86 each core is slower at this work (SHA-384
+   718 MB/s, codec ~545 MB/s), and every block was hashed and encrypted serially. Per-block work now
+   runs across cores, with the decisions that touch shared state kept sequential and in order.
+   Domain keys are memoised, and the memo is cleared when a root is installed or destroyed.
+
+**Correction:** with the unanimous probe, the DGX **shared project filesystem measured COSTS_TIME**
+(13–14 MiB/s), contradicting the one-pass ×0.94 from 2026-09-19. It is admitted; its real cost is
+speed, 10–18× slower than node-local storage.
+
+**dgx-01, node-local disk (job 221810):**
+
+| Mode | R | Publish MB/s | Verified read MB/s | Stored / logical (10 versions) | Repair copies/s |
+|---|---:|---:|---:|---:|---:|
+| NONE | 1 | 175 | 361 | 1.0 | — |
+| NONE | 3 | 103 | 420 | 3.0 | 2,397 |
+| COLLECTION | 1 | 140 | 380 | 0.00 | — |
+| COLLECTION | 3 | 74 | 367 | 0.00 | 2,234 |
+| GROUP | 3 | 76 | 380 | 0.00 | 2,464 |
+| GLOBAL | 3 | 77 | 380 | 0.00 | 2,336 |
+
+Against dgx-03 before the CPU fix, deduplicating-mode publish went from ~100 to **131–140 MB/s** at
+R=1, and verified reads from 226–241 to **367–383 MB/s**. At R=3 the limit is now the disk syncs
+(74–77 MB/s). In RAM on the same CPU, publish reaches 152–227 MB/s at R=1 and reads 396–472 MB/s.
+
+**D-C2-1 on a server:** SHA-384 **718 MB/s** against SHA-256 **1,765 MB/s** per core, a **2.5×** gap
+on x86 (1.67× on Apple silicon, 2.2× on the CI runner). Per core, SHA-384 is 1.8× one LTO-10 drive,
+and hashing now runs across cores. **The recommendation to keep SHA-384 stands**, now on
+server-class evidence, but it costs 2.5× on x86.
+
+**What limits a single stream now:** content-defined chunking runs single-threaded per file at
+~600 MB/s on x86. That is the next ceiling above one LTO-10 drive (400 MB/s). Several files publish in
+parallel; one very large file does not yet.

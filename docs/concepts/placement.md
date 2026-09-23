@@ -19,8 +19,9 @@ Every locus implements `ExtentBinding`. Its omissions are deliberate:
 |---|---|
 | `ExtentBinding` interface, `LocusDescriptor` | **Built** |
 | `FsBinding` (filesystem) with retention floors that survive restarts | **Built**; 23/23 checks |
-| Live write path routed through the interface | **Not yet**; see [Remaining work](../roadmap/remaining.md) |
-| Tape, raw NVMe, raw disk and RAM bindings | **Designed** |
+| New storage engine does all I/O through the interface | **Built** (the prototype plugin's own path still calls the store directly) |
+| RAM binding (`MemBinding`) | **Built**, contract-tested |
+| Tape, raw NVMe and raw disk bindings | **Designed** |
 
 ## Measure, don't declare
 
@@ -53,7 +54,8 @@ writes the same data with and without the barrier and compares the rates:
 |---|---|---|---|
 | DGX node-local disk | ×3.72 | Barrier costs time | Yes |
 | macOS APFS (full fsync) | ×17.97 | Barrier costs time | Yes |
-| DGX shared project filesystem | ×0.94 | Indeterminate | **Refused** |
+| DGX shared project filesystem, 2026-09-19 (one pass) | ×0.94 | Indeterminate | Refused |
+| DGX shared project filesystem, 2026-09-23 (5 rounds, unanimous) | costs time every round | Barrier costs time | Admitted |
 | RAM-backed storage | ≈×1, fast | Absent | **Refused** |
 
 A ratio near 1 on slow storage has two explanations the timing can't tell apart: the barrier is a
@@ -62,10 +64,19 @@ operator sets `gfs_durability_attested=true`. That setting is always reported as
 never as a measurement. Timing also can't prove that data survives a power loss; only a power-loss
 test can show that.
 
+!!! note "Correction (2026-09-23, DGX jobs 221777 and 221810)"
+    A single timing pass proved unreliable: on dgx-03 it classified one of four identical node-local
+    directories INDETERMINATE (the first site probed ran on a cold JVM). The probe now warms up, runs
+    five rounds in alternating order, and counts a locus durable only if **every** round agrees. With
+    that probe the DGX shared project filesystem measured **COSTS_TIME** unanimously (13–14 MiB/s),
+    contradicting the earlier ×0.94. So it may be admitted. Its real cost is speed: 10–18× slower
+    than node-local storage.
+
 !!! warning "Operational consequence"
-    On the DGX, storage nodes default to a directory under `~/cresco/nodes/…`, which is on a
-    network filesystem. Such nodes are now refused durable copies, and placement logs why. Point
-    `store_dir` at node-local storage, which is also 40× faster, or attest.
+    On the DGX, storage nodes default to a directory under `~/cresco/nodes/…`, which is on the
+    shared network filesystem. The robust probe now admits it, but it is 10–18× slower than
+    node-local storage, so point `store_dir` at node-local storage. If a probe run there comes back
+    inconsistent, those nodes are refused durable copies, and placement logs why.
 
 ## Where placement is heading
 
