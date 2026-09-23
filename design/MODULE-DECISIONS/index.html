@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gaiakeep.github.io/docs/concepts/tenancy-and-dedup/">
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/MODULE-DECISIONS/">
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="../FROM-SCRATCH-DECISION/">
       
       
-        <link rel="next" href="../versioning/">
+        <link rel="next" href="../COMPONENTS/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Tenants, collections and deduplication - GaiaKeep GFS</title>
+        <title>Module decisions (measured) - GaiaKeep GFS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tenants-collections-and-deduplication" class="md-skip">
+        <a href="#module-level-decisions" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tenants, collections and deduplication
+              Module decisions (measured)
             
           </span>
         </div>
@@ -240,13 +240,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../purpose/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
           
   
   
@@ -308,11 +306,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../design/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -421,10 +421,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -452,22 +450,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -485,7 +480,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -503,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../purpose/" class="md-nav__link">
+      <a href="../../concepts/purpose/" class="md-nav__link">
         
   
   
@@ -531,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../../concepts/architecture/" class="md-nav__link">
         
   
   
@@ -556,37 +551,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tenants, collections and deduplication
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
         
   
   
@@ -602,114 +570,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#definitions-owner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Definitions (owner)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-requirement-owner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The requirement (owner)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#four-modes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Four modes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-owners-three-cases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The owner's three cases
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#settings-and-defaults" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Settings and defaults
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#forgetting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Forgetting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-this-reverses" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What this reverses
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#still-open" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Still open
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -722,7 +582,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../versioning/" class="md-nav__link">
+      <a href="../../concepts/versioning/" class="md-nav__link">
         
   
   
@@ -750,7 +610,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../placement/" class="md-nav__link">
+      <a href="../../concepts/placement/" class="md-nav__link">
         
   
   
@@ -778,7 +638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../durability/" class="md-nav__link">
+      <a href="../../concepts/durability/" class="md-nav__link">
         
   
   
@@ -806,7 +666,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security/" class="md-nav__link">
+      <a href="../../concepts/security/" class="md-nav__link">
         
   
   
@@ -834,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../media-and-tape/" class="md-nav__link">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
         
   
   
@@ -862,7 +722,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../deletion-and-repack/" class="md-nav__link">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
         
   
   
@@ -890,7 +750,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../panatlas/" class="md-nav__link">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
         
   
   
@@ -1374,6 +1234,8 @@
       
   
   
+    
+  
   
   
     
@@ -1425,20 +1287,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../design/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1456,13 +1321,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1482,7 +1347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/FROM-SCRATCH-DECISION/" class="md-nav__link">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
         
   
   
@@ -1507,10 +1372,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../design/MODULE-DECISIONS/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1526,6 +1418,125 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-verdicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary of verdicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c1-chunker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C1: chunker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c2-block-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C2: block hash
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c5-codec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C5: codec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c6-reference-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C6: reference index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c8-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C8: placement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c10-engine-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C10: engine findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c11-which-configurations-are-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C11: which configurations are supported
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-comes-next-once-these-are-decided" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What comes next, once these are decided
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1538,7 +1549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/COMPONENTS/" class="md-nav__link">
+      <a href="../COMPONENTS/" class="md-nav__link">
         
   
   
@@ -1566,7 +1577,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TENANCY-AND-DEDUP/" class="md-nav__link">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
         
   
   
@@ -1594,7 +1605,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SPECIFICATION/" class="md-nav__link">
+      <a href="../SPECIFICATION/" class="md-nav__link">
         
   
   
@@ -1622,7 +1633,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
         
   
   
@@ -1650,7 +1661,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
         
   
   
@@ -1678,7 +1689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-DIRECTION/" class="md-nav__link">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
         
   
   
@@ -1706,7 +1717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/BAREOS-RECOMMENDATION/" class="md-nav__link">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
         
   
   
@@ -1734,7 +1745,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1762,7 +1773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1790,7 +1801,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SYSTEM-REPORT/" class="md-nav__link">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
         
   
   
@@ -1818,7 +1829,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CORE-PRINCIPLES/" class="md-nav__link">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
         
   
   
@@ -1846,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/EVALUATION-PLAN/" class="md-nav__link">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
         
   
   
@@ -1874,7 +1885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/PROTOTYPE/" class="md-nav__link">
+      <a href="../PROTOTYPE/" class="md-nav__link">
         
   
   
@@ -1902,7 +1913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESULTS/" class="md-nav__link">
+      <a href="../RESULTS/" class="md-nav__link">
         
   
   
@@ -1930,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SCALE-RESULTS/" class="md-nav__link">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
         
   
   
@@ -1958,7 +1969,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CLAIMS/" class="md-nav__link">
+      <a href="../CLAIMS/" class="md-nav__link">
         
   
   
@@ -1986,7 +1997,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/global-federated-storage-plan/" class="md-nav__link">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
         
   
   
@@ -2068,10 +2079,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#definitions-owner" class="md-nav__link">
+  <a href="#summary-of-verdicts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Definitions (owner)
+        Summary of verdicts
       
     </span>
   </a>
@@ -2079,10 +2090,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-requirement-owner" class="md-nav__link">
+  <a href="#c1-chunker" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The requirement (owner)
+        C1: chunker
       
     </span>
   </a>
@@ -2090,10 +2101,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#four-modes" class="md-nav__link">
+  <a href="#c2-block-hash" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Four modes
+        C2: block hash
       
     </span>
   </a>
@@ -2101,10 +2112,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-owners-three-cases" class="md-nav__link">
+  <a href="#c5-codec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The owner's three cases
+        C5: codec
       
     </span>
   </a>
@@ -2112,10 +2123,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#settings-and-defaults" class="md-nav__link">
+  <a href="#c6-reference-index" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Settings and defaults
+        C6: reference index
       
     </span>
   </a>
@@ -2123,10 +2134,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#forgetting" class="md-nav__link">
+  <a href="#c8-placement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Forgetting
+        C8: placement
       
     </span>
   </a>
@@ -2134,10 +2145,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-this-reverses" class="md-nav__link">
+  <a href="#c10-engine-findings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this reverses
+        C10: engine findings
       
     </span>
   </a>
@@ -2145,10 +2156,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#still-open" class="md-nav__link">
+  <a href="#c11-which-configurations-are-supported" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Still open
+        C11: which configurations are supported
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-comes-next-once-these-are-decided" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What comes next, once these are decided
       
     </span>
   </a>
@@ -2172,175 +2194,374 @@
 
 
 
-<h1 id="tenants-collections-and-deduplication">Tenants, collections and deduplication<a class="headerlink" href="#tenants-collections-and-deduplication" title="Permanent link">&para;</a></h1>
 <div class="admonition success">
-<p class="admonition-title">Status: design of record (2026-09-23)</p>
-<p>The owner set the definitions and the requirement. The mechanism below is the design of record
-(<a href="../../design/TENANCY-AND-DEDUP/">TENANCY-AND-DEDUP.md</a>). Every choice the owner has not made
-explicitly is a <strong>policy setting with a default</strong>, never a constant, so no point on the spectrum
-is closed off. It is <strong>not built yet</strong>.</p>
+<p class="admonition-title">Status: Current</p>
+<p>The decisions each component raises, with the measurements behind them: 203 tests, 0 failures (2026-09-23).</p>
 </div>
-<h2 id="definitions-owner">Definitions (owner)<a class="headerlink" href="#definitions-owner" title="Permanent link">&para;</a></h2>
-<dl>
-<dt><strong>Tenant</strong></dt>
-<dd>A group, organisation or other legal entity. A tenant owns collections and holds keys.</dd>
-<dt><strong>Collection</strong> (dataset)</dt>
-<dd>A versioned dataset with its own rules for storage and compliance. It belongs to exactly one
-  tenant.</dd>
-<dt><strong>Dedup domain</strong></dt>
-<dd>The set of data whose identical blocks may be stored once. Every collection writes into exactly
-  one domain and may read others only through <strong>grants</strong>.</dd>
-</dl>
-<h2 id="the-requirement-owner">The requirement (owner)<a class="headerlink" href="#the-requirement-owner" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p>"We must be able to configure the most secure and most open cases possible, from complete
-isolation to global deduplication."</p>
-</blockquote>
-<p>Block-level deduplication is <strong>critical</strong>. At one end, some tenants share nothing outside
-themselves, with no exceptions. At the other, public datasets combine with no new storage.</p>
-<h2 id="four-modes">Four modes<a class="headerlink" href="#four-modes" title="Permanent link">&para;</a></h2>
+<h1 id="module-level-decisions">Module-level decisions<a class="headerlink" href="#module-level-decisions" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-23. Every component in <code>COMPONENTS.md</code> is built and tested: </em><em>203 tests pass, 0 fail</em><em>
+(83 module and engine tests, and a 120-cell integration matrix). The measurements below are from
+<code>ModuleMeasurementsTest</code> and <code>IntegrationMatrixTest</code>, with raw data in <code>eval/results/modules/</code>. Host:
+14-core Apple silicon, JDK 23, single machine. Every rate is a ceiling for this machine, not a
+deployment figure, and macOS fsync is about 8× costlier than Linux node-local fsync
+(<code>eval/results/fsync_cost.json</code>).</em></p>
+<p>Each decision is labelled <strong>D-Cn-k</strong> after its component. Where I have a recommendation it is marked
+<strong>Rec</strong>, and accepting it is a valid answer.</p>
+<h2 id="summary-of-verdicts">Summary of verdicts<a class="headerlink" href="#summary-of-verdicts" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Mode</th>
-<th>Deduplicates with</th>
-<th>Block id</th>
-<th>Block key</th>
-<th>Raw hash kept</th>
+<th>Component</th>
+<th>Tests</th>
+<th>Verdict</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>NONE</strong></td>
-<td>nothing</td>
-<td>random</td>
-<td>unique per object</td>
-<td>only inside the encrypted manifest</td>
+<td>C1 Chunker</td>
+<td>18</td>
+<td>Correct at every size; content-defined chunking behaves as measured on edits</td>
 </tr>
 <tr>
-<td><strong>COLLECTION</strong></td>
-<td>its own versions</td>
-<td>keyed hash</td>
-<td>derived per block</td>
-<td>the domain's own index</td>
+<td>C2 Block hash</td>
+<td>part of 6</td>
+<td>Known answers pass; SHA-384 is 1.67× slower than SHA-256 here</td>
 </tr>
 <tr>
-<td><strong>GROUP</strong></td>
-<td>every collection in the group (a tenant or a named subset)</td>
-<td>keyed hash</td>
-<td>derived per block</td>
-<td>the domain's own index</td>
+<td>C3 Tenancy and policy</td>
+<td>7 (40+ matrix cells)</td>
+<td>Every rule enforced; every refusal names its rule</td>
 </tr>
 <tr>
-<td><strong>GLOBAL</strong></td>
-<td>everyone: public data</td>
-<td>plain content hash</td>
-<td>derived from the content</td>
-<td>the global index</td>
+<td>C4 Keys</td>
+<td>part of 6</td>
+<td>Derivations separated by tenant, domain and purpose; destroying a root destroys its keys</td>
+</tr>
+<tr>
+<td>C5 Block codec</td>
+<td>10</td>
+<td>Shared modes converge, keyed domains separate, tampering refused, oracle rule holds</td>
+</tr>
+<tr>
+<td>C6 References</td>
+<td>5</td>
+<td>Idempotent; agrees with a reference model across 50,000 random operations</td>
+</tr>
+<tr>
+<td>C7 Versioning</td>
+<td>5</td>
+<td>Shadowing, tombstones, compare-and-set, stable ids and citations</td>
+</tr>
+<tr>
+<td>C8 Placement</td>
+<td>7</td>
+<td>Constraints enforced, unsatisfiability explained, deterministic and weighted</td>
+</tr>
+<tr>
+<td>C9 Bindings</td>
+<td>9</td>
+<td>Contract holds for RAM and filesystem. <strong>Found and fixed:</strong> MemBinding returned FAILED instead of REFUSED for a missing extent</td>
+</tr>
+<tr>
+<td>C10 Engine</td>
+<td>16</td>
+<td>Every owner case and failure passes (below)</td>
+</tr>
+<tr>
+<td>C11 Integration</td>
+<td>120</td>
+<td>Every option combination passes the full lifecycle</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Every block is hashed before storage in every mode</strong> (default SHA-384, per CNSA). What that hash is
-allowed to become is the whole security model. For public data it is the identifier. For NONE it
-appears only inside the encrypted manifest, so no stored value lets anyone test whether two objects
-share content.</p>
-<p>In the three shared modes, each block's key is derived from that block's own hash. <strong>A key therefore
-encrypts exactly one plaintext, ever.</strong> Identical blocks produce identical ciphertext, which is the
-deduplication, and the encryption IV hazard can't arise for data blocks. NONE keeps the per-object
-counter discipline (<code>SegmentCipher</code>).</p>
-<h2 id="the-owners-three-cases">The owner's three cases<a class="headerlink" href="#the-owners-three-cases" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Public A + public B → C.</strong> A and B are GLOBAL. C's manifest lists their blocks. <strong>C stores
-   only its manifest</strong>, a few kilobytes.</li>
-<li><strong>Augmenting another tenant's datasets.</strong> Our collection writes into our own domain and
-   references tenant A's blocks under a grant. The grant hands over exactly the keys of the granted
-   blocks, not tenant A's domain key. We store only our changes.</li>
-<li><strong>High-security tenants.</strong> A tenant marked <strong>sealed</strong> may use only NONE, COLLECTION or its own
-   GROUP. It can't issue or accept grants, none of its raw hashes leave its private index partition,
-   and by default it brings public data in by <strong>copying, never by reference</strong>.</li>
-</ol>
-<h2 id="settings-and-defaults">Settings and defaults<a class="headerlink" href="#settings-and-defaults" title="Permanent link">&para;</a></h2>
+<p><strong>C10 behaviours verified end to end:</strong>
+- Composing public datasets stores <strong>zero</strong> blocks.
+- A second tenant publishing the same public bytes stores <strong>zero</strong> blocks.
+- Augmenting another tenant's 2 MB file with a 500-byte insert stores <strong>1–4 blocks</strong>.
+- A revoked grant blocks reads immediately.
+- Sealed tenants are refused references and grants in both directions, and copy public data in.
+- Withdrawal honours PIN, COPY and BREAK, and reclaims exactly what nothing else references.
+- R−1 site losses leave every version readable, and repair restores R copies.
+- A corrupt replica is read around, and scrub repairs it.
+- Durability fails closed on unattested RAM.
+- A refused commit leaves only reclaimable garbage.
+- Keyed domains never record a raw content hash.</p>
+<h2 id="c1-chunker">C1: chunker<a class="headerlink" href="#c1-chunker" title="Permanent link">&para;</a></h2>
+<p>32 MiB base, five edit workloads. Figures are blocks retained / new bytes that must be stored:</p>
 <table>
 <thead>
 <tr>
-<th>Setting</th>
-<th>Default</th>
+<th>Chunker</th>
+<th style="text-align: right;">MB/s</th>
+<th>Append 1 %</th>
+<th>Insert 0.1 %</th>
+<th>Prepend 0.1 %</th>
+<th>Overwrite 20×4 KiB</th>
+<th>10 small inserts</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Mode for a new collection</td>
-<td>COLLECTION</td>
+<td><code>fixed:65536</code></td>
+<td style="text-align: right;">6,059</td>
+<td>98.8 % / 328 K</td>
+<td>49.9 % / 16.0 M</td>
+<td><strong>0.0 % / 32.0 M</strong></td>
+<td>96.1 % / 1.3 M</td>
+<td><strong>9.0 % / 29.1 M</strong></td>
 </tr>
 <tr>
-<td>Hash algorithm (fixed per domain)</td>
+<td><code>fixed:16384</code></td>
+<td style="text-align: right;">8,819</td>
+<td>99.0 % / 328 K</td>
+<td>49.9 % / 16.0 M</td>
+<td>0.0 % / 32.0 M</td>
+<td>99.0 % / 336 K</td>
+<td>9.1 % / 29.1 M</td>
+</tr>
+<tr>
+<td><strong><code>cdc:65536:8192:131072</code></strong></td>
+<td style="text-align: right;">878</td>
+<td>98.7 % / 442 K</td>
+<td><strong>99.6 % / 161 K</strong></td>
+<td><strong>99.6 % / 51 K</strong></td>
+<td>96.0 % / 1.9 M</td>
+<td><strong>98.1 % / 606 K</strong></td>
+</tr>
+<tr>
+<td><code>cdc:16384:4096:65536</code></td>
+<td style="text-align: right;">505</td>
+<td>99.0 % / 355 K</td>
+<td>99.7 % / 70 K</td>
+<td>99.9 % / 46 K</td>
+<td>98.5 % / 729 K</td>
+<td>99.4 % / 279 K</td>
+</tr>
+<tr>
+<td><code>cdc:262144:32768:1048576</code></td>
+<td style="text-align: right;">870</td>
+<td>97.4 % / 570 K</td>
+<td>99.1 % / 423 K</td>
+<td>98.2 % / 229 K</td>
+<td>87.4 % / 6.2 M</td>
+<td>90.1 % / 4.4 M</td>
+</tr>
+<tr>
+<td><code>keyed-cdc:65536:…</code></td>
+<td style="text-align: right;">869</td>
+<td>98.9 % / 393 K</td>
+<td>99.8 % / 117 K</td>
+<td>99.6 % / 146 K</td>
+<td>96.1 % / 1.9 M</td>
+<td>98.1 % / 811 K</td>
+</tr>
+</tbody>
+</table>
+<p>In the integration matrix's version-2 workload, content-defined chunking reused <strong>73 %</strong> of blocks
+against <strong>54 %</strong> for fixed blocks.</p>
+<ul>
+<li><strong>D-C1-1: default chunker.</strong> <strong>Rec: <code>cdc:65536:8192:131072</code>.</strong> After a single insertion, fixed
+  blocks have to store 100× more new data than content-defined ones, and after several small
+  insertions about 50× more. It runs at 878 MB/s on one thread, which is 2.2× an LTO-10 drive.</li>
+<li><strong>D-C1-2: offer 16 KiB content-defined chunking per collection</strong> for text-heavy collections with
+  frequent small edits. It stores 2–3× less on edits, but produces 3.1× more blocks, so more index
+  and reference entries, and runs at 505 MB/s. <strong>Rec: allowed as a per-domain option, not the
+  default.</strong></li>
+<li><strong>D-C1-3: reject 256 KiB content-defined chunking.</strong> Scattered overwrites store 3.3× more than at
+  64 KiB. <strong>Rec: don't offer it.</strong></li>
+<li>Keying the chunker costs nothing measurable (869 against 878 MB/s). The sealed-tenant default
+  stands.</li>
+</ul>
+<h2 id="c2-block-hash">C2: block hash<a class="headerlink" href="#c2-block-hash" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Hash</th>
+<th style="text-align: right;">MB/s, one thread</th>
+<th style="text-align: right;">Id bytes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SHA-256</td>
+<td style="text-align: right;">3,008</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
 <td>SHA-384</td>
-</tr>
-<tr>
-<td>Chunker (fixed per domain)</td>
-<td>content-defined; keyed to the tenant for sealed tenants; fixed 64 KiB for NONE</td>
-</tr>
-<tr>
-<td>On withdrawal of referenced data</td>
-<td><code>PIN</code> for public data, <code>COPY</code> for cross-tenant grants, <code>BREAK</code> on request</td>
-</tr>
-<tr>
-<td>Sealed tenant reading public data</td>
-<td>copy only (can be opted into reference)</td>
-</tr>
-<tr>
-<td>Withdrawal-sensitive tenants (consent-governed clinical data)</td>
-<td>NONE or COLLECTION only</td>
-</tr>
-<tr>
-<td>Changing a collection's mode</td>
-<td>a publish action that re-encrypts into a new collection; never a relabel</td>
+<td style="text-align: right;">1,805</td>
+<td style="text-align: right;">48</td>
 </tr>
 </tbody>
 </table>
-<h2 id="forgetting">Forgetting<a class="headerlink" href="#forgetting" title="Permanent link">&para;</a></h2>
+<p>The hash choice has <strong>no effect on deduplication</strong> (reuse was 51.6 % with either across all 120
+cells).</p>
+<ul>
+<li><strong>D-C2-1: default hash.</strong> <strong>Rec: keep SHA-384</strong> (CNSA). It is 1.67× slower, but still 4.5× an
+  LTO-10 drive on one thread. <strong>Re-measure on the deployment host's CPU:</strong> this laptop has SHA-256
+  hardware acceleration, and the gap on an x86 server may be different.</li>
+</ul>
+<h2 id="c5-codec">C5: codec<a class="headerlink" href="#c5-codec" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Mode</th>
-<th>Forget one object</th>
-<th>Forget the whole domain</th>
+<th style="text-align: right;">Seal MB/s</th>
+<th style="text-align: right;">Open and verify MB/s</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>NONE</td>
-<td>destroy the object's key; instant</td>
-<td>destroy each key</td>
+<td style="text-align: right;">1,808</td>
+<td style="text-align: right;">—</td>
 </tr>
 <tr>
-<td>COLLECTION / GROUP</td>
-<td>remove its references; blocks reaching <strong>zero references</strong> are reclaimed</td>
-<td>destroy the domain key; instant</td>
+<td>COLLECTION</td>
+<td style="text-align: right;">1,180</td>
+<td style="text-align: right;">1,131</td>
+</tr>
+<tr>
+<td>GROUP</td>
+<td style="text-align: right;">1,071</td>
+<td style="text-align: right;">1,060</td>
 </tr>
 <tr>
 <td>GLOBAL</td>
-<td>remove references; unreferenced, unpinned blocks are reclaimed</td>
-<td>not applicable</td>
+<td style="text-align: right;">1,179</td>
+<td style="text-align: right;">1,229</td>
 </tr>
 </tbody>
 </table>
-<p>Withdrawal-sensitive tenants are restricted to NONE and COLLECTION by default, so no other collection
-can ever hold a reference to their blocks.</p>
-<h2 id="what-this-reverses">What this reverses<a class="headerlink" href="#what-this-reverses" title="Permanent link">&para;</a></h2>
-<p>It reverses the September 19 retirement of deduplication and of content-derived block ids. The ban
-on plaintext-derived identifiers becomes a per-mode rule, and the fixed 64 KiB chunking decision
-gives way to a chunker per domain. The measurement that model checkpoints share no blocks still
-stands; it means checkpoint collections may choose NONE. It never showed that datasets don't
-deduplicate. See the <a href="../../roadmap/decisions/">Decision log</a>.</p>
-<h2 id="still-open">Still open<a class="headerlink" href="#still-open" title="Permanent link">&para;</a></h2>
+<p>Shared modes cost about 35 % more than NONE because they hash every block. That is the price of
+deduplication and is well above media rates.</p>
 <ul>
-<li>The metadata-key IV discipline (S1), to be redone on this model before any media is written.</li>
-<li>How a grant delivers per-block keys at scale.</li>
-<li>Where reference counts live at 10⁹ blocks.</li>
-<li>Whether a GROUP can span tenants by agreement (a consortium), or only through grants.</li>
-<li>Chunker parameters, measured on real imaging and text.</li>
+<li><strong>D-C5-1: keyed block ids are always HMAC-SHA-384</strong>, 48 bytes (96 hex characters), even in a
+  SHA-256 domain; GLOBAL ids are the domain's own hash. <strong>Rec: keep it.</strong> Ids stay uniform across
+  keyed domains, and the keyed part is CNSA regardless of the content hash chosen. The alternative
+  is to follow the domain's hash, which saves 16 bytes per id in SHA-256 domains.</li>
 </ul>
+<h2 id="c6-reference-index">C6: reference index<a class="headerlink" href="#c6-reference-index" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>D-C6-1: how references are stored at scale.</strong> Today each block holds a <em>set of holder names</em>,
+  so every operation is idempotent and the index agrees with a reference model across 50,000 random
+  operations. That design is correct but can't be the representation at 10⁹ blocks: a string per
+  reference, in memory. <strong>Rec: keep the set semantics, store them as a counted table plus an
+  append-only holder log in the federation index,</strong> and design this before the index integration
+  stage. This is <code>TENANCY-AND-DEDUP.md</code> §12 item 3, now blocking the next stage.</li>
+</ul>
+<h2 id="c8-placement">C8: placement<a class="headerlink" href="#c8-placement" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>D-C8-1: how much faster sites are favoured.</strong> Placement weight is <code>log10(measured write rate)</code>.
+  With a 375× speed difference, the test requires the fast site to take between 52 % and 90 % of single-copy placements, and it passes. The exact share wasn't recorded. An
+  unmeasured site never outranks a measured one (tested). <strong>Rec: keep the logarithmic weight;</strong> a
+  linear weight would put almost everything on the fastest site and concentrate failure risk.</li>
+</ul>
+<h2 id="c10-engine-findings">C10: engine findings<a class="headerlink" href="#c10-engine-findings" title="Permanent link">&para;</a></h2>
+<p>The engine is correct in every tested behaviour, and the measurements show where it is slow.
+Publish and verified read of one 32 MiB file across 4 sites:</p>
+<table>
+<thead>
+<tr>
+<th>Locus</th>
+<th style="text-align: right;">Replication</th>
+<th style="text-align: right;">Publish MB/s</th>
+<th style="text-align: right;">Read MB/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAM</td>
+<td style="text-align: right;">1–3</td>
+<td style="text-align: right;">111–236</td>
+<td style="text-align: right;">74–174</td>
+</tr>
+<tr>
+<td>Filesystem</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4.8–6.0</td>
+<td style="text-align: right;">31–34</td>
+</tr>
+<tr>
+<td>Filesystem</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;"><strong>1.6–2.0</strong></td>
+<td style="text-align: right;">30–36</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>F-C10-1: extra copies are never trimmed.</strong> When a site is down, repair re-replicates elsewhere to
+  get back to R copies; when the site returns, the block holds more than R copies and nothing removes
+  the surplus. Measured: at R=2 an average of <strong>9.9 blocks per cell</strong> were over-replicated after sites
+  returned. <strong>D-C10-1: trim policy.</strong> <strong>Rec:</strong> keep the surplus through a grace period (a returning
+  site may fail again), then trim back to R, never below, preferring to keep copies in distinct
+  failure domains with the best measured health.</li>
+<li><strong>F-C10-2: filesystem publish is slow because it syncs to disk per block, serially.</strong> <code>FsBinding</code>
+  fsyncs on every <code>append</code>, and the engine writes to each site in turn. On macOS that is about 6 ms
+  per 64 KiB block per copy. <strong>D-C10-2.</strong> <strong>Rec:</strong> move the sync to <code>seal()</code> (one barrier per write
+  batch), which is what the interface's two-state write exists for, and write to sites in parallel.
+  I expect this to improve filesystem publish by more than 10×; I'll measure after the change.</li>
+<li><strong>F-C10-3: reads go block by block through a staging file.</strong> Each block is enqueued, written to a
+  staging file, read back and deleted, and completion is polled. <strong>D-C10-3.</strong> <strong>Rec:</strong> request every
+  block of a file from a site in one call, and add a streaming read path to the interface, as the
+  "stream" requirement calls for.</li>
+<li><strong>F-C10-4: the engine is single-threaded</strong> (its public methods are synchronized). That is correct
+  and simple, and concurrency comes with the index integration stage. It is recorded, not proposed
+  for now.</li>
+</ul>
+<h2 id="c11-which-configurations-are-supported">C11: which configurations are supported<a class="headerlink" href="#c11-which-configurations-are-supported" title="Permanent link">&para;</a></h2>
+<p>All 120 cells pass: every mode × {fixed, content-defined, keyed content-defined (keyed modes)} ×
+{SHA-256, SHA-384} × R ∈ {1, 2, 3} × {RAM, filesystem}.</p>
+<table>
+<thead>
+<tr>
+<th>Replication</th>
+<th>Read with one corrupt copy</th>
+<th>Read after scrub</th>
+<th>Fewest copies after scrub</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R=1</td>
+<td>0 / 40, <strong>refused, never wrong</strong></td>
+<td>0 / 40</td>
+<td>0 for the corrupted block</td>
+</tr>
+<tr>
+<td>R=2</td>
+<td>40 / 40</td>
+<td>40 / 40</td>
+<td>2</td>
+</tr>
+<tr>
+<td>R=3</td>
+<td>40 / 40</td>
+<td>40 / 40</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>With R=1, corruption is <strong>detected and refused</strong>, never returned as data. Nothing is left to repair
+from.</p>
+<ul>
+<li><strong>D-C11-1: the minimum replication policy.</strong> <strong>Rec: R ≥ 2 for any collection that counts as
+  durable</strong>, with R=1 permitted only for explicitly declared caches or recomputable derived data. The
+  design of record is R=3.</li>
+<li><strong>D-C11-2: supported configurations.</strong> <strong>Rec:</strong> declare all 120 tested combinations supported, with
+  the defaults: content-defined 64 KiB, SHA-384, R=3. Keyed content-defined chunking is the default
+  in sealed tenants.</li>
+</ul>
+<h2 id="what-comes-next-once-these-are-decided">What comes next, once these are decided<a class="headerlink" href="#what-comes-next-once-these-are-decided" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Engine performance: D-C10-2 (sync at seal, parallel site writes) and D-C10-3 (batched and
+   streaming reads), re-measured.</li>
+<li>Over-replication trim (D-C10-1).</li>
+<li>Reference storage at scale (D-C6-1), then wiring the engine into the federation index for quorum
+   commit across hosts. That is the next integration stage.</li>
+<li>Metadata-key IV discipline (S1), before any media is written.</li>
+</ol>
 
 
 

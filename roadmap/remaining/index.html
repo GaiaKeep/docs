@@ -1384,6 +1384,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1453,6 +1457,62 @@
     
   
     From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/MODULE-DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
   
 
     
@@ -2064,6 +2124,10 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <li>[ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)</li>
 </ul>
 <h2 id="phase-1-durable-storage-core">Phase 1: durable storage core<a class="headerlink" href="#phase-1-durable-storage-core" title="Permanent link">&para;</a></h2>
+<div class="admonition success">
+<p class="admonition-title">Built and tested in-process (2026-09-23)</p>
+<p>Tenancy and dedup domains, grants, per-block hashing and keys, chunkers, versioning and extracts, reference counting, replica placement, the RAM binding, and the engine (publish, derive, compose, read, withdraw, repair, scrub): <strong>203 tests, 0 failures</strong>. Remaining in this phase: the module decisions (<a href="../../design/MODULE-DECISIONS/">MODULE-DECISIONS</a>), engine performance (sync at seal, parallel site writes, streaming reads), trimming surplus copies, reference storage at scale, and wiring the engine into the federation index for quorum commit across hosts.</p>
+</div>
 <p><strong>Goal:</strong> an agent publishes a versioned dataset into a collection under policy; three sites each
 hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
 hash-verified, with no human action.</p>
