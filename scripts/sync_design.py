@@ -24,6 +24,10 @@ GITHUB = "https://github.com/GaiaKeep/gfs/blob/1.3/"
 DOCS = [
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",
      "The statement of purpose and the decision to remove Bareos (2026-09-20). Current."),
+    ("MODULE-DECISIONS.md", "Module decisions (measured)", "Current",
+     "The decisions each component raises, with the measurements behind them: 203 tests, 0 failures (2026-09-23)."),
+    ("COMPONENTS.md", "Component definitions", "Current",
+     "Every component of the durable storage core: interface, what its tests must establish, the decision it feeds."),
     ("TENANCY-AND-DEDUP.md", "Tenancy and deduplication", "Current",
      "Design of record for tenants, collections, dedup domains (NONE, COLLECTION, GROUP, GLOBAL), grants "
      "and per-block hashing (2026-09-23). Every owner-unmade choice is a policy setting with a default."),

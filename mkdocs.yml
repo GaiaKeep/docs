@@ -73,6 +73,8 @@ nav:
   - Design record:
       - design/index.md
       - "From-scratch decision": design/FROM-SCRATCH-DECISION.md
+      - "Module decisions (measured)": design/MODULE-DECISIONS.md
+      - "Component definitions": design/COMPONENTS.md
       - "Tenancy and deduplication": design/TENANCY-AND-DEDUP.md
       - "Block fabric specification": design/SPECIFICATION.md
       - "Entail: the agent interface": design/ENTAIL-AGENT-NATIVE-FS.md
