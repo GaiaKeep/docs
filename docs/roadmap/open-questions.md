@@ -540,7 +540,7 @@ holding ciphertext, and whether key destruction satisfies withdrawal obligations
 crypto and replication, with tape as one binding's appendix? It is currently 6.8:1 tape terms to
 media-neutral terms. **Rec:** yes, before more design goes in.
 
-**Q2 — Commit policy:** I've been committing each proven change to `CrescoEdge/gfs` 1.3 locally.
+**Q2 — Commit policy:** **ANSWERED 2026-09-23:** commit and push every change; the repository is `GaiaKeep/gfs` (moved from CrescoEdge).
 Keep doing that? Push to origin, and when?
 
 **Q3 — Multi-agent workflows:** they produced most of this week's findings, including the wire

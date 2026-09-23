@@ -145,7 +145,7 @@ Eighteen defects and harness weaknesses were found and fixed during the campaign
 
 ## 11. Where the code and evidence are
 
-- Plugin, docs and harness: `github.com/CrescoEdge/gfs` (branch `1.3`; `docs/` and `eval/`).
+- Plugin, docs and harness: `github.com/GaiaKeep/gfs` (branch `1.3`; moved from CrescoEdge 2026-09-23; `docs/` and `eval/`).
 - Storage tab of the Cresco mesh dashboard: `github.com/CrescoEdge/dashboard` (`master`; `code/dashboard` in the workspace, `./run.sh start`, self-detects GFS from the metric inventory, pushed `gfs_state` beacon with `storagesummary` poll fallback).
 - Cresco controller fixes: `github.com/CrescoEdge/controller` commits `4995b31` (W-GFS-6) and `c891854` (W-GFS-1/4/5), on `1.3` and `phase0-crypto-baseline`; agent release `github.com/CrescoEdge/agent` `1.3` commit `19a7018` embeds them; matching `library`, `filerepo`, `clientlib`, `wsapi`, `repo`, `pycrescolib` `1.3` branches.
 - Result files: `run/gfs/results/*.json` (campaign 6 stream preserved as `campaign6-final-proof-monitor.log`); generated reports `SCALE-RESULTS.md` and `CLAIMS.md`; design `CORE-PRINCIPLES.md`; plan `EVALUATION-PLAN.md`; defect log `RESULTS.md`; local build and run `PROTOTYPE.md`.

@@ -31,4 +31,4 @@ what changed and why.
 | 2026-09-23 | Block-level deduplication is critical | Owner | In force |
 | 2026-09-23 | Deduplication configurable from complete isolation to global; tenant = legal entity; collection = versioned dataset with compliance rules; hash every block before storage | Owner | In force; mechanism **Proposed** |
 | 2026-09-23 | filerepo = local copies, cache, and publishing new versions; advanced caching tier after durable storage | Owner | In force |
-| 2026-09-23 | Code lives in `GaiaKeep/gfs`, mirrored with `CrescoEdge/gfs` | Owner | In force |
+| 2026-09-23 | Code lives in `GaiaKeep/gfs` only; `CrescoEdge/gfs` removed (archived pending deletion) | Owner | In force |

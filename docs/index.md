@@ -53,5 +53,5 @@ Every status claim on this site uses one of five labels:
 ## Source
 
 - Code, harnesses and the full design record: [`GaiaKeep/gfs`](https://github.com/GaiaKeep/gfs)
-  (private; mirrors `CrescoEdge/gfs`, branch `1.3`).
+  (private, branch `1.3`; moved from CrescoEdge on 2026-09-23).
 - This site: [`GaiaKeep/docs`](https://github.com/GaiaKeep/docs).
