@@ -20,8 +20,19 @@ Nothing in phase 1 can be specified exactly until these are answered. See
 
 ## Phase 1: durable storage core
 
-!!! success "Built and tested in-process (2026-09-23)"
-    Tenancy and dedup domains, grants, per-block hashing and keys, chunkers, versioning and extracts, reference counting, replica placement, the RAM binding, and the engine (publish, derive, compose, read, withdraw, repair, scrub): **203 tests, 0 failures**. Remaining in this phase: the module decisions ([MODULE-DECISIONS](../design/MODULE-DECISIONS.md)), engine performance (sync at seal, parallel site writes, streaming reads), trimming surplus copies, reference storage at scale, and wiring the engine into the federation index for quorum commit across hosts.
+!!! success "Built, and running on the fabric (2026-09-23)"
+    Built and tested: tenancy and dedup domains, grants, per-block hashing and keys, chunkers,
+    versioning, reference counting, placement, and the engine. The engine is journaled through the
+    federation index and replicated, crash-safe through write intents, and reaches storage nodes over
+    `RemoteBinding`. Evidence: 294 tests, and 61/61 on a live fabric.
+
+    Remaining in this phase:
+
+    - carry extent bytes on the dataplane instead of control messages (fabric throughput is 15–18 MB/s
+      against 568–604 MB/s in-process);
+    - per-tenant authorization on `core.*`;
+    - reference storage at scale (D-C6-1), and enforcing R ≥ 2 for durable collections (D-C11-1);
+    - journal compaction.
 
 **Goal:** an agent publishes a versioned dataset into a collection under policy; three sites each
 hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,

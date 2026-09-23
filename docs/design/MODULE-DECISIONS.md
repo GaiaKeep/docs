@@ -13,6 +13,26 @@ deployment figure, and macOS fsync is about 8× costlier than Linux node-local f
 Each decision is labelled **D-Cn-k** after its component. Where I have a recommendation it is marked
 **Rec**, and accepting it is a valid answer.
 
+## Status of every decision
+
+Every decision below now runs on its recommended default. **These are adopted defaults, not owner
+approvals:** each one is reversible, and each one stays open until the owner confirms or overrides it.
+
+| Decision | Running default | Where it lives | Reversible by |
+|---|---|---|---|
+| D-C1-1 default chunker | `cdc:65536:8192:131072` | `ChunkerSpec.DEFAULT_CDC` | per-domain `chunker` at creation (existing domains keep theirs) |
+| D-C1-2 16 KiB CDC per collection | offered, not default | any `cdc:` spec is accepted per domain | policy |
+| D-C1-3 reject 256 KiB CDC | not a default; still accepted if asked | policy | policy |
+| D-C2-1 default hash | SHA-384 (CNSA) | `BlockHash.DEFAULT` | per-domain `hash` at creation |
+| D-C5-1 keyed ids | HMAC-SHA-384, 96 hex | `BlockCodec` | new domains only (ids are permanent) |
+| D-C6-1 reference storage at scale | holder sets, in memory, journaled | `RefIndex` + journal | open: needs a decision before petabyte scale |
+| D-C8-1 site weighting | `log10(measured write rate)` | `ReplicaPlacer` | code constant |
+| D-C10-1 trim | surplus kept through a grace period, never below R | `StorageEngine.trim` | `grace_ms` per call |
+| D-C10-2 sync at seal | one barrier per write per site | `FsBinding.seal` | built |
+| D-C10-3 batched streaming reads | window of 64 blocks per site | `StorageEngine.readWindow` | field |
+| D-C11-1 minimum replication | R ≥ 1 enforced; R=3 used everywhere tested | `PolicyEngine` | open: R ≥ 2 for durable collections is not yet enforced |
+| D-C11-2 supported configurations | all tested combinations (now 180 cells incl. remote) | `IntegrationMatrixTest` | — |
+
 ## Summary of verdicts
 
 | Component | Tests | Verdict |
@@ -267,3 +287,72 @@ server-class evidence, but it costs 2.5× on x86.
 **What limits a single stream now:** content-defined chunking runs single-threaded per file at
 ~600 MB/s on x86. That is the next ceiling above one LTO-10 drive (400 MB/s). Several files publish in
 parallel; one very large file does not yet.
+
+## Update 2026-09-23 (night): the core on the fabric
+
+The three outstanding items are closed or explicitly handed back.
+
+**1. The engine runs across hosts, with agreement.** The storage core now runs inside the federation
+index (`coresvc/CoreService`). The index is its journal and its replication.
+
+- **One apply path.** Every persistent change is a `Delta` applied through `StorageEngine.apply`. That
+  one function runs live, on replay after a restart, and on every replica, so the three cannot
+  diverge.
+- **Journaling.** Each operation's changes go out as one `core.batch` through the index's commit path.
+  The batch is forced to disk before the operation returns, then shipped to the replicas.
+  `statehash` now carries `core_hash`; snapshots carry the core too.
+- **Storage nodes.** The index reaches them through `RemoteBinding`: the unchanged `ExtentBinding`
+  contract over Cresco RPC. Each node serves its own `FsBinding` through `ExtentServer`, and only to
+  the index that owns it.
+- **Crash safety.** Before any seal, the blocks and sites a write is about to create are journaled as
+  an *intent*. Recovery reclaims every copy an intent names that the index never recorded.
+- **Tenant roots.** They leave memory only wrapped under `core_master_key`. Without that key the core
+  does not start.
+
+Evidence:
+- JUnit 294/294. `JournalReplayTest` 12/12: replay and snapshot give an identical hash; a crash
+  between seal and commit leaves no orphans; a refused seal cleans up; no root in the clear. The new
+  REMOTE locus runs the binding contract and all 60 extra integration-matrix cells over the protocol.
+- Live Cresco fabric, 9 JVMs, `eval/core_fabric_check.py`: **61/61**
+  (`eval/results/core_fabric_20260923-180417.json`). Covered:
+  - all four dedup modes, and v2 of a 3.5 MB file stores 234 KB at R=3;
+  - cross-tenant GLOBAL dedup stores 0 blocks, and compose stores 0 bytes;
+  - a grant-derived publish stores only the addition;
+  - a sealed tenant is refused by rule;
+  - the replica's hash equals the primary's;
+  - no plaintext on any disk;
+  - a storage node killed: every read survives, repair and trim work;
+  - the index killed -9: the replayed hash equals the pre-crash hash, and dedup survives the restart;
+  - the index halted between seal and commit: 1,128 sealed orphans are reclaimed from the journaled
+    intent, leaving 1,125 files on disk = 1,125 recorded copies.
+
+Found live and fixed:
+- **A dead node stalled liveness.** The core's one timer thread blocked on an RPC to it. Fix: liveness
+  sync gets its own thread, a timed-out node is quarantined at once, and control calls time out at 10 s.
+- **An index restart marked every node LOST.** Replayed `last_seen` values were stale. That would
+  also start the prototype's repair storm. Fix: each node gets a full grace window from start.
+- **Control messages are capped at 1 MiB** by the websocket. Bulk bytes now arrive by chunked
+  `core.upload`, and reads are ranged: `core.readrange` fetches only the covering blocks.
+
+**Throughput through the fabric is low, and the cause is known.** One Mac running 9 JVMs, R=3:
+engine publish 15–18 MB/s and engine read 59–78 MB/s. Bytes travel base64-encoded inside
+control-plane MsgEvents. In-process on the same machine the engine does 568–604 MB/s. The fix is to
+move the extent data onto the Cresco dataplane (FrameBus), as the prototype's fragment path does.
+That is the next performance item.
+
+**2. A single large file no longer caps at one core.**
+- Parallel content-defined chunking is byte-identical to sequential (proven in `ChunkerTest`), and the
+  whole-file hash overlaps the rest of the work.
+- `MemBinding` usage is O(1): `describe()` had summed every stored extent on every placement call.
+- One 1 GiB file publishes at **568–604 MB/s** (was 186).
+
+**3. Decisions.** The table at the top records every decision as an adopted, reversible default, not
+an owner approval. Two remain open and matter at scale: **D-C6-1** (reference storage) and
+**D-C11-1** (enforce R ≥ 2 for durable collections).
+
+Known limits, stated plainly:
+- Core RPCs have no per-tenant authorization yet. Anyone holding the Cresco service key can call
+  `core.*`, and tenant-level authorization is an open question.
+- Per-block metadata is journaled at roughly 130 bytes per block, about 2 MB per GiB. Journal
+  compaction exists only as snapshot install.
+- The index keeps retained log entries in memory.

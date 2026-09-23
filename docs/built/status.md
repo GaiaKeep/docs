@@ -1,10 +1,23 @@
 # Status at a glance
 
 Every component with its label: **Proven**, **Built**, **Designed**, **Proposed** or **Open**
-(see the [home page](../index.md) for definitions). Updated 2026-09-23 at `GaiaKeep/gfs` `b616948`.
+(see the [home page](../index.md) for definitions). Updated 2026-09-23 (night) at `GaiaKeep/gfs` `f055e07`.
 
-!!! success "Durable storage core: built and tested"
-    All eleven components are built under `io.cresco.gfs.core` (in-process, all I/O through `ExtentBinding`): **208 tests, 0 failures**, including a 120-cell integration matrix and the smoke test, run by CI on every push. Engine fixes after measurement: disk publish 1.6–2.0 → 46–78 MB/s at R=3, verified reads 30–36 → 230–380 MB/s, repair 72 → ~1,500 copies/s. Decisions with their measurements: [Module decisions](../design/MODULE-DECISIONS.md).
+!!! success "Durable storage core: running on the Cresco fabric"
+    All eleven components are built under `io.cresco.gfs.core`, and the core now runs inside the
+    federation index. Its metadata is journaled and replicated through the index, and storage nodes
+    are reached through `RemoteBinding`.
+
+    - **Unit tests: 294/294.** This includes a 180-cell integration matrix, of which 60 cells run over
+      the remote protocol, and journal replay, snapshot and crash tests.
+    - **Live fabric: 61/61** (`core_fabric_check.py`). Covered: every dedup mode; cross-tenant dedup
+      and compose store nothing new; replica hash equals primary; a storage node killed; the index
+      killed -9 with the replayed hash identical; the index halted between seal and commit with 1,128
+      orphans reclaimed from the journaled intent.
+    - **Throughput.** One 1 GiB file publishes in-process at 568–604 MB/s. Through the fabric it is
+      15–18 MB/s, because bytes still ride control messages; moving them to the dataplane is next.
+
+    Decisions: [Module decisions](../design/MODULE-DECISIONS.md).
 
 ## Foundation
 
@@ -26,9 +39,9 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 | Shamir t-of-n site-key custody with an approver quorum | **Proven** | E9 |
 | Reciprocity ledger (entitlement follows contribution) | **Proven** | E10 |
 | Real fsync durability barrier in the block store | **Built** | `dd6328a`; measured cost |
-| Replication with repair, scrub and failure-domain placement (in-process engine) | **Built**, 120-cell matrix | R−1 site loss survivable in every cell |
+| Replication with repair, scrub, trim and failure-domain placement | **Proven** on the fabric | 180-cell matrix; live: node killed, reads survive, repair restores |
 | Erasure coding reached by repack | **Designed** | |
-| Versions, runs, branches, extracts, citations | **Built** (in-process; quorum commit via the index is next) | VersionTest, engine tests |
+| Versions, runs, branches, extracts, citations | **Proven**: commits journaled and replicated through the index | JournalReplayTest; live F3, F5, F8 |
 | Derivations | **Designed** | |
 | Tenant / collection / deduplication domain model, grants | **Built** | PolicyEngineTest (every rule), engine owner cases |
 | Per-block hashing and domain-dependent block identity and keys | **Built** | BlockCodecTest; oracle rule holds end to end |
