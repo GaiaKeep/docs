@@ -1290,6 +1290,8 @@
       
         
       
+        
+      
     
     
     
@@ -1359,6 +1361,34 @@
     
   
     From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
   
 
     
@@ -1938,7 +1968,7 @@ what changed and why.</p>
 <td>2026-09-19</td>
 <td>Content chunking at fixed 64 KiB</td>
 <td>Design</td>
-<td><strong>Open again</strong> under the dedup requirement</td>
+<td><strong>Superseded</strong> 2026-09-23: per-domain chunker</td>
 </tr>
 <tr>
 <td>2026-09-19</td>
@@ -2022,7 +2052,19 @@ what changed and why.</p>
 <td>2026-09-23</td>
 <td>Deduplication configurable from complete isolation to global; tenant = legal entity; collection = versioned dataset with compliance rules; hash every block before storage</td>
 <td>Owner</td>
-<td>In force; mechanism <strong>Proposed</strong></td>
+<td>In force</td>
+</tr>
+<tr>
+<td>2026-09-23</td>
+<td>Design of record: four dedup modes (NONE, COLLECTION, GROUP, GLOBAL), sealed tenants, grants with withdrawal terms, per-block keys in shared modes; unmade choices become policy with defaults (<a href="../../design/TENANCY-AND-DEDUP/">TENANCY-AND-DEDUP</a>)</td>
+<td>Design, on owner direction</td>
+<td>In force</td>
+</tr>
+<tr>
+<td>2026-09-23</td>
+<td>Fixed 64 KiB content chunking</td>
+<td>Design</td>
+<td><strong>Superseded</strong>: chunker is a per-domain setting</td>
 </tr>
 <tr>
 <td>2026-09-23</td>

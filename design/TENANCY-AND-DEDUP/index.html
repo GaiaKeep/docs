@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/CLAIMS/">
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/TENANCY-AND-DEDUP/">
       
       
-        <link rel="prev" href="../SCALE-RESULTS/">
+        <link rel="prev" href="../FROM-SCRATCH-DECISION/">
       
       
-        <link rel="next" href="../global-federated-storage-plan/">
+        <link rel="next" href="../SPECIFICATION/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Claims registry - GaiaKeep GFS</title>
+        <title>Tenancy and deduplication - GaiaKeep GFS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#gfs-claims-registry-mechanical-evidence-check" class="md-skip">
+        <a href="#tenancy-collections-and-deduplication-design-of-record" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Claims registry
+              Tenancy and deduplication
             
           </span>
         </div>
@@ -1368,10 +1368,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1387,6 +1414,225 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-requirements-owner-verbatim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Requirements (owner, verbatim)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Entities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-four-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The four modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The four modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-why-per-block-keys-and-why-this-settles-the-iv-question-for-shared-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Why per-block keys, and why this settles the IV question for shared modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-chunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Chunking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-hashing-every-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Hashing every block
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-references-and-grants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. References and grants
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. References and grants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-composition-without-new-storage-owner-case-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Composition without new storage (owner case 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-augmenting-another-tenants-data-owner-case-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Augmenting another tenant's data (owner case 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-when-the-referenced-data-is-withdrawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 When the referenced data is withdrawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-sealed-tenants-owner-case-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Sealed tenants (owner case 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-forgetting-and-reference-counting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Forgetting and reference counting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-changing-a-collections-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Changing a collection's mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-what-this-supersedes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. What this supersedes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-defaults-in-one-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Defaults, in one place
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-still-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Still open
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1760,19 +2006,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
         
   
   
@@ -1788,7 +2025,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1876,6 +2112,213 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-requirements-owner-verbatim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Requirements (owner, verbatim)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Entities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-four-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The four modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The four modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-why-per-block-keys-and-why-this-settles-the-iv-question-for-shared-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Why per-block keys, and why this settles the IV question for shared modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-chunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Chunking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-hashing-every-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Hashing every block
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-references-and-grants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. References and grants
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. References and grants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-composition-without-new-storage-owner-case-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Composition without new storage (owner case 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-augmenting-another-tenants-data-owner-case-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Augmenting another tenant's data (owner case 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-when-the-referenced-data-is-withdrawn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 When the referenced data is withdrawn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-sealed-tenants-owner-case-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Sealed tenants (owner case 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-forgetting-and-reference-counting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Forgetting and reference counting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-changing-a-collections-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Changing a collection's mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-what-this-supersedes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. What this supersedes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-defaults-in-one-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Defaults, in one place
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-still-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Still open
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1891,379 +2334,399 @@
 
 
 
-<div class="admonition info">
-<p class="admonition-title">Status: Proven (prototype)</p>
-<p>The mechanical claims check: 59/59.</p>
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>Design of record for tenants, collections, dedup domains (NONE, COLLECTION, GROUP, GLOBAL), grants and per-block hashing (2026-09-23). Every owner-unmade choice is a policy setting with a default.</p>
 </div>
-<h1 id="gfs-claims-registry-mechanical-evidence-check">GFS claims registry — mechanical evidence check<a class="headerlink" href="#gfs-claims-registry-mechanical-evidence-check" title="Permanent link">&para;</a></h1>
-<p><em>Generated 2026-09-18 11:06 by <code>run/gfs/gfs_claims.py</code> from <code>run/gfs/results/</code>. A claim is PROVEN only when the executed checks and measurements listed as evidence satisfy it.</em></p>
-<p><strong>59/59 claims proven.</strong></p>
+<h1 id="tenancy-collections-and-deduplication-design-of-record">Tenancy, collections and deduplication — design of record<a class="headerlink" href="#tenancy-collections-and-deduplication-design-of-record" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-23. Written on the owner's direction; supersedes the parts of <code>SPECIFICATION.md</code> and
+<code>ENTAIL-AGENT-NATIVE-FS.md</code> listed in §10. Every choice the owner has not made explicitly is a
+</em><em>policy knob with a stated default</em><em>, never a constant, so that no point on the
+isolation-to-global spectrum is closed off.</em></p>
+<h2 id="1-requirements-owner-verbatim">1. Requirements (owner, verbatim)<a class="headerlink" href="#1-requirements-owner-verbatim" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>"We can't paint ourselves into a corner here in terms of what might be configurable per tenant or
+collection/data. There are some tenants where we must keep things completely isolated and there
+will be other situations where we not only need to deduplicate across data collections, it will
+be expected."</p>
+<p>"A public dataset A is combined with public dataset B to form dataset C. We must be able to
+reconstitute dataset C without storing any additional data."</p>
+<p>"Tenant A owns dataset A and B and we augment dataset A and dataset B, we only need to store the
+modifications under our tenant while referencing the original datasets."</p>
+<p>"For high security operations, nothing is shared outside the tenant, no exceptions."</p>
+<p>"We must be able to configure the most secure and most open cases possible, from complete
+isolation to global deduplication."</p>
+<p>"A tenant is a group, org, or some legal entity and a collection/dataset is a dataset that is
+versioned and has rules for storage compliance per the collection."</p>
+<p>"We will need to think about the data that exists and hash it per block prior to storage, this way
+we know based on our needs and configurable policies."</p>
+</blockquote>
+<p>And, earlier the same day: <strong>block-level deduplication is critical.</strong> A mode that provides no
+deduplication, with unique and protected keys, must also exist.</p>
+<h2 id="2-entities">2. Entities<a class="headerlink" href="#2-entities" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>Tenant {
+  tenant_id            opaque
+  legal_name, contacts
+  sealed: bool                     -- §6: nothing crosses the tenant boundary, in or out
+  withdrawal_sensitive: bool       -- §7: restricts which dedup modes its collections may use
+  default_collection_policy
+  keys: tenant root key (custodied; see §8)
+}
+
+Collection {                       -- "a dataset that is versioned and has rules for storage compliance"
+  collection_id        opaque
+  tenant_id
+  domain_id                        -- the dedup domain this collection writes into (§3)
+  policy {
+    replication, placement constraints, retention class, WORM requirement,
+    compliance tags (DUA, IRB, CUI, PHI ...),
+    chunker                        -- fixed by the domain, recorded here for clarity
+  }
+  versions → runs → blocks         -- unchanged from the versioning design
+}
+
+DedupDomain {
+  domain_id            opaque
+  mode: NONE | COLLECTION | GROUP | GLOBAL
+  owner_tenant_id                  -- absent for GLOBAL
+  members[]                        -- collections (COLLECTION: exactly one; GROUP: any of the owner's)
+  hash_alg                         -- fixed at creation; default SHA-384 (§5)
+  chunker                          -- fixed at creation (§4)
+  key: K_dom                       -- absent for NONE and GLOBAL
+}
+
+Grant {                            -- permission to reference another domain's blocks
+  grant_id, from_domain, to_collection
+  scope: WHOLE_DOMAIN | COLLECTION_VERSION(set) | BLOCK_SET
+  on_withdrawal: PIN | BREAK | COPY  -- §6.3
+  expires, approvals
+}
+</code></pre></div>
+<p>A collection belongs to exactly one tenant and writes into exactly one domain. It may <strong>read</strong> other
+domains only through grants.</p>
+<h2 id="3-the-four-modes">3. The four modes<a class="headerlink" href="#3-the-four-modes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>area</th>
-<th>claim</th>
-<th>status</th>
-<th>evidence</th>
+<th>Mode</th>
+<th>Deduplicates with</th>
+<th>Block identifier</th>
+<th>Block key</th>
+<th>Raw hash persisted</th>
+<th>Owner's case</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>P2 bytes stay put</td>
-<td>Publication moves only index entries; deletes propagate</td>
-<td><strong>PROVEN</strong></td>
-<td>E3.1=PASS, E3.2=PASS, E3.7=PASS</td>
+<td><strong>NONE</strong></td>
+<td>nothing</td>
+<td>random, per write</td>
+<td>unique per object (<code>SegmentCipher</code>)</td>
+<td>only inside the encrypted object manifest</td>
+<td>"does not provide dedup; the key must be unique and protected"</td>
 </tr>
 <tr>
-<td>P3 projects</td>
-<td>Raw index is owner/admin-gated; members see exactly committed files</td>
-<td><strong>PROVEN</strong></td>
-<td>E3.4=PASS, E3.5=PASS, E4.10=PASS, E4.11=PASS</td>
+<td><strong>COLLECTION</strong></td>
+<td>its own versions</td>
+<td><code>HMAC(K_dom, H)</code></td>
+<td><code>HKDF(K_dom, "blk" ‖ H)</code></td>
+<td>the domain's index partition only</td>
+<td>version-to-version reuse</td>
 </tr>
 <tr>
-<td>P3 delegation</td>
-<td>Only dataset owner/delegates commit; outsiders and plain members cannot</td>
-<td><strong>PROVEN</strong></td>
-<td>E4.5=PASS, E4.6=PASS, E4.7=PASS, E4.8=PASS</td>
+<td><strong>GROUP</strong></td>
+<td>every member collection (a tenant, or a named group within one)</td>
+<td><code>HMAC(K_dom, H)</code></td>
+<td><code>HKDF(K_dom, "blk" ‖ H)</code></td>
+<td>the domain's index partition only</td>
+<td>"deduplicate across data collections"</td>
 </tr>
 <tr>
-<td>P4 origin enforcement</td>
-<td>Forged, tampered, expired and garbage grants are refused at the origin</td>
-<td><strong>PROVEN</strong></td>
-<td>E5.6=PASS, E5.7=PASS, E5.8=PASS, E5.9=PASS</td>
-</tr>
-<tr>
-<td>P4 routing</td>
-<td>A granted fetch streams from the holding site and verifies</td>
-<td><strong>PROVEN</strong></td>
-<td>E5.2=PASS, E5.3=PASS</td>
-</tr>
-<tr>
-<td>P5 blind holders</td>
-<td>Fragments on disk are ciphertext (entropy &gt; 7.9), plaintext marker absent, no key material on holders</td>
-<td><strong>PROVEN</strong></td>
-<td>E6.8=PASS, E6.10=PASS, E6.11=PASS</td>
-</tr>
-<tr>
-<td>P5 blind holders</td>
-<td>A holder with manifest access but no key cannot restore</td>
-<td><strong>PROVEN</strong></td>
-<td>E6.13=PASS</td>
-</tr>
-<tr>
-<td>P5 keyless repair</td>
-<td>Repair regenerates fragments without any key material</td>
-<td><strong>PROVEN</strong></td>
-<td>E7.5=PASS, E7.6=PASS, E8.3=PASS; scale rows repaired=True</td>
-</tr>
-<tr>
-<td>P6 custody</td>
-<td>KEK custodied t-of-n on other sites; reconstruction needs an approver quorum; holders refuse without authorization; approvals are consumed</td>
-<td><strong>PROVEN</strong></td>
-<td>E9.1=PASS, E9.2=PASS, E9.3=PASS, E9.6=PASS, E9.7=PASS, E9.8=PASS, E9.9=PASS</td>
-</tr>
-<tr>
-<td>P6 custody</td>
-<td>Site key loss: restore fails closed without key; restore at another site succeeds with the quorum token; origin re-establishes its key</td>
-<td><strong>PROVEN</strong></td>
-<td>E9.11=PASS, E9.12=PASS, E9.13=PASS</td>
-</tr>
-<tr>
-<td>P6 custody</td>
-<td>t=3 of 5: two custody holders dead still reconstructs; three dead fails closed</td>
-<td><strong>PROVEN</strong></td>
-<td>{"key_id": "kek-pub-site-3e3652", "t": 3, "n": 5, "holders_dead_first": 2, "holders_alive_first": 3, "reconstruct_with_t_alive_ok": true, "detail_first": "restored", "holders_dead_second": 5, "holders</td>
-</tr>
-<tr>
-<td>P7 distinct domains</td>
-<td>k+m fragments land on distinct sites, never the origin site</td>
-<td><strong>PROVEN</strong></td>
-<td>E6.3=PASS</td>
-</tr>
-<tr>
-<td>P7 coding math</td>
-<td>Any k of n fragments reconstruct; k-1 do not</td>
-<td><strong>PROVEN</strong></td>
-<td>UNIT: RS reconstruct any&lt;=m losses x60 for (3,2),(4,2),(10,4),(2,1); refuses k-1 (CodecSelfTest 23/23)</td>
-</tr>
-<tr>
-<td>P8 reciprocity</td>
-<td>Entitlement follows contribution; promote beyond entitlement refused; network factor capped</td>
-<td><strong>PROVEN</strong></td>
-<td>E10.1=PASS, E10.3=PASS, E10.4=PASS, E10.5=PASS, E10.7=PASS</td>
-</tr>
-<tr>
-<td>P9 participation</td>
-<td>Loss detected by liveness; repair after grace; unrepairable placement stated explicitly</td>
-<td><strong>PROVEN</strong></td>
-<td>E7.2=PASS, E7.5=PASS, E7.7=PASS</td>
-</tr>
-<tr>
-<td>P10 Cresco foundation</td>
-<td>Control-plane RPC p99 stays under 2 ms while a &gt;= 400 MB/s fragment flood runs on the same fabric</td>
-<td><strong>PROVEN</strong></td>
-<td>flood 445 MB/s, rpc p99 0.60 ms</td>
-</tr>
-<tr>
-<td>P12 fail closed</td>
-<td>Non-member sites, unknown nodes, unauthorized custody requests are refused</td>
-<td><strong>PROVEN</strong></td>
-<td>E9.4=PASS, E9.7=PASS, E3.4=PASS</td>
-</tr>
-<tr>
-<td>P13 replication</td>
-<td>Replica converges to the primary with an identical state hash</td>
-<td><strong>PROVEN</strong></td>
-<td>E11.1=PASS, E11.2=PASS; scale rows hash_equal=[True, True, True, True]</td>
-</tr>
-<tr>
-<td>P13 replication</td>
-<td>Replica hash equal at 10^6 files with core-sized replica</td>
-<td><strong>PROVEN</strong></td>
-<td>[(100000, True, 2.9), (250000, True, 3.9), (500000, True, 6.6), (1000000, True, 13.4)]</td>
-</tr>
-<tr>
-<td>P14 index granularity</td>
-<td>File-granular index with paged deltas ingests &gt;= 100k files/s</td>
-<td><strong>PROVEN</strong></td>
-<td>[117300, 142050, 141331, 142464]</td>
-</tr>
-<tr>
-<td>Integrity</td>
-<td>Silent corruption is caught by scrub and repaired; total loss of a fragment is caught by the index audit</td>
-<td><strong>PROVEN</strong></td>
-<td>E8.1=PASS, E8.3=PASS, E8.5=PASS, E8.6=PASS</td>
-</tr>
-<tr>
-<td>Integrity</td>
-<td>A holder serving corrupt bytes cannot corrupt a restore (hash check) and gets marked BAD</td>
-<td><strong>PROVEN</strong></td>
-<td>{"fragments_corrupted": 86, "restore_verified": true, "restore_s": 0.55, "scrub_reported_bad": 7297, "index_frags_marked_bad_delta": 86, "marked_BAD_by_scrub": true, "index_BAD_state_observed": true,</td>
-</tr>
-<tr>
-<td>Identity</td>
-<td>Node identity survives an agent restart (returning site keeps its fragments)</td>
-<td><strong>PROVEN</strong></td>
-<td>E7.8=PASS, E7.9=PASS</td>
-</tr>
-<tr>
-<td>Survivability</td>
-<td>12/12 profiles behave as specified (single-region)</td>
-<td><strong>PROVEN</strong></td>
-<td>9/9</td>
-</tr>
-<tr>
-<td>Survivability</td>
-<td>12/12 profiles behave as specified (multi-region incl. domain=region, min_regions)</td>
-<td><strong>PROVEN</strong></td>
-<td>12/12</td>
-</tr>
-<tr>
-<td>Survivability</td>
-<td>Region-distinct policy: losing a whole region costs exactly one fragment per object, none beyond m</td>
-<td><strong>PROVEN</strong></td>
-<td>{"mean": 0.82, "max": 1, "hist": {"0": 11, "1": 49}}</td>
-</tr>
-<tr>
-<td>Tolerance</td>
-<td>Encodes complete when a holder agent dies mid-encode (fallback placement)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"objects": 12, "size_mib": 64, "planned_on_victim": 5, "killed_at_s": 0.4, "kill_confirmed": true, "done": 12, "seconds": 22.8, "fallback_placements": 47, "durable_now": 9}</td>
-</tr>
-<tr>
-<td>Tolerance</td>
-<td>Restores complete with a dead holder (raced fetch)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"attempted": 5, "ok": 5, "seconds": [0.51, 0.51, 0.51, 0.51, 4.57]}</td>
-</tr>
-<tr>
-<td>Tolerance</td>
-<td>Same on the bridged multi-region fabric</td>
-<td><strong>PROVEN</strong></td>
-<td>{"enc": 12, "fallbacks": 67, "restores": 5}</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Repairer dies mid-repair: another node completes the repair</td>
-<td><strong>PROVEN</strong></td>
-<td>{"holder_killed": "n12", "repairer_killed": "n01", "healed": true, "heal_s": 77.9, "final_repairer": "global-region:n02:gfs-site-020", "repairer_changed": true, "restore_after": true}</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Source holder dies mid-repair: repair still completes</td>
-<td><strong>PROVEN</strong></td>
-<td>{"killed": ["n01", "n11"], "healed": true, "heal_s": 32.5}</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Index primary restart: journal replay preserves state; nodes re-register; replica hash equal; promote/restore work after</td>
-<td><strong>PROVEN</strong></td>
-<td>{"journal_entries": 834, "files": 409, "objects_before": 4, "wsapi_back_s": 9.9, "index_answering_s": 9.9, "all_nodes_reregistered_s": 34.0, "state_hash_preserved": true, "full_hash_preserved": false, "replica_hash_equal</td>
-</tr>
-<tr>
-<td>Cresco</td>
-<td>W-GFS-4 fixed: a plugin deployed WITHOUT a pinned id keeps its identity across an agent restart (persisted plugins reload under their own id)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"agent": "n12", "plugin_id": "plugin-d02be080-3eef-4240-bb50-5203c7a96f88", "id_minted_by_agent": true, "node_id": "global-region:n12:plugin-d02be080-3eef-4240-bb50-5203c7a96f88", "up_before_restart": true, "node_left_u</td>
-</tr>
-<tr>
-<td>Cresco</td>
-<td>W-GFS-5 fixed: same-host regional bridges are stable (zero 'Controller Path Lost' flaps after settle; the global sees every region) because peers advertise their bound broker port</td>
-<td><strong>PROVEN</strong></td>
-<td>{"regions": 8, "global_sees_regions": 8, "window_s": 150, "path_lost_total": 0, "monitor_exited_total": 0, "starting_bridge_total": 64}</td>
-</tr>
-<tr>
-<td>Cresco</td>
-<td>W-GFS-1 implemented: named cross-tenant sinks are the only way across the tenant boundary (JUnit TenantPolicyCrossTenantSinkTest 4/4 in the controller build)</td>
-<td><strong>PROVEN</strong></td>
-<td>controller surefire report</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Agents reconnect after a global-controller restart with NO manual agent restart (W-GFS-6 fixed in the controller): every agent back on every run, zero STUCK IN CONNECTION FAULT lines, promote+restore work after</td>
-<td><strong>PROVEN</strong></td>
-<td>{"runs": 3, "agents": 12, "storage_nodes": 240, "all_runs_all_agents_back": true, "agents_not_back_union": [], "max_all_back_s": 44.2, "max_lost_to_recovered_s": 3.6, "stuck_lines_total": 0, "post_restore_ok_all": true}</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Publisher restart: dataset back online, restore and fetch work after</td>
-<td><strong>PROVEN</strong></td>
-<td>{"back_s": 0.1, "dataset_online": true, "restore_after": true, "fetch_after": true}</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Beyond-m loss is explicit (LOST, restore fails closed) and objects return to DURABLE when sites return</td>
-<td><strong>PROVEN</strong></td>
-<td>{"agents_killed": ["n08", "n09", "n10", "n11", "n12"], "states_after_loss": {"LOST": 9, "DURABLE": 1}, "restore_of_LOST_object_fails_closed": true, "lost_restore_detail": "IllegalStateException: stripe 0: only 9 of 10 fr</td>
-</tr>
-<tr>
-<td>Failure</td>
-<td>Promotes keep succeeding while two agents die and repairs run (mixed load)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"agents_killed": ["n11", "n12"], "promotes": 16, "ok": 16, "failed": 0, "promote_p50_s": 1.01, "promote_p99_s": 10.09, "objects": 16, "all_repaired": true, "storm_window_s": 60.7}</td>
-</tr>
-<tr>
-<td>Storm</td>
-<td>40 of 240 sites lost at once: every repairable object healed; control p99 &lt; 2 ms during the storm</td>
-<td><strong>PROVEN</strong></td>
-<td>degraded 85 healed in 21.1 s, beyond m 5, rpc p99 0.391209</td>
-</tr>
-<tr>
-<td>Placement</td>
-<td>Fragments spread across &gt;= 95 % of sites; no agent holds &gt; 12 % of fragments</td>
-<td><strong>PROVEN</strong></td>
-<td>{"holders_used": 239, "sites_available": 240, "max_share_of_one_agent": 0.092}</td>
-</tr>
-<tr>
-<td>Soak</td>
-<td>Sustained mixed workload with random kills: error rate &lt;= 5 %, all objects DURABLE at the end, no unbounded RSS growth (&lt; 2x)</td>
-<td><strong>PROVEN</strong></td>
-<td>ops {'promote': 192, 'fetch': 95, 'restore': 193, 'kills': 13, 'restarts': 12} error_rate 0.0 durable=True rss 773.90625-&gt;884.765625 MB</td>
-</tr>
-<tr>
-<td>Integrity</td>
-<td>The manifest always covers the whole file: for every coding geometry, a file that is an EXACT multiple of k x block_size (and one byte either side) yields ceil(size/(k*block)) stripes and restores with a verified SHA-256</td>
-<td><strong>PROVEN</strong></td>
-<td>{"cases": 12, "geometry_ok": 12, "restore_ok": 12, "all_ok": true}</td>
-</tr>
-<tr>
-<td>Monitoring</td>
-<td>The mesh dashboard detects a GFS deployment and the index address from the metric inventory alone (no configuration) and renders every tab without errors</td>
-<td><strong>PROVEN</strong></td>
-<td>{"detected": {"index_auto": true, "instances": {"index": 2, "storage": 49}, "instances_total": 51, "roster": 49, "expected_roster": 49, "source": "push", "poll": {"ts": 1789738979.251324, "age_s": 8.4, "index": "global-r</td>
-</tr>
-<tr>
-<td>Monitoring</td>
-<td>After an agent kill, every store on it shows LOST and the affected objects show not-DURABLE on the dashboard within 40 s (pushed gfs_state beacon)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"agent_killed": "n05", "stores_on_agent": 8, "lost_visible_s": 26.2, "risk_visible_s": 16.2, "risk_peak": 6, "risk_peak_history": 6, "sources_seen": ["push"]}</td>
-</tr>
-<tr>
-<td>Monitoring</td>
-<td>The dashboard shows every object DURABLE again within 90 s of the kill while the dead stores stay LOST, and its storagesummary poll path stays healthy while the beacon feeds the UI</td>
-<td><strong>PROVEN</strong></td>
-<td>{"repaired_visible_s": 36.3, "poll_path_ok": true, "sources_seen": ["push"]}</td>
-</tr>
-<tr>
-<td>Perf codec</td>
-<td>RS(10,4) encode &gt;= 400 MB/s single thread (pure Java)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"bench": "rs", "k": 10.0, "m": 4.0, "block": 262144.0, "encode_mb_s": 425.07, "decode_worst_mb_s": 424.78, "overhead": 1.4}</td>
-</tr>
-<tr>
-<td>Perf codec</td>
-<td>RS(3,2) encode &gt;= 750 MB/s single thread</td>
-<td><strong>PROVEN</strong></td>
-<td>{"bench": "rs", "k": 3.0, "m": 2.0, "block": 262144.0, "encode_mb_s": 834.02, "decode_worst_mb_s": 855.89, "overhead": 1.67}</td>
-</tr>
-<tr>
-<td>Perf codec</td>
-<td>AES-256-GCM &gt;= 3 GB/s on 2.5 MiB stripes</td>
-<td><strong>PROVEN</strong></td>
-<td>[{'bench': 'aes_gcm', 'stripe_bytes': 786432.0, 'encrypt_mb_s': 210.34, 'decrypt_mb_s': 3625.69}, {'bench': 'aes_gcm', 'stripe_bytes': 2621440.0, 'encrypt_mb_s': 3459.61, 'decrypt_mb_s': 3640.98}, {'b</td>
-</tr>
-<tr>
-<td>Perf transport</td>
-<td>Fragment push &gt;= 450 MB/s and get &gt;= 350 MB/s node to node</td>
-<td><strong>PROVEN</strong></td>
-<td>push max 510, get max 415</td>
-</tr>
-<tr>
-<td>Perf durability</td>
-<td>1 GiB object: encode &gt;= 200 MB/s, restore &gt;= 250 MB/s, verified</td>
-<td><strong>PROVEN</strong></td>
-<td>{"encode_mb_s": 271.76220806794055, "restore_mb_s": 282.7948080640707, "restore_ok": true}</td>
-</tr>
-<tr>
-<td>Perf durability</td>
-<td>1 GiB lost holder regenerated in &lt;= 15 s (keyless)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"repair_fragments": 205, "audit_ms": 90, "repair_s": 8.0, "repair_ok": true}</td>
-</tr>
-<tr>
-<td>Perf durability</td>
-<td>Every restore in the sweep hash-verified and every lost holder repaired</td>
-<td><strong>PROVEN</strong></td>
-<td>26/26 rows</td>
-</tr>
-<tr>
-<td>Perf index</td>
-<td>10^6 files: resolve p99 &lt;= 1 ms and &gt;= 5000 resolves/s from 16 clients</td>
-<td><strong>PROVEN</strong></td>
-<td>[(100000, 0.7040500640869141, 5488.5), (250000, 0.36907196044921875, 5426.3), (500000, 0.3840923309326172, 5385.9), (1000000, 0.9000301361083984, 5466.1)]</td>
-</tr>
-<tr>
-<td>Perf index</td>
-<td>Real filerepo publication: 50k files visible in &lt;= 30 s</td>
-<td><strong>PROVEN</strong></td>
-<td>[{'files': 20000, 'generate_s': 1.4, 'time_to_visible_s': 5.1, 'files_per_s': 3898, 'publisher': {'dataset_id': 'frpub-20000', 'owner': 'orcid:0000-0001-alice', 'root': '/Users/cody/code/cresco/run/gfs/data/frpub-20000',</td>
-</tr>
-<tr>
-<td>Perf federation</td>
-<td>240 sites: listnodes p50 &lt;= 20 ms, promote with placement solve p50 &lt;= 20 ms, index CPU &lt;= 50 % of one core</td>
-<td><strong>PROVEN</strong></td>
-<td>listnodes 5 ms, promote 3 ms, cpu 21.900000000000002</td>
-</tr>
-<tr>
-<td>Perf client</td>
-<td>Java client access path &gt;= 200 MB/s for 256 MiB, hash verified (all reps)</td>
-<td><strong>PROVEN</strong></td>
-<td>{"summary": true, "reps": 5, "ok": 5, "mb_per_s_min": 31.3, "mb_per_s_median": 403.0, "mb_per_s_max": 407.9, "reps_detail": [{"rep": 0, "bytes": 143654912, "chunks": 1024, "refetched": 476, "rounds": 2, "seconds": 8.171,</td>
-</tr>
-<tr>
-<td>Perf client</td>
-<td>Python client verified access path &gt;= 100 MB/s for 256 MiB</td>
-<td><strong>PROVEN</strong></td>
-<td>{"mib": 256, "seconds": 1.81, "mb_per_s": 141.7, "sha_ok": true, "verify": {"rounds": 1, "refetched_chunks": 0, "corrupt_chunks": 0, "missing_chunks": 0, "verif</td>
-</tr>
-<tr>
-<td>Repeatability</td>
-<td>Key throughput metrics repeat within 25 % coefficient of variation across runs</td>
-<td><strong>PROVEN</strong></td>
-<td>{'push_256K_x8_MBps': 2.1, 'push_512K_x32_MBps': 4.1, 'get_256K_x8_MBps': 1.7, 'rpc_p99_ms': 8.3, 'encode_64MiB_MBps': 3.7, 'restore_64MiB_MBps': 4.1, 'repair_64MiB_s': 1.7, 'encode_256MiB_MBps': 1.8, 'restore_256MiB_MBp</td>
+<td><strong>GLOBAL</strong></td>
+<td>everyone</td>
+<td><code>H</code> itself</td>
+<td><code>HKDF(H, "gfs/global/v1")</code></td>
+<td>the global index</td>
+<td>"public A + public B → C"</td>
 </tr>
 </tbody>
 </table>
+<p><code>H</code> is the raw hash of the block's plaintext, computed for every block before storage in every mode
+(§5). The modes differ only in what <code>H</code> is allowed to become.</p>
+<ul>
+<li><strong>NONE</strong> is the most isolated setting: identical blocks are stored separately, and no stored value
+  lets anyone, including an administrator holding every key but one, test whether two objects share
+  content.</li>
+<li><strong>COLLECTION</strong> and <strong>GROUP</strong> allow deduplication among holders of <code>K_dom</code>. A holder of <code>K_dom</code> can
+  tell that two blocks in the domain are equal; nobody else can.</li>
+<li><strong>GLOBAL</strong> is for public data. Anyone holding a candidate plaintext can confirm it is stored,
+  which is harmless for public data and is exactly what makes cross-tenant deduplication work.</li>
+</ul>
+<h3 id="31-why-per-block-keys-and-why-this-settles-the-iv-question-for-shared-modes">3.1 Why per-block keys, and why this settles the IV question for shared modes<a class="headerlink" href="#31-why-per-block-keys-and-why-this-settles-the-iv-question-for-shared-modes" title="Permanent link">&para;</a></h3>
+<p>In COLLECTION, GROUP and GLOBAL every block's key is derived from its own content hash, so <strong>a key
+encrypts exactly one plaintext, ever</strong>. Identical blocks produce identical ciphertext, which is the
+deduplication; different blocks use different keys. The GCM nonce-reuse hazard that <code>SegmentCipher</code>
+exists to prevent can't arise for data blocks in these modes. The IV is a fixed constant and nothing
+needs to be coordinated. This was the property of the pre-2026-09-19 <code>K_rdom</code> design, and it
+returns here.</p>
+<p>NONE keeps <code>SegmentCipher</code> (<code>SPECIFICATION.md</code> §20) unchanged, because per-object keys cover many
+chunks and need the counter discipline.</p>
+<h2 id="4-chunking">4. Chunking<a class="headerlink" href="#4-chunking" title="Permanent link">&para;</a></h2>
+<p>Deduplication finds identical blocks only if identical content is cut at identical boundaries, so
+<strong>the chunker is a property of the domain</strong>, fixed at creation and recorded:</p>
+<table>
+<thead>
+<tr>
+<th>Chunker</th>
+<th>Use</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cdc(gear, 64K target, 8K–128K)</code></td>
+<td><strong>default for GLOBAL, GROUP, COLLECTION</strong></td>
+<td>Survives insertions and prepends (measured: 99.85 % of blocks retained versus 0.1–50 % for fixed blocks, <code>eval/results/cdc_largefile.json</code>)</td>
+</tr>
+<tr>
+<td><code>keyed-cdc(K_bnd)</code></td>
+<td><strong>default for sealed tenants' shared modes</strong></td>
+<td>Block-size sequences fingerprint known files; keying the boundary function under a tenant key stops that</td>
+</tr>
+<tr>
+<td><code>fixed(64K)</code></td>
+<td>allowed per domain; default for NONE</td>
+<td>Cheapest, and adequate for appends and whole-file changes</td>
+</tr>
+</tbody>
+</table>
+<p>This <strong>reopens</strong> the 2026-09-19 decision to chunk content at a fixed 64 KiB (<code>ENTAIL-AGENT-NATIVE-FS.md</code>
+§2). That decision was made when deduplication had been retired; it no longer stands as a global
+rule.</p>
+<h2 id="5-hashing-every-block">5. Hashing every block<a class="headerlink" href="#5-hashing-every-block" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>H = hash_alg(block plaintext)</code>, computed for every block in every mode before anything is stored.</li>
+<li><strong>Default <code>hash_alg = SHA-384</code></strong>, following CNSA as required by the DoD/DoW hardening direction.
+  The algorithm is recorded per domain and fixed at the domain's creation, so it can differ between
+  domains but never within one. <code>H</code> also serves as the integrity check on every read.</li>
+<li><strong>Where <code>H</code> may go</strong> is the whole security model:</li>
+<li>GLOBAL: <code>H</code> is the block id; it is public.</li>
+<li>COLLECTION / GROUP: <code>H</code> is stored only in the domain's own index partition, readable only by
+    principals holding the domain's grant. Everything outside it sees <code>HMAC(K_dom, H)</code>.</li>
+<li>NONE: <code>H</code> is stored only inside the object's encrypted manifest. It never appears in any index.</li>
+<li>A <strong>sealed</strong> tenant's partitions live in a tenant-private index partition; no raw <code>H</code> from a
+    sealed tenant is ever sent to a shared or global index.</li>
+</ul>
+<p>This is the <code>§19.3</code> confirmation-oracle rule of <code>SPECIFICATION.md</code>, restated per mode rather than
+globally. The rule still holds everywhere; only what it forbids differs by mode.</p>
+<h2 id="6-references-and-grants">6. References and grants<a class="headerlink" href="#6-references-and-grants" title="Permanent link">&para;</a></h2>
+<h3 id="61-composition-without-new-storage-owner-case-1">6.1 Composition without new storage (owner case 1)<a class="headerlink" href="#61-composition-without-new-storage-owner-case-1" title="Permanent link">&para;</a></h3>
+<p>Public A and public B are in GLOBAL. Dataset C is a new collection whose version manifest lists
+A's and B's block ids. <strong>C stores nothing but its manifest</strong>, a few kilobytes of metadata. Reading
+C resolves each id in the global domain.</p>
+<h3 id="62-augmenting-another-tenants-data-owner-case-2">6.2 Augmenting another tenant's data (owner case 2)<a class="headerlink" href="#62-augmenting-another-tenants-data-owner-case-2" title="Permanent link">&para;</a></h3>
+<p>Our collection <code>A′</code> writes into our own domain. Tenant A issues a grant from its domain to <code>A′</code>,
+scoped to dataset A's version. <code>A′</code>'s manifest references A's blocks as <code>(domain_A, bid)</code> and our
+new or changed blocks as <code>(domain_ours, bid)</code>. Because block keys are per block, the grant delivers
+<strong>exactly the keys of the granted blocks</strong>, not <code>K_dom</code>. Tenant A's other data stays unreadable to us.</p>
+<h3 id="63-when-the-referenced-data-is-withdrawn">6.3 When the referenced data is withdrawn<a class="headerlink" href="#63-when-the-referenced-data-is-withdrawn" title="Permanent link">&para;</a></h3>
+<p>Each grant states its term, chosen at issue:</p>
+<table>
+<thead>
+<tr>
+<th><code>on_withdrawal</code></th>
+<th>Effect</th>
+<th>Default for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PIN</code></td>
+<td>The referenced blocks are pinned and can't be physically reclaimed while referenced</td>
+<td>GLOBAL (public data)</td>
+</tr>
+<tr>
+<td><code>COPY</code></td>
+<td>At withdrawal the referencing collection receives a re-encrypted copy of the blocks it uses, in its own domain</td>
+<td>cross-tenant grants</td>
+</tr>
+<tr>
+<td><code>BREAK</code></td>
+<td>The referencing version becomes unreadable and says so; the dependency was declared up front</td>
+<td>allowed on request</td>
+</tr>
+</tbody>
+</table>
+<h3 id="64-sealed-tenants-owner-case-3">6.4 Sealed tenants (owner case 3)<a class="headerlink" href="#64-sealed-tenants-owner-case-3" title="Permanent link">&para;</a></h3>
+<p><code>sealed: true</code> on a tenant enforces, at the index and not by convention:</p>
+<ul>
+<li>its collections may use only NONE, COLLECTION or GROUP (its own), never GLOBAL;</li>
+<li>it can issue no grants out and accept no grants in;</li>
+<li><strong>default: public data enters by copy only, never by reference</strong>, so there is no outward
+  dependency and no signal of which public blocks it uses. A sealed tenant may opt into
+  read-by-reference of GLOBAL data (<code>sealed_allow_public_reference</code>); the default is off;</li>
+<li>none of its raw hashes leave its private index partition.</li>
+</ul>
+<h2 id="7-forgetting-and-reference-counting">7. Forgetting and reference counting<a class="headerlink" href="#7-forgetting-and-reference-counting" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Forgetting one object</th>
+<th>Forgetting everything in the domain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NONE</td>
+<td>destroy the object's key, instant (<code>SPECIFICATION.md</code> §11, §12)</td>
+<td>destroy each object key</td>
+</tr>
+<tr>
+<td>COLLECTION / GROUP</td>
+<td>remove the object's references; blocks whose <strong>reference count</strong> drops to zero are physically reclaimed</td>
+<td>destroy <code>K_dom</code>, instant</td>
+</tr>
+<tr>
+<td>GLOBAL</td>
+<td>remove references; blocks with zero references are reclaimed; public blocks under a <code>PIN</code> stay</td>
+<td>not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>A block that is still referenced by someone else survives one object's deletion. For content that is
+genuinely identical this is correct, not a leak: the surviving reference holds the same bytes.
+<strong>Tenants with <code>withdrawal_sensitive: true</code></strong> (consent-governed clinical data, by default) may only
+use NONE or COLLECTION, so no other collection can hold a reference to their blocks. This is the
+default resolution; the owner can widen it per tenant.</p>
+<p>Reference counts are part of the index's replicated state. They are updated in the same quorum
+commit as the version that adds or drops a reference.</p>
+<h2 id="8-keys">8. Keys<a class="headerlink" href="#8-keys" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>tenant root key (per tenant, custodied t-of-n)
+ └─ K_dom = HKDF(tenant root, "dom" ‖ domain_id)              COLLECTION, GROUP
+     ├─ bid   = HMAC(K_dom, H)
+     └─ K_blk = HKDF(K_dom, "blk" ‖ H)        IV: constant
+ └─ K_obj  per object (NONE), random, wrapped                  SegmentCipher counter discipline
+ └─ K_bnd  = HKDF(tenant root, "bnd" ‖ domain_id)              keyed CDC, sealed tenants
+GLOBAL:  K_blk = HKDF(H, "gfs/global/v1")                     no secret; public data
+</code></pre></div>
+<p>The metadata key (<code>K_meta</code>, catalogue nodes) becomes per domain: <code>K_meta = HKDF(K_dom, "meta")</code>.
+Its IV discipline is still <strong>open</strong> (question S1, to be redone on this model before any media is
+written).</p>
+<h2 id="9-changing-a-collections-mode">9. Changing a collection's mode<a class="headerlink" href="#9-changing-a-collections-mode" title="Permanent link">&para;</a></h2>
+<p>A collection's domain is fixed at creation. Moving data between modes, for example releasing a
+sealed dataset publicly, is a <strong>publish action</strong>: it re-hashes, re-identifies and re-encrypts into a
+new collection in the target domain. It is never an in-place relabel, because every block id and key
+depends on the mode.</p>
+<h2 id="10-what-this-supersedes">10. What this supersedes<a class="headerlink" href="#10-what-this-supersedes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Section</th>
+<th>Was</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SPECIFICATION.md</code></td>
+<td>§12.3</td>
+<td>Dedup table retired; "there is now no dedup"</td>
+<td>Dedup per domain mode</td>
+</tr>
+<tr>
+<td><code>SPECIFICATION.md</code></td>
+<td>§18.4</td>
+<td><code>sid</code> deleted; no content-derived chunk id may exist</td>
+<td>Content-derived ids exist per mode: raw <code>H</code> in GLOBAL, <code>HMAC(K_dom, H)</code> in COLLECTION/GROUP, none in NONE</td>
+</tr>
+<tr>
+<td><code>SPECIFICATION.md</code></td>
+<td>§19.3</td>
+<td>No plaintext-derived identifier on media, globally</td>
+<td>The same rule, applied per mode (§5)</td>
+</tr>
+<tr>
+<td><code>SPECIFICATION.md</code></td>
+<td>§20</td>
+<td>Per-object keys everywhere</td>
+<td>Per-object keys (<code>SegmentCipher</code>) in NONE; per-block keys in shared modes (§3.1)</td>
+</tr>
+<tr>
+<td><code>ENTAIL-AGENT-NATIVE-FS.md</code></td>
+<td>§2 rows on chunking and <code>K_rdom</code></td>
+<td>Fixed 64 KiB content chunking; <code>K_rdom</code> retired by the checkpoint measurement</td>
+<td>Chunker per domain (§4); per-block keys return for shared modes</td>
+</tr>
+<tr>
+<td><code>STORAGE-DIRECTION.md</code></td>
+<td>dedup and redaction-domain sections</td>
+<td>Dedup restricted to within a redaction domain</td>
+<td>Replaced by §3 and §7</td>
+</tr>
+</tbody>
+</table>
+<p>The checkpoint measurement (<code>eval/results/ckpt_dedup_results.json</code>: zero shared blocks between
+checkpoints) still stands as a <strong>measurement</strong>. It shows that model checkpoints gain nothing from
+deduplication, and such collections may choose NONE. It was never evidence that datasets don't
+deduplicate.</p>
+<h2 id="11-defaults-in-one-place">11. Defaults, in one place<a class="headerlink" href="#11-defaults-in-one-place" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Default</th>
+<th>Where set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mode for a new collection</td>
+<td>COLLECTION</td>
+<td>collection creation</td>
+</tr>
+<tr>
+<td>Mode for a new collection in a sealed tenant</td>
+<td>COLLECTION</td>
+<td>tenant policy</td>
+</tr>
+<tr>
+<td>Mode for a withdrawal-sensitive tenant</td>
+<td>NONE or COLLECTION only</td>
+<td>tenant policy</td>
+</tr>
+<tr>
+<td><code>hash_alg</code></td>
+<td>SHA-384</td>
+<td>domain creation</td>
+</tr>
+<tr>
+<td>Chunker</td>
+<td><code>cdc</code>; <code>keyed-cdc</code> in sealed tenants; <code>fixed</code> for NONE</td>
+<td>domain creation</td>
+</tr>
+<tr>
+<td>Grant <code>on_withdrawal</code></td>
+<td><code>PIN</code> for GLOBAL, <code>COPY</code> for cross-tenant</td>
+<td>grant issue</td>
+</tr>
+<tr>
+<td>Sealed tenant reading public data</td>
+<td>copy only</td>
+<td>tenant policy</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-still-open">12. Still open<a class="headerlink" href="#12-still-open" title="Permanent link">&para;</a></h2>
+<ol>
+<li>The metadata-key IV discipline (S1), on this model.</li>
+<li>How a grant delivers per-block keys at scale: a key bundle per version, or derivation on request by
+   the granting tenant's key service.</li>
+<li>Reference-count storage at 10⁹ blocks: in the index heap, or in a sharded store beside it.</li>
+<li>Whether GROUP domains may span tenants by mutual agreement (a consortium), or only by grants.</li>
+<li>The chunker parameters, measured on real imaging and text corpora rather than a source tree.</li>
+</ol>
 
 
 

@@ -1382,6 +1382,8 @@
       
         
       
+        
+      
     
     
     
@@ -1451,6 +1453,34 @@
     
   
     From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
   
 
     
@@ -2024,12 +2054,12 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <p>Nothing in phase 1 can be specified exactly until these are answered. See
 <a href="../open-questions/">Open questions</a>.</p>
 <ul>
-<li>[ ] Approve the <strong>tenant / collection / deduplication domain</strong> model and its five decisions</li>
-<li>[ ] Re-decide <strong>chunking</strong> (fixed or content-defined) under the deduplication requirement</li>
+<li>[x] <strong>Tenant / collection / deduplication domain</strong> model: design of record written 2026-09-23; open choices are policy settings with defaults</li>
+<li>[x] <strong>Chunking</strong>: a per-domain setting (content-defined by default)</li>
 <li>[ ] Redo <strong>S1</strong>, the metadata-key IV discipline, under the dedup model</li>
 <li>[ ] Choose the <strong>first consumers</strong> and the <strong>first dataset</strong> (P1, P2); proposed: the panAtlas index</li>
 <li>[ ] Decide whether the <strong>DGX copy is kept</strong> after archiving (P3); this decides whether two sites could ever suffice</li>
-<li>[ ] <strong>Hash function</strong>: SHA-256 or SHA-384</li>
+<li>[x] <strong>Hash function</strong>: SHA-384 by default, fixed per domain</li>
 <li>[ ] <strong>Java toolchain</strong> for raw SCSI: JDK 22+, JNA or a C helper</li>
 <li>[ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)</li>
 </ul>
