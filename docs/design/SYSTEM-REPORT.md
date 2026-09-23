@@ -145,7 +145,7 @@ Eighteen defects and harness weaknesses were found and fixed during the campaign
 
 ## 11. Where the code and evidence are
 
-- Plugin, docs and harness: `github.com/the framework's `gfs` repository (branch `1.3`; `docs/` and `eval/`).
+- Plugin, docs and harness: `github.com/GaiaKeep/gfs` (branch `1.3`; moved from the mesh 2026-09-23; `docs/` and `eval/`).
 - Storage tab of the mesh dashboard: `github.com/the framework's `dashboard` repository (`master`; `code/dashboard` in the workspace, `./run.sh start`, self-detects GFS from the metric inventory, pushed `gfs_state` beacon with `storagesummary` poll fallback).
 - controller fixes: `github.com/the framework's `controller` repository commits `4995b31` (W-GFS-6) and `c891854` (W-GFS-1/4/5), on `1.3` and `phase0-crypto-baseline`; agent release `github.com/the framework's `agent` repository `1.3` commit `19a7018` embeds them; matching `library`, the file repository, the Java transport library, the gateway, `repo`, the Python transport library `1.3` branches.
 - Result files: `run/gfs/results/*.json` (campaign 6 stream preserved as `campaign6-final-proof-monitor.log`); generated reports `SCALE-RESULTS.md` and `CLAIMS.md`; design `CORE-PRINCIPLES.md`; plan `EVALUATION-PLAN.md`; defect log `RESULTS.md`; local build and run `PROTOTYPE.md`.
