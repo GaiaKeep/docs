@@ -1,0 +1,91 @@
+site_name: GaiaKeep GFS
+site_description: A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.
+site_url: https://gaiakeep.github.io/docs/
+repo_url: https://github.com/GaiaKeep/gfs
+repo_name: GaiaKeep/gfs
+edit_uri: ""
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle: {icon: material/brightness-7, name: Switch to dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle: {icon: material/brightness-4, name: Switch to light mode}
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Concepts:
+      - Purpose and principles: concepts/purpose.md
+      - Architecture: concepts/architecture.md
+      - Tenants, collections and deduplication: concepts/tenancy-and-dedup.md
+      - Versioning: concepts/versioning.md
+      - Placement and loci: concepts/placement.md
+      - Durability and redundancy: concepts/durability.md
+      - Security and cryptography: concepts/security.md
+      - Media and tape: concepts/media-and-tape.md
+      - Deletion, retention and repack: concepts/deletion-and-repack.md
+      - panAtlas: concepts/panatlas.md
+  - Built and tested:
+      - Status at a glance: built/status.md
+      - The prototype: built/prototype.md
+      - Scale results: built/scale.md
+      - Since the prototype: built/since-prototype.md
+      - Measurements: built/measurements.md
+      - Running the tests: built/harnesses.md
+  - Roadmap:
+      - Remaining work: roadmap/remaining.md
+      - The caching tier: roadmap/caching-tier.md
+      - Hardware and procurement: roadmap/hardware.md
+      - Decision log: roadmap/decisions.md
+      - Open questions: roadmap/open-questions.md
+  - Design record:
+      - design/index.md
+      - "From-scratch decision": design/FROM-SCRATCH-DECISION.md
+      - "Block fabric specification": design/SPECIFICATION.md
+      - "Entail: the agent interface": design/ENTAIL-AGENT-NATIVE-FS.md
+      - "Storage bindings decision": design/STORAGE-BINDINGS-DECISION.md
+      - "Storage direction (history)": design/STORAGE-DIRECTION.md
+      - "Bareos analysis (historical)": design/BAREOS-RECOMMENDATION.md
+      - "Tape research brief": design/TAPE-RESEARCH-PROMPT.md
+      - "Storage research brief": design/RESEARCH-PROMPT.md
+      - "Prototype system report": design/SYSTEM-REPORT.md
+      - "Prototype core principles": design/CORE-PRINCIPLES.md
+      - "Evaluation plan": design/EVALUATION-PLAN.md
+      - "Running the prototype": design/PROTOTYPE.md
+      - "Prototype results": design/RESULTS.md
+      - "Scale results (full)": design/SCALE-RESULTS.md
+      - "Claims registry": design/CLAIMS.md
+      - "Original plan (2026-09-13)": design/global-federated-storage-plan.md
+  - Glossary: reference/glossary.md
