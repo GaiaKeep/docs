@@ -2127,11 +2127,15 @@ set of measured properties.</p>
 <td><strong>Built</strong>; 23/23 checks</td>
 </tr>
 <tr>
-<td>Live write path routed through the interface</td>
-<td><strong>Not yet</strong>; see <a href="../../roadmap/remaining/">Remaining work</a></td>
+<td>New storage engine does all I/O through the interface</td>
+<td><strong>Built</strong> (the prototype plugin's own path still calls the store directly)</td>
 </tr>
 <tr>
-<td>Tape, raw NVMe, raw disk and RAM bindings</td>
+<td>RAM binding (<code>MemBinding</code>)</td>
+<td><strong>Built</strong>, contract-tested</td>
+</tr>
+<tr>
+<td>Tape, raw NVMe and raw disk bindings</td>
 <td><strong>Designed</strong></td>
 </tr>
 </tbody>
@@ -2195,10 +2199,16 @@ writes the same data with and without the barrier and compares the rates:</p>
 <td>Yes</td>
 </tr>
 <tr>
-<td>DGX shared project filesystem</td>
+<td>DGX shared project filesystem, 2026-09-19 (one pass)</td>
 <td>×0.94</td>
 <td>Indeterminate</td>
-<td><strong>Refused</strong></td>
+<td>Refused</td>
+</tr>
+<tr>
+<td>DGX shared project filesystem, 2026-09-23 (5 rounds, unanimous)</td>
+<td>costs time every round</td>
+<td>Barrier costs time</td>
+<td>Admitted</td>
 </tr>
 <tr>
 <td>RAM-backed storage</td>
@@ -2213,11 +2223,21 @@ no-op, or a network round trip hides it. Such a node therefore can't hold durabl
 operator sets <code>gfs_durability_attested=true</code>. That setting is always reported as an attestation,
 never as a measurement. Timing also can't prove that data survives a power loss; only a power-loss
 test can show that.</p>
+<div class="admonition note">
+<p class="admonition-title">Correction (2026-09-23, DGX jobs 221777 and 221810)</p>
+<p>A single timing pass proved unreliable: on dgx-03 it classified one of four identical node-local
+directories INDETERMINATE (the first site probed ran on a cold JVM). The probe now warms up, runs
+five rounds in alternating order, and counts a locus durable only if <strong>every</strong> round agrees. With
+that probe the DGX shared project filesystem measured <strong>COSTS_TIME</strong> unanimously (13–14 MiB/s),
+contradicting the earlier ×0.94. So it may be admitted. Its real cost is speed: 10–18× slower
+than node-local storage.</p>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Operational consequence</p>
-<p>On the DGX, storage nodes default to a directory under <code>~/cresco/nodes/…</code>, which is on a
-network filesystem. Such nodes are now refused durable copies, and placement logs why. Point
-<code>store_dir</code> at node-local storage, which is also 40× faster, or attest.</p>
+<p>On the DGX, storage nodes default to a directory under <code>~/cresco/nodes/…</code>, which is on the
+shared network filesystem. The robust probe now admits it, but it is 10–18× slower than
+node-local storage, so point <code>store_dir</code> at node-local storage. If a probe run there comes back
+inconsistent, those nodes are refused durable copies, and placement logs why.</p>
 </div>
 <h2 id="where-placement-is-heading">Where placement is heading<a class="headerlink" href="#where-placement-is-heading" title="Permanent link">&para;</a></h2>
 <p><strong>Proposed</strong> (awaiting owner decision, <a href="../../roadmap/open-questions/">questions A1–A14</a>):</p>
