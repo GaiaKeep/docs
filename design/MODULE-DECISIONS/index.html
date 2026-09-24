@@ -1625,6 +1625,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Update 2026-09-23 (late): the data path, measured leg by leg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addendum: failures found under concurrent load, all fixed (2026-09-23, night)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -2362,6 +2379,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (late): the data path, measured leg by leg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addendum: failures found under concurrent load, all fixed (2026-09-23, night)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3125,6 +3159,28 @@ unchanged pending the owner's confirmation.</p>
   196 MB/s at R=1, 98–113 MB/s at R=3.
 - A Java client measurement of downloads.
 - Physical R=3 on separate hosts: three copies on one laptop SSD is not a deployment figure.</p>
+<h3 id="addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night">Addendum: failures found under concurrent load, all fixed (2026-09-23, night)<a class="headerlink" href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Silent handler death.</strong> An OutOfMemoryError in a handler vanished inside the plugin's message
+  pool, whose processor catches only Exception. <code>CoreService</code> now catches and logs every Throwable.
+  The error itself came from pipelined ingest overcommitting a 512 MB index heap. The index now sets
+  each upload's window from a shared budget (64 MB across all open flows, returned in the <code>core.put</code>
+  reply and enforced by the receiver), and per-site shipping is 2 batches in flight.</li>
+<li><strong>An interrupt closing a shared file.</strong> Interrupting a thread closed the <code>FileChannel</code> that every
+  receiver shared. Readers now use their own channel.</li>
+<li><strong>Acks sent from the JMS consumer thread</strong> could block under producer backpressure and stall the
+  flows that wait for them. Acks now go out on their own ordered lane.</li>
+<li><strong>The hub broker.</strong> On the test fabric every agent attaches to one global controller, so every
+  byte passes one broker JVM. Under ~1 GB/s it exhausted a 1 GB heap and every agent declared its
+  controller lost at the same moment. A hub broker must be sized for bulk traffic in flight: the
+  tests use 4 GB. In a deployment, regional brokers split this load.</li>
+<li><strong>Pipelined ingest</strong> (publish while the flows land) is built and correct, byte-identical. It is not
+  faster on this machine (R=1: 189 against 183 MB/s serial) because upload and replica traffic share
+  the one hub broker. It is expected to pay off where clients and storage nodes reach the index over
+  different links, which this machine cannot test.</li>
+</ul>
+<p>State: 324/324 unit tests; live fabric 61/61
+(<code>eval/results/core_fabric_20260923-222652.json</code>, index heap 2 GB, hub 4 GB).</p>
 
 
 
