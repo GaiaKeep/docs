@@ -2132,21 +2132,49 @@
 <p>Every component with its label: <strong>Proven</strong>, <strong>Built</strong>, <strong>Designed</strong>, <strong>Proposed</strong> or <strong>Open</strong>
 (see the <a href="../../">home page</a> for definitions). Updated 2026-09-23 (night) at <code>GaiaKeep/gfs</code> <code>f055e07</code>.</p>
 <div class="admonition success">
-<p class="admonition-title">Durable storage core: running on the Cresco fabric</p>
-<p>All eleven components are built under <code>io.cresco.gfs.core</code>, and the core now runs inside the
-federation index. Its metadata is journaled and replicated through the index, and storage nodes
-are reached through <code>RemoteBinding</code>.</p>
+<p class="admonition-title">Durable storage core: on the fabric, every byte on the dataplane</p>
+<p><strong>No file byte travels in a control message.</strong> Clients stream over GKT, a reliable transfer on the
+Cresco dataplane: every chunk hashed and checked, a sliding window, selective acknowledgements and
+retransmission, RAM bounded per flow. Files move as several parallel flows, assembled on local disk.
+The index and the storage nodes exchange bodies as dataplane frames of up to 16 MiB. The engine
+streams with bounded memory, runs concurrently, and reads media directly.</p>
+<p>Tests: 324/324 unit tests, and 61/61 on a live fabric (crash, restart, node loss, replica agreement).</p>
+<p>Measured leg by leg on one Mac (7 JVMs, one SSD):</p>
+<table>
+<thead>
+<tr>
+<th>Leg</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transport between index and storage nodes</td>
+<td>~300 MB/s per flow; ~1.0–1.2 GB/s inbound across 5 nodes</td>
+</tr>
+<tr>
+<td>Client upload</td>
+<td>420–490 MB/s</td>
+</tr>
+<tr>
+<td>Engine read on the index</td>
+<td>up to ~700 MB/s</td>
+</tr>
+<tr>
+<td>Engine publish, 1 MiB blocks</td>
+<td>368 MB/s at R=1; 126–147 MB/s at R=3</td>
+</tr>
+</tbody>
+</table>
+<p>Five defects were found by these tests and fixed:</p>
 <ul>
-<li><strong>Unit tests: 294/294.</strong> This includes a 180-cell integration matrix, of which 60 cells run over
-  the remote protocol, and journal replay, snapshot and crash tests.</li>
-<li><strong>Live fabric: 61/61</strong> (<code>core_fabric_check.py</code>). Covered: every dedup mode; cross-tenant dedup
-  and compose store nothing new; replica hash equals primary; a storage node killed; the index
-  killed -9 with the replayed hash identical; the index halted between seal and commit with 1,128
-  orphans reclaimed from the journaled intent.</li>
-<li><strong>Throughput.</strong> One 1 GiB file publishes in-process at 568–604 MB/s. Through the fabric it is
-  15–18 MB/s, because bytes still ride control messages; moving them to the dataplane is next.</li>
+<li>concurrent appends losing blocks: data loss;</li>
+<li>a window counted in chunks exhausting the heap;</li>
+<li>lost frames stalling reads;</li>
+<li>three extra disk round trips per block read;</li>
+<li>a thread leak.</li>
 </ul>
-<p>Decisions: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>.</p>
+<p>Decisions: <a href="../../design/MODULE-DECISIONS/">Module decisions</a>. The block-size decision is open for the owner.</p>
 </div>
 <h2 id="foundation">Foundation<a class="headerlink" href="#foundation" title="Permanent link">&para;</a></h2>
 <table>
