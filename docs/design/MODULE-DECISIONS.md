@@ -400,3 +400,26 @@ Next:
   196 MB/s at R=1, 98–113 MB/s at R=3.
 - A Java client measurement of downloads.
 - Physical R=3 on separate hosts: three copies on one laptop SSD is not a deployment figure.
+
+### Addendum: failures found under concurrent load, all fixed (2026-09-23, night)
+
+- **Silent handler death.** An OutOfMemoryError in a handler vanished inside the plugin's message
+  pool, whose processor catches only Exception. `CoreService` now catches and logs every Throwable.
+  The error itself came from pipelined ingest overcommitting a 512 MB index heap. The index now sets
+  each upload's window from a shared budget (64 MB across all open flows, returned in the `core.put`
+  reply and enforced by the receiver), and per-site shipping is 2 batches in flight.
+- **An interrupt closing a shared file.** Interrupting a thread closed the `FileChannel` that every
+  receiver shared. Readers now use their own channel.
+- **Acks sent from the JMS consumer thread** could block under producer backpressure and stall the
+  flows that wait for them. Acks now go out on their own ordered lane.
+- **The hub broker.** On the test fabric every agent attaches to one global controller, so every
+  byte passes one broker JVM. Under ~1 GB/s it exhausted a 1 GB heap and every agent declared its
+  controller lost at the same moment. A hub broker must be sized for bulk traffic in flight: the
+  tests use 4 GB. In a deployment, regional brokers split this load.
+- **Pipelined ingest** (publish while the flows land) is built and correct, byte-identical. It is not
+  faster on this machine (R=1: 189 against 183 MB/s serial) because upload and replica traffic share
+  the one hub broker. It is expected to pay off where clients and storage nodes reach the index over
+  different links, which this machine cannot test.
+
+State: 324/324 unit tests; live fabric 61/61
+(`eval/results/core_fabric_20260923-222652.json`, index heap 2 GB, hub 4 GB).
