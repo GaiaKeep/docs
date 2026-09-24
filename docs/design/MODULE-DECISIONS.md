@@ -356,3 +356,47 @@ Known limits, stated plainly:
 - Per-block metadata is journaled at roughly 130 bytes per block, about 2 MB per GiB. Journal
   compaction exists only as snapshot install.
 - The index keeps retained log entries in memory.
+
+## Update 2026-09-23 (late): the data path, measured leg by leg
+
+**No file byte travels in a control message.** Clients stream over GKT, a reliable transfer on the
+Cresco client dataplane (per-chunk sha256, sliding window, selective acknowledgements, retransmit).
+The index and the storage nodes exchange bodies as FrameBus dataplane frames, and a lost frame
+retries the idempotent exchange. The engine streams with bounded memory, runs concurrently, and
+reads directly from media that can (`readNow`).
+
+Measured on one Mac: 7 Cresco JVMs of 512 MB heap each, sharing one SSD, R as stated
+(`eval/core_throughput.py`, `eval/results/core_throughput_*.json`).
+
+| Leg | Result |
+|---|---|
+| Index ↔ node, pure transport (no disk, no crypto) | ~300 MB/s per flow at ≥4 MiB messages; 540–580 MB/s multi-flow to one node; ~550 MB/s out / 1.0–1.2 GB/s in across 5 nodes |
+| Client → index upload (8 flows × 1 MiB chunks, 16 MiB in flight per flow) | 420–490 MB/s, 0 retransmits |
+| Engine read on the index (no client leg), 1 MiB blocks | 256–395 MB/s on 1 flow; 590–705 MB/s on 4–8 flows |
+| Engine publish, 1 MiB blocks | **368 MB/s at R=1**, **126–147 MB/s at R=3** |
+| Engine publish, 64 KiB blocks | 97 MB/s at R=1, 54 MB/s at R=3 |
+| Client download to a local file (Python client, 8 flows) | 230–263 MB/s: the client leg, not the engine, is the limit |
+
+Findings, all fixed and covered by tests:
+- **Data loss.** Concurrent appends to one write dropped entries on the disk binding, so blocks behind
+  a committed version were never sealed.
+- **RAM.** An in-flight window counted in chunks, not bytes, exhausted a 512 MB heap. Windows are now
+  a byte budget, enforced by both ends.
+- **Stalls.** Lost non-persistent frames stalled reads for 15 s each; they now cost a retry.
+- **Wasted I/O.** Every block read made three extra disk round trips through sink directories, and
+  every seal re-read what it had just staged.
+- **A thread leak** in the engine and disk-binding pools.
+- **The "1 MiB cap"** was the Python websockets default `max_size`, not the server (which allows 1 GiB)
+  or the broker (128 MiB). The pycrescolib dataplane now accepts 64 MiB.
+
+**Decision for the owner: D-C1-1 block size.** 1 MiB content-defined blocks publish about 3× faster
+than 64 KiB (368 against 97 MB/s at R=1) and cut per-block metadata 16×. The cost: an edit stores
+about 1–2 MiB instead of about 64–128 KiB. For petabytes of imaging, 1 MiB is the recommended default.
+It is available per domain today (`chunker=cdc:1048576:262144:4194304`); the global default is
+unchanged pending the owner's confirmation.
+
+Next:
+- Pipelined ingest (publish while parts arrive). End-to-end ingest today is upload then publish:
+  196 MB/s at R=1, 98–113 MB/s at R=3.
+- A Java client measurement of downloads.
+- Physical R=3 on separate hosts: three copies on one laptop SSD is not a deployment figure.

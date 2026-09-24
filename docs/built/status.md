@@ -3,21 +3,33 @@
 Every component with its label: **Proven**, **Built**, **Designed**, **Proposed** or **Open**
 (see the [home page](../index.md) for definitions). Updated 2026-09-23 (night) at `GaiaKeep/gfs` `f055e07`.
 
-!!! success "Durable storage core: running on the Cresco fabric"
-    All eleven components are built under `io.cresco.gfs.core`, and the core now runs inside the
-    federation index. Its metadata is journaled and replicated through the index, and storage nodes
-    are reached through `RemoteBinding`.
+!!! success "Durable storage core: on the fabric, every byte on the dataplane"
+    **No file byte travels in a control message.** Clients stream over GKT, a reliable transfer on the
+    Cresco dataplane: every chunk hashed and checked, a sliding window, selective acknowledgements and
+    retransmission, RAM bounded per flow. Files move as several parallel flows, assembled on local disk.
+    The index and the storage nodes exchange bodies as dataplane frames of up to 16 MiB. The engine
+    streams with bounded memory, runs concurrently, and reads media directly.
 
-    - **Unit tests: 294/294.** This includes a 180-cell integration matrix, of which 60 cells run over
-      the remote protocol, and journal replay, snapshot and crash tests.
-    - **Live fabric: 61/61** (`core_fabric_check.py`). Covered: every dedup mode; cross-tenant dedup
-      and compose store nothing new; replica hash equals primary; a storage node killed; the index
-      killed -9 with the replayed hash identical; the index halted between seal and commit with 1,128
-      orphans reclaimed from the journaled intent.
-    - **Throughput.** One 1 GiB file publishes in-process at 568–604 MB/s. Through the fabric it is
-      15–18 MB/s, because bytes still ride control messages; moving them to the dataplane is next.
+    Tests: 324/324 unit tests, and 61/61 on a live fabric (crash, restart, node loss, replica agreement).
 
-    Decisions: [Module decisions](../design/MODULE-DECISIONS.md).
+    Measured leg by leg on one Mac (7 JVMs, one SSD):
+
+    | Leg | Result |
+    |---|---|
+    | Transport between index and storage nodes | ~300 MB/s per flow; ~1.0–1.2 GB/s inbound across 5 nodes |
+    | Client upload | 420–490 MB/s |
+    | Engine read on the index | up to ~700 MB/s |
+    | Engine publish, 1 MiB blocks | 368 MB/s at R=1; 126–147 MB/s at R=3 |
+
+    Five defects were found by these tests and fixed:
+
+    - concurrent appends losing blocks: data loss;
+    - a window counted in chunks exhausting the heap;
+    - lost frames stalling reads;
+    - three extra disk round trips per block read;
+    - a thread leak.
+
+    Decisions: [Module decisions](../design/MODULE-DECISIONS.md). The block-size decision is open for the owner.
 
 ## Foundation
 
