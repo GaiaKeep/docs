@@ -2129,11 +2129,10 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <p>Built and tested: tenancy and dedup domains, grants, per-block hashing and keys, chunkers,
 versioning, reference counting, placement, and the engine. The engine is journaled through the
 federation index and replicated, crash-safe through write intents, and reaches storage nodes over
-<code>RemoteBinding</code>. Evidence: 294 tests, and 61/61 on a live fabric.</p>
+<code>RemoteBinding</code>. Evidence: 324 tests (CI green at <code>e3d7b46</code>), and 61/61 on a live fabric.</p>
 <p>Remaining in this phase:</p>
 <ul>
-<li>carry extent bytes on the dataplane instead of control messages (fabric throughput is 15–18 MB/s
-  against 568–604 MB/s in-process);</li>
+<li>~~carry extent bytes on the dataplane~~: done in <code>e3db276</code>; no file byte travels in a control message</li>
 <li>per-tenant authorization on <code>core.*</code>;</li>
 <li>reference storage at scale (D-C6-1), and enforcing R ≥ 2 for durable collections (D-C11-1);</li>
 <li>journal compaction.</li>

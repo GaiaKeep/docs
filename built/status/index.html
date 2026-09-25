@@ -2130,7 +2130,7 @@
 
 <h1 id="status-at-a-glance">Status at a glance<a class="headerlink" href="#status-at-a-glance" title="Permanent link">&para;</a></h1>
 <p>Every component with its label: <strong>Proven</strong>, <strong>Built</strong>, <strong>Designed</strong>, <strong>Proposed</strong> or <strong>Open</strong>
-(see the <a href="../../">home page</a> for definitions). Updated 2026-09-23 (night) at <code>GaiaKeep/gfs</code> <code>f055e07</code>.</p>
+(see the <a href="../../">home page</a> for definitions). Updated 2026-09-25 at <code>GaiaKeep/gfs</code> <code>e3d7b46</code> (CI green: 324/324 on the GitHub runner).</p>
 <div class="admonition success">
 <p class="admonition-title">Durable storage core: on the fabric, every byte on the dataplane</p>
 <p><strong>No file byte travels in a control message.</strong> Clients stream over GKT, a reliable transfer on the
@@ -2374,7 +2374,7 @@ streams with bounded memory, runs concurrently, and reads media directly.</p>
 <tbody>
 <tr>
 <td>Counter discipline for per-object keys (<code>SegmentCipher</code>)</td>
-<td><strong>Built</strong> (no production caller yet)</td>
+<td><strong>Built</strong>, used by NONE-mode objects (<code>BlockCodec.NoneObject</code>)</td>
 <td>IvDiscipline 14/14</td>
 </tr>
 <tr>

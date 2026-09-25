@@ -2203,6 +2203,22 @@ touching registration.</strong></p>
 <td>Functional suite E1–E11 (99 checks, ~80 s)</td>
 </tr>
 <tr>
+<td><code>core_fabric_check.py</code></td>
+<td>Storage core on a live fabric: 61 checks, including every dedup mode, the replica hash, a killed node, the index killed -9 and a halt between seal and commit. Run with <code>IXMX=2048M GXMX=4096M</code></td>
+</tr>
+<tr>
+<td><code>core_throughput.py</code></td>
+<td>Throughput leg by leg (<code>TP_PHASES=A,B,C</code>): node transport, client upload, publish and read at R=1 and R=3, and pipelined ingest</td>
+</tr>
+<tr>
+<td><code>core_frame_sweep.py</code></td>
+<td>Frame size, broker persistence and batch size for the node leg</td>
+</tr>
+<tr>
+<td><code>gkt.py</code></td>
+<td>Python GKT client (the dataplane transfer protocol): <code>CoreClient</code>, <code>MultiClient</code>, <code>ingest</code></td>
+</tr>
+<tr>
 <td><code>launch_gfs_scale.sh up 240</code>, <code>run_scale_all.sh</code></td>
 <td>240-site scale tiers</td>
 </tr>
@@ -2244,8 +2260,8 @@ deployment host with the bundle and its two runtime jars (gson, io.cresco:librar
 filesystem that can't prove its fsync barrier, the smoke test <strong>fails closed</strong> unless <code>--attest</code>
 is given.</p>
 <h2 id="continuous-integration">Continuous integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
-<p>Every push to <code>GaiaKeep/gfs</code> runs <code>.github/workflows/test.yml</code>: the full suite (208 tests,
-including the 120-cell integration matrix and both smoke runs), the wire-contract lint, the
+<p>Every push to <code>GaiaKeep/gfs</code> runs <code>.github/workflows/test.yml</code>: the full suite (324 tests at <code>e3d7b46</code>,
+including the 180-cell integration matrix, of which 60 cells run over the remote protocol, and both smoke runs), the wire-contract lint, the
 command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.</p>
 
 
