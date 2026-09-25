@@ -25,7 +25,7 @@ DOCS = [
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",
      "The statement of purpose and the decision to remove Bareos (2026-09-20). Current."),
     ("MODULE-DECISIONS.md", "Module decisions (measured)", "Current",
-     "The decisions each component raises, with the measurements behind them: 203 tests, 0 failures (2026-09-23)."),
+     "The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25)."),
     ("COMPONENTS.md", "Component definitions", "Current",
      "Every component of the durable storage core: interface, what its tests must establish, the decision it feeds."),
     ("TENANCY-AND-DEDUP.md", "Tenancy and deduplication", "Current",

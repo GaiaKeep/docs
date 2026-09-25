@@ -46,6 +46,10 @@ Copy or symlink `eval/` to `run/gfs/` in a Cresco workspace. Results land in `ru
 | Script | Runs |
 |---|---|
 | `launch_gfs_fabric.sh up` then `gfs_eval.py` | Functional suite E1–E11 (99 checks, ~80 s) |
+| `core_fabric_check.py` | Storage core on a live fabric: 61 checks, including every dedup mode, the replica hash, a killed node, the index killed -9 and a halt between seal and commit. Run with `IXMX=2048M GXMX=4096M` |
+| `core_throughput.py` | Throughput leg by leg (`TP_PHASES=A,B,C`): node transport, client upload, publish and read at R=1 and R=3, and pipelined ingest |
+| `core_frame_sweep.py` | Frame size, broker persistence and batch size for the node leg |
+| `gkt.py` | Python GKT client (the dataplane transfer protocol): `CoreClient`, `MultiClient`, `ingest` |
 | `launch_gfs_scale.sh up 240`, `run_scale_all.sh` | 240-site scale tiers |
 | `launch_gfs_regions.sh up 8`, `run_scale_regions.sh` | Multi-region bridged fabric |
 | `run_failure_final.sh` | Failure tier F1–F8 and global restart ×3 |
@@ -73,6 +77,6 @@ is given.
 
 ## Continuous integration
 
-Every push to `GaiaKeep/gfs` runs `.github/workflows/test.yml`: the full suite (208 tests,
-including the 120-cell integration matrix and both smoke runs), the wire-contract lint, the
+Every push to `GaiaKeep/gfs` runs `.github/workflows/test.yml`: the full suite (324 tests at `e3d7b46`,
+including the 180-cell integration matrix, of which 60 cells run over the remote protocol, and both smoke runs), the wire-contract lint, the
 command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.
