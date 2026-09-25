@@ -3,7 +3,7 @@
 
 # Components of the durable storage core
 
-*2026-09-23. **Status: all eleven components built and tested — 203 tests, 0 failures; results and the decisions they raise in `MODULE-DECISIONS.md`.** The build plan the owner ordered: define every component, build each one with
+*2026-09-23. **Status: all eleven components built and tested — 203 tests, 0 failures at the time (324 at `e3d7b46`, CI green); results and the decisions they raise in `MODULE-DECISIONS.md`.** The build plan the owner ordered: define every component, build each one with
 exhaustive module tests, make decisions module by module from measured results, then integration-test
 the assembled engine across the option matrix. Design of record: `TENANCY-AND-DEDUP.md`,
 `SPECIFICATION.md` §20, `ENTAIL-AGENT-NATIVE-FS.md` §3 and §6.*

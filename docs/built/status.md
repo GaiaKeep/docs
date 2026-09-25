@@ -1,7 +1,7 @@
 # Status at a glance
 
 Every component with its label: **Proven**, **Built**, **Designed**, **Proposed** or **Open**
-(see the [home page](../index.md) for definitions). Updated 2026-09-23 (night) at `GaiaKeep/gfs` `f055e07`.
+(see the [home page](../index.md) for definitions). Updated 2026-09-25 at `GaiaKeep/gfs` `e3d7b46` (CI green: 324/324 on the GitHub runner).
 
 !!! success "Durable storage core: on the fabric, every byte on the dataplane"
     **No file byte travels in a control message.** Clients stream over GKT, a reliable transfer on the
@@ -80,7 +80,7 @@ Every component with its label: **Proven**, **Built**, **Designed**, **Proposed*
 
 | Component | Status | Evidence / note |
 |---|---|---|
-| Counter discipline for per-object keys (`SegmentCipher`) | **Built** (no production caller yet) | IvDiscipline 14/14 |
+| Counter discipline for per-object keys (`SegmentCipher`) | **Built**, used by NONE-mode objects (`BlockCodec.NoneObject`) | IvDiscipline 14/14 |
 | Confirmation-oracle lint | **Built** | OracleLint, both controls |
 | Live encode path key/IV use | **Verified safe** | fresh key per encode, stripe counter |
 | Site key wrap: random IV, no rotation | **Known issue**, minor | Fix proposed |

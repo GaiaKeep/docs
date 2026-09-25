@@ -1,9 +1,9 @@
 !!! success "Status: Current"
-    The decisions each component raises, with the measurements behind them: 203 tests, 0 failures (2026-09-23).
+    The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25).
 
 # Module-level decisions
 
-*2026-09-23. Every component in `COMPONENTS.md` is built and tested: **203 tests pass, 0 fail**
+*2026-09-23. Every component in `COMPONENTS.md` is built and tested: **203 tests pass, 0 fail** (at the time; 324 at `e3d7b46`, CI green)
 (83 module and engine tests, and a 120-cell integration matrix). The measurements below are from
 `ModuleMeasurementsTest` and `IntegrationMatrixTest`, with raw data in `eval/results/modules/`. Host:
 14-core Apple silicon, JDK 23, single machine. Every rate is a ceiling for this machine, not a

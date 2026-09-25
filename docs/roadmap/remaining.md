@@ -24,12 +24,11 @@ Nothing in phase 1 can be specified exactly until these are answered. See
     Built and tested: tenancy and dedup domains, grants, per-block hashing and keys, chunkers,
     versioning, reference counting, placement, and the engine. The engine is journaled through the
     federation index and replicated, crash-safe through write intents, and reaches storage nodes over
-    `RemoteBinding`. Evidence: 294 tests, and 61/61 on a live fabric.
+    `RemoteBinding`. Evidence: 324 tests (CI green at `e3d7b46`), and 61/61 on a live fabric.
 
     Remaining in this phase:
 
-    - carry extent bytes on the dataplane instead of control messages (fabric throughput is 15–18 MB/s
-      against 568–604 MB/s in-process);
+    - ~~carry extent bytes on the dataplane~~: done in `e3db276`; no file byte travels in a control message
     - per-tenant authorization on `core.*`;
     - reference storage at scale (D-C6-1), and enforcing R ≥ 2 for durable collections (D-C11-1);
     - journal compaction.
