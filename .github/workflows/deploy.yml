@@ -2,20 +2,32 @@ name: deploy-docs
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # pinned: ubuntu-latest moves to a new release on its own schedule
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: {fetch-depth: 0}
-      - uses: actions/setup-python@v5
+      # This site is public. Nothing is built or deployed unless both gates pass.
+      - name: Secret scan of the whole history (gitleaks, MIT)
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          /tmp/gitleaks git --redact --no-banner --exit-code 1 .
+      - name: Public-content gate (credentials, internal paths and hosts, links into the private repo)
+        run: python3 scripts/public_filter.py check docs
+      - uses: actions/setup-python@v7
         with: {python-version: "3.12"}
       - run: pip install -r requirements.txt
       - run: mkdocs build --strict
-      - run: |
+      - name: Deploy
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
           git config user.name  "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           mkdocs gh-deploy --force

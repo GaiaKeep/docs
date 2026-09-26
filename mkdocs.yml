@@ -1,8 +1,8 @@
 site_name: GaiaKeep GFS
 site_description: A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.
 site_url: https://gaiakeep.github.io/docs/
-repo_url: https://github.com/GaiaKeep/gfs
-repo_name: GaiaKeep/gfs
+repo_url: https://github.com/GaiaKeep/docs
+repo_name: GaiaKeep/docs
 edit_uri: ""
 
 theme:
