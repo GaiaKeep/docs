@@ -1,6 +1,6 @@
 # Running the tests
 
-Everything below lives in [`GaiaKeep/gfs`](https://github.com/GaiaKeep/gfs). It needs JDK 21 and
+Everything below lives in `GaiaKeep/gfs` (a private repository). It needs JDK 21 and
 Maven; the fabric campaigns also need the Cresco `run/` layout and `pycrescolib`.
 
 ## Build

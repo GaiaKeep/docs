@@ -4,9 +4,11 @@ Copy the design record from the gfs repository into this site.
 
 Each document gets a status banner saying what it is and which parts have been superseded, so a
 reader landing on a September 19 decision knows whether it still holds. Relative links are
-rewritten: links to other design documents stay relative, links to code and results become GitHub
-URLs in GaiaKeep/gfs, and links to files that no longer exist are reduced to plain text rather than
-left broken.
+rewritten: links to other design documents stay relative. Links to code and results become plain
+text naming the file, because GaiaKeep/gfs is private and a link into it is a 404 for every reader of
+this public site. Links to files that no longer exist are reduced to plain text rather than left broken.
+Every copied document passes through public_filter.scrub, which rewrites internal detail
+(workstation paths, cluster hosts, accounts, private addresses) into neutral words.
 
 Usage:  python3 scripts/sync_design.py [path/to/gfs]     (default: ../../cresco/code/gfs)
 """
@@ -15,10 +17,12 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from public_filter import scrub  # noqa: E402
+
 SITE = Path(__file__).resolve().parent.parent
 GFS = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else (SITE.parent.parent / "cresco/code/gfs").resolve()
 SRC = GFS / "docs"
-GITHUB = "https://github.com/GaiaKeep/gfs/blob/1.3/"
 
 # (file, title, status, banner). Order is the order in the navigation.
 DOCS = [
@@ -86,7 +90,9 @@ def rewrite_links(text: str, here: Path, local_names: set) -> str:
         try:
             rel = resolved.relative_to(GFS)
             if resolved.exists():
-                return f"[{label}]({GITHUB}{rel.as_posix()}{'#' + anchor if anchor else ''})"
+                # the gfs repository is private: name the file instead of linking into it
+                name = rel.as_posix()
+                return f"`{name}`" if label.strip("` ") in (name, resolved.name) else f"{label} (`{name}`)"
         except ValueError:
             pass
         return label  # the target is gone; keep the words, drop the broken link
@@ -109,7 +115,7 @@ def main():
         if not src.exists():
             print(f"missing: {src}")
             continue
-        body = rewrite_links(src.read_text(encoding="utf-8"), SRC, names)
+        body = scrub(rewrite_links(src.read_text(encoding="utf-8"), SRC, names))
         (out / fname).write_text(banner(status, note) + body, encoding="utf-8")
         rows.append((fname, title, status, note.split(". ")[0].replace("**", "")))
         print(f"synced {fname}")
@@ -126,7 +132,7 @@ def main():
 
     oq = SRC / "OPEN-QUESTIONS.md"
     if oq.exists():
-        body = rewrite_links(oq.read_text(encoding="utf-8"), SRC, set())
+        body = scrub(rewrite_links(oq.read_text(encoding="utf-8"), SRC, set()))
         (SITE / "docs/roadmap/open-questions.md").write_text(
             '!!! info "Answer by id"\n    Every decision the owner still needs to make, with a priority '
             'and, where one exists, a recommendation. Source: `GaiaKeep/gfs` `docs/OPEN-QUESTIONS.md`.\n\n'

@@ -1711,7 +1711,7 @@ path under a variable-length set and are not under a fixed-length vector. They r
    by design, so a plant-wide mean understates the worst segregated cartridge by the reciprocal byte
    fraction of the small-object population.
 8. **[M8] The object-size distribution per lineage class**, a `find`/`stat` walk of
-   `/project/ibi-staff/LLM_TEXT/` on `dgx.ai.uky.edu`. Available today, unowned, and it is the input
+   `<cluster project storage>` on `the HPC cluster`. Available today, unowned, and it is the input
    to §14's capacity model and to §8.4 rule 1's padding arithmetic.
 9. **[M9] Objects per consent unit**, from the clinical lineage manifest, as a distribution with its
    tail. It prices §12.4's per-object destroy-handle volume (§16 item 13) and §9.5's lease-aggregation
@@ -1823,7 +1823,7 @@ listed here with its disposition. **RESOLVED** means the decision above makes it
 | 36 | The checkpoint omits `xorbs[]` while §7.3 promises the `xid` set, so either the entry is ~470× larger than stated or the index-mode rebuild cannot satisfy §7.3 | SERIOUS | **RESOLVED.** The checkpoint carries `xorbs[]`; the entry and the per-cartridge figure are restated; the alternative (a 291-locate trailer pass at ~3.2 h/cartridge) is named (§7.1, §7.3, §18.2) |
 | 37 | No leakage measurement appeared anywhere in the measurement list for a decision whose stated risk is disclosure | SERIOUS | **RESOLVED.** The differential disclosure test is added as a blocking commissioning gate and a recurring lint (§18.7 M6, §17) |
 | 38 | Deleting a committed wire-format field is itself the permanent act, and no position said what remains in `sids[n]` | SERIOUS | **RESOLVED.** The post-decision chunk table is written out explicitly (§18.4) |
-| 39 | The checkpoint-only pilot's undo — destroy the cartridge — is unusable, because §16 item 7 establishes that checkpoints cannot be recomputed | SERIOUS | **RECORDED.** Any format pilot must retain a live source copy on `dgx.ai.uky.edu` until the format is ratified, and pilot cartridges must never share a cartridge with production data; both are preconditions, not properties |
+| 39 | The checkpoint-only pilot's undo — destroy the cartridge — is unusable, because §16 item 7 establishes that checkpoints cannot be recomputed | SERIOUS | **RECORDED.** Any format pilot must retain a live source copy on `the HPC cluster` until the format is ratified, and pilot cartridges must never share a cartridge with production data; both are preconditions, not properties |
 | 40 | "For large objects the set gets smaller than the `rdom` set it replaces" is set-theoretically impossible | minor | **Noted.** Every resident object belongs to a resident domain, so the object set is never smaller. The hole's ratio is correct as a *ratio*; it is simply not needed to compute an absolute size (§18.1) |
 | 41 | §8.8 requires `coding_id: u16` in every volume index, which §7.1's entry list omits | minor | **RESOLVED.** `coding_id` is in the trailer and in the checkpoint entry, and is counted in the 43,404 B (§7.1, §18.2) |
 | 42 | `res_ords`/`obj_ords` is written ~3.5× per fragment (one trailer plus a mean 2.5 cumulative checkpoints), which no media figure accounted for | minor | **RESOLVED.** Media cost is stated at 3.5 × I = 44.2 MB per cartridge, 1.5 × 10⁻⁴ % of capacity (§18.6) |
@@ -1840,7 +1840,7 @@ This section exists because that sentence reads, on its face, like a requirement
 document-resolution identity into the archive's own sealed structures — which would undo §18.3 the
 week it was decided. It does not, and the arithmetic that shows why also produces a sharper
 statement of the §13.1 lint than §13.1 itself contains. Every size below was measured on
-`dgx.ai.uky.edu` on 2026-09-19 under `/project/ibi-staff/LLM_TEXT/panatlas/`; none is modelled.
+`the HPC cluster` on 2026-09-19 under `<cluster project storage>`; none is modelled.
 Reproduce with `eval/sim/IndexResidency.java`.
 
 ### 19.1 What panAtlas actually brings, measured
