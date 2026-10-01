@@ -26,10 +26,22 @@ SRC = GFS / "docs"
 
 # (file, title, status, banner). Order is the order in the navigation.
 DOCS = [
+    ("FORMAT-ADAPTERS.md", "Format-aware dedup adapters", "Current",
+     "Audited DICOM, NIfTI and TIFF cut adapters: metadata edits do not rewrite bulk data (shipped in 1.3, 2026-10-01)."),
+    ("JOBS-AND-API.md", "Jobs and the API", "Current",
+     "Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01)."),
+    ("CORE-LOG.md", "The replicated core log", "Current",
+     "The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01)."),
+    ("PACK-FORMAT.md", "Pack container format", "Current",
+     "The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01)."),
+    ("TAPE-FORMAT.md", "Tape format", "Current (software path)",
+     "How containers map to tape; items marked [HW] still need a real drive."),
+    ("TAPE-SIMULATION.md", "Tape simulation", "Current",
+     "The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks."),
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",
      "The statement of purpose and the decision to remove Bareos (2026-09-20). Current."),
     ("MODULE-DECISIONS.md", "Module decisions (measured)", "Current",
-     "The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25)."),
+     "The decisions each component raises, with the measurements behind them. Superseded in part by the 1.3 ship (2026-10-01): see the newer pages."),
     ("COMPONENTS.md", "Component definitions", "Current",
      "Every component of the durable storage core: interface, what its tests must establish, the decision it feeds."),
     ("TENANCY-AND-DEDUP.md", "Tenancy and deduplication", "Current",
