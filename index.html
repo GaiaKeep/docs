@@ -877,6 +877,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -937,6 +943,90 @@
     
   
     Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
   
 
     
@@ -2276,18 +2366,26 @@ to go. This once again is not for humans, it is for agents and to be used by age
 </tbody>
 </table>
 <h2 id="where-things-stand">Where things stand<a class="headerlink" href="#where-things-stand" title="Permanent link">&para;</a></h2>
-<p>This work began as the <em>Cresco Global File System</em> prototype (September 2026), and it has moved
-further since. The site keeps three things apart that are easy to blur:</p>
+<p><strong>Release 1.3 shipped on 2026-10-01.</strong> The durable storage core is built, tested and validated on
+the DGX cluster. See <a href="built/release-1-3/">Release 1.3</a>, <a href="built/tests/">Test results</a> and
+<a href="built/benchmarks/">Benchmarks</a>.</p>
 <ul>
-<li><strong>What is proven.</strong> The prototype, proven on a single host: 99/99 functional checks, 59/59
-  documented claims, a 240-site federation and a million-file index. See
-  <a href="built/prototype/">The prototype</a> and <a href="built/scale/">Scale results</a>.</li>
-<li><strong>What has been designed and measured since.</strong> Tape economics, a measured placement engine, a
-  fail-closed durability check and the encryption counter discipline. See
-  <a href="built/since-prototype/">Since the prototype</a> and <a href="built/measurements/">Measurements</a>.</li>
-<li><strong>What is still to be decided and built.</strong> The tenant, collection and deduplication model; the
-  durable storage core; raw tape I/O; the caching tier. See <a href="roadmap/remaining/">Remaining work</a>
-  and <a href="roadmap/open-questions/">Open questions</a>.</li>
+<li><strong>What is proven.</strong><ul>
+<li><strong>The 1.3 core:</strong> 2,188 automated tests, green in CI. The secured live fabric check passes
+  88/88 on the DGX.</li>
+<li><strong>Ingest:</strong> 8–16 GB at three copies runs at about 150 MB/s and reads back at about 290 MB/s,
+  with no request over 20 s.</li>
+<li><strong>Transport:</strong> 0.7 GB/s per flow and over 2 GB/s across 4–8 flows.</li>
+<li><strong>Format-aware dedup:</strong> a de-identified DICOM re-upload sends under 1 % of its bytes.</li>
+<li><strong>The prototype before it:</strong> 99/99 functional checks, a 240-site federation and a million-file
+  index. See <a href="built/prototype/">The prototype</a> and <a href="built/scale/">Scale results</a>.</li>
+</ul>
+</li>
+<li><strong>What is built and tested on simulated hardware.</strong> The tape software path, on a simulator and on
+  virtual drives. Pack containers on storage nodes. See <a href="built/status/">Status at a glance</a>.</li>
+<li><strong>What is still to be decided and built.</strong> Raw tape I/O on a real drive. Faster reads over links of
+  80 ms and more. Erasure coding. The caching tier. See <a href="roadmap/remaining/">Remaining work</a> and
+  <a href="roadmap/open-questions/">Open questions</a>.</li>
 </ul>
 <p>Every status claim on this site uses one of five labels:</p>
 <table>

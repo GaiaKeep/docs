@@ -801,6 +801,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -864,6 +870,90 @@
     
   
     Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
   
 
     
@@ -1115,6 +1205,17 @@
     <span class="md-ellipsis">
       
         Continuous integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#added-in-release-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added in release 1.3
       
     </span>
   </a>
@@ -2291,6 +2392,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#added-in-release-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added in release 1.3
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2443,6 +2555,58 @@ is given.</p>
 <p>Every push to <code>GaiaKeep/gfs</code> runs <code>.github/workflows/test.yml</code>: the full suite (324 tests at <code>e3d7b46</code>,
 including the 180-cell integration matrix, of which 60 cells run over the remote protocol, and both smoke runs), the wire-contract lint, the
 command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.</p>
+<h2 id="added-in-release-13">Added in release 1.3<a class="headerlink" href="#added-in-release-13" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Harness</th>
+<th>What it does</th>
+<th>How to run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Crash matrix</td>
+<td>Crashes the core at every registered fault point, in 4 loss modes, and checks recovery against an oracle</td>
+<td><code>CrashMatrixTest</code>; live on a fabric with <code>eval/crash_matrix.py</code></td>
+</tr>
+<tr>
+<td>Model-based engine tests</td>
+<td>Random operation sequences checked against a reference model, shrinking any failure to a minimal case</td>
+<td><code>EngineModelTest</code>; <code>-Dgfs.model.seeds=N</code>, replay with <code>-Dgfs.model.replay=&lt;file&gt;</code>; long run under the <code>long</code> tag</td>
+</tr>
+<tr>
+<td>Power-cut harness</td>
+<td>A page-cache model of the file system, cut at every file call in three modes (lose all, prefix, reorder)</td>
+<td><code>*PowerLossTest</code>; the 600-history runs are under the <code>long</code> tag</td>
+</tr>
+<tr>
+<td>Chain chaos and partition tests</td>
+<td>Kills, partitions and delays during chain replication, checked by a durability and linearizability oracle</td>
+<td><code>ChainChaosTest</code>, partition tests</td>
+</tr>
+<tr>
+<td>WAN grid</td>
+<td>5 sites in a Linux VM with netem round-trip time and loss; striped ingest compared with a LAN reference</td>
+<td>the campaign WAN cells</td>
+</tr>
+<tr>
+<td>Simulated tape</td>
+<td>An LTO-class drive and library simulator; mhVTL virtual drives driven through the real Linux tape device path</td>
+<td>tape tests; <code>eval/tape/mhvtl/</code></td>
+</tr>
+<tr>
+<td>DGX live harness</td>
+<td>The secured multi-host fabric: sealed keys per node, strict node-key pinning, signed requests</td>
+<td><code>eval/dgx/live.sh &lt;label&gt; &lt;jar&gt; [check\|bench\|all]</code></td>
+</tr>
+<tr>
+<td>Benchmark gate</td>
+<td>Fails CI when a benchmark result falls below 0.4× its baseline, or dedup regresses</td>
+<td><code>eval/bench_gate.py</code></td>
+</tr>
+</tbody>
+</table>
 
 
 

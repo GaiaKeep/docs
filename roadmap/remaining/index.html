@@ -799,6 +799,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -859,6 +865,90 @@
     
   
     Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
   
 
     
@@ -2296,7 +2386,7 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <ul>
 <li>[x] <strong>Tenant / collection / deduplication domain</strong> model: design of record written 2026-09-23; open choices are policy settings with defaults</li>
 <li>[x] <strong>Chunking</strong>: a per-domain setting (content-defined by default)</li>
-<li>[ ] Redo <strong>S1</strong>, the metadata-key IV discipline, under the dedup model</li>
+<li>[x] Redo <strong>S1</strong>, the metadata-key IV discipline, under the dedup model</li>
 <li>[ ] Choose the <strong>first consumers</strong> and the <strong>first dataset</strong> (P1, P2); proposed: the panAtlas index</li>
 <li>[ ] Decide whether the <strong>DGX copy is kept</strong> after archiving (P3); this decides whether two sites could ever suffice</li>
 <li>[x] <strong>Hash function</strong>: SHA-384 by default, fixed per domain</li>
@@ -2305,17 +2395,16 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 </ul>
 <h2 id="phase-1-durable-storage-core">Phase 1: durable storage core<a class="headerlink" href="#phase-1-durable-storage-core" title="Permanent link">&para;</a></h2>
 <div class="admonition success">
-<p class="admonition-title">Built, and running on the fabric (2026-09-23)</p>
-<p>Built and tested: tenancy and dedup domains, grants, per-block hashing and keys, chunkers,
-versioning, reference counting, placement, and the engine. The engine is journaled through the
-federation index and replicated, crash-safe through write intents, and reaches storage nodes over
-<code>RemoteBinding</code>. Evidence: 324 tests (CI green at <code>e3d7b46</code>), and 61/61 on a live fabric.</p>
+<p class="admonition-title">Shipped as release 1.3 (2026-10-01)</p>
+<p>The durable storage core is built, tested and validated on the DGX: 2,188 automated tests green
+in CI, and the secured live fabric check 88/88 on the DGX. It covers per-tenant authorization on
+every verb, a Raft-replicated core with journal compaction, striped ingest with a short commit,
+chain replication, format-aware dedup and pack containers. See <a href="../../built/release-1-3/">Release 1.3</a>.</p>
 <p>Remaining in this phase:</p>
 <ul>
-<li>~~carry extent bytes on the dataplane~~: done in <code>e3db276</code>; no file byte travels in a control message</li>
-<li>per-tenant authorization on <code>core.*</code>;</li>
-<li>reference storage at scale (D-C6-1), and enforcing R ≥ 2 for durable collections (D-C11-1);</li>
-<li>journal compaction.</li>
+<li>faster reads over long round trips (80 ms and more): deeper read-ahead, or reads spread across replicas;</li>
+<li>fewer spurious retransmits on slow links whose queues outlast the retransmit timer;</li>
+<li>the tape items below that need a real drive.</li>
 </ul>
 </div>
 <p><strong>Goal:</strong> an agent publishes a versioned dataset into a collection under policy; three sites each
@@ -2323,42 +2412,43 @@ hold a verified copy; one site is lost; the exact version is reconstructed and s
 hash-verified, with no human action.</p>
 <p><strong>Placement and bindings</strong></p>
 <ul>
-<li>[ ] Route the live write and read paths through <code>ExtentBinding</code>; nothing depends on the current direct path</li>
+<li>[x] Route the live write and read paths through <code>ExtentBinding</code>; nothing depends on the current direct path</li>
 <li>[ ] Locus properties with a recorded basis; media labels as telemetry only</li>
 <li>[ ] Remaining locus properties: per-access setup cost, removability, volatility, reclaim granularity and latency, wear in native units</li>
 <li>[ ] Policy as constraints plus scoring; explicit behaviour when a policy can't be satisfied</li>
-<li>[ ] DGX storage nodes moved to node-local <code>store_dir</code></li>
+<li>[x] DGX storage nodes moved to node-local <code>store_dir</code></li>
 </ul>
 <p><strong>Blocks and governance</strong></p>
 <ul>
-<li>[ ] Tenant, collection and dedup-domain records in the index; per-collection policy</li>
-<li>[ ] Hash every block before storage; derive block identity and key per domain</li>
-<li>[ ] Sealed-domain encryption on <code>SegmentCipher</code>; shared and global domains on per-block derived keys</li>
-<li>[ ] Grants and cross-collection / cross-tenant references, with withdrawal terms</li>
-<li>[ ] Reference counting for shared blocks</li>
+<li>[x] Tenant, collection and dedup-domain records in the index; per-collection policy</li>
+<li>[x] Hash every block before storage; derive block identity and key per domain</li>
+<li>[x] Sealed-domain encryption on <code>SegmentCipher</code>; shared and global domains on per-block derived keys</li>
+<li>[x] Grants and cross-collection / cross-tenant references, with withdrawal terms</li>
+<li>[x] Reference counting for shared blocks</li>
 </ul>
 <p><strong>Versioning</strong></p>
 <ul>
-<li>[ ] Versions, runs and branches with quorum commit</li>
-<li>[ ] Extracts with deterministic selectors, citation ids, and pin-amplification refusal</li>
+<li>[x] Versions, runs and branches with quorum commit</li>
+<li>[x] Extracts with deterministic selectors, citation ids, and pin-amplification refusal</li>
 <li>[ ] Streaming <code>realise</code> with per-block verification; <code>prospect</code> with costed options</li>
 </ul>
 <p><strong>Redundancy</strong></p>
 <ul>
-<li>[ ] 3-way replication across three sites, with the existing loss detection, repair, scrub and audit reused</li>
-<li>[ ] Retention classes at write time; garbage collection as a budgeted, refusable obligation</li>
-<li>[ ] Repack with the rewrite rule (preserve counters and copy bit-for-bit, or re-key)</li>
+<li>[x] 3-way replication across three sites, with the existing loss detection, repair, scrub and audit reused</li>
+<li>[x] Retention classes at write time; garbage collection as a budgeted, refusable obligation</li>
+<li>[x] Repack with the rewrite rule (preserve counters and copy bit-for-bit, or re-key)</li>
 </ul>
 <p><strong>Tape (in parallel, gated by hardware)</strong></p>
 <ul>
 <li>[ ] Measure the mount cycle, rewind and the minimum streaming speed ("shoe-shine" floor) on the Stack</li>
-<li>[ ] Raw SCSI tape binding over <code>st</code>/<code>sg</code></li>
+<li>[x] Raw SCSI tape binding over <code>st</code>/<code>sg</code>: built and tested against virtual drives (mhVTL)</li>
+<li>[ ] The same binding on a real drive</li>
 <li>[ ] Specify the on-media format and write the <strong>independent reference reader</strong> (blocking before any real cartridge)</li>
 </ul>
 <p><strong>Security (before media)</strong></p>
 <ul>
-<li>[ ] Metadata-key IV discipline (S1, redone under the dedup model)</li>
-<li>[ ] Idempotency-key lease (S2); lint banning direct low-level encrypt calls (S3)</li>
+<li>[x] Metadata-key IV discipline (S1, redone under the dedup model)</li>
+<li>[x] Idempotency-key lease (S2); lint banning direct low-level encrypt calls (S3)</li>
 <li>[ ] Per-object wrapping key for the site-key wrap</li>
 </ul>
 <h2 id="phase-2-the-advanced-caching-tier">Phase 2: the advanced caching tier<a class="headerlink" href="#phase-2-the-advanced-caching-tier" title="Permanent link">&para;</a></h2>
@@ -2367,10 +2457,11 @@ hash-verified, with no human action.</p>
 <ul>
 <li>[ ] Erasure coding reached by repack (RS(3,1) across four sites uses 11.1 % less media than RS(2,1) across three)</li>
 <li>[ ] Raw NVMe, raw disk and RAM bindings</li>
-<li>[ ] Global deduplication for public data across tenants</li>
+<li>[x] Global deduplication for public data across tenants</li>
 <li>[ ] Moving computation to data (<code>realise</code> with a remote locus), integrated with SLURM</li>
 <li>[ ] Hardware key custody (HSM) and a FIPS 140-3 validated module for DoD fielding</li>
-<li>[ ] Multi-host deployment: DGX mesh, then wide-area emulation, then partner sites</li>
+<li>[x] Multi-host deployment on the DGX (hub and dynamic mesh) and wide-area emulation</li>
+<li>[ ] Partner sites</li>
 </ul>
 <h2 id="carried-from-the-prototype">Carried from the prototype<a class="headerlink" href="#carried-from-the-prototype" title="Permanent link">&para;</a></h2>
 <ul>
