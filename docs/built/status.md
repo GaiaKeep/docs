@@ -40,7 +40,7 @@ Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or
 | Component | Status | Evidence / note |
 |---|---|---|
 | Placement from measured write rate; fail-closed durability barrier | **Built**, on the live path | |
-| Tape software path: deferred reads with tickets, archive, stage, verify | **Built** and tested on simulated drives | simulator and mhVTL virtual drives, end to end through the core |
+| Tape software path: deferred reads with tickets, archive, stage, verify | **Built** and tested on simulated drives | simulator and mhVTL virtual drives, end to end through the core; read-back after writing is a setting (full, sampled or none), benchmarked |
 | Raw SCSI tape on a real drive | **Designed** | needs hardware |
 | Mount cycle measured on a real drive | **Open**, blocking before media | |
 
@@ -62,7 +62,8 @@ Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or
 | Tape library: Spectra Stack first, Cube later | **Decided** (owner) |
 | Sites: three, 3-way replication | **Decided** (owner, sites chosen later) |
 | WAN hosts: BBR congestion control | **Recommended** (measured: 37 vs 0.5 MB/s at 1 % loss) |
-| LTO-10 media, per-site hosts | **Proposed** |
+| LTO-10 media | **Decided** (owner, 2026-10-01: LTO-10 only, no older media) |
+| Per-site hosts | **Proposed** |
 
 ## Caching tier
 
