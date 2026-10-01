@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gaiakeep.github.io/docs/built/scale/">
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/TAPE-SIMULATION/">
       
       
-        <link rel="prev" href="../prototype/">
+        <link rel="prev" href="../TAPE-FORMAT/">
       
       
-        <link rel="next" href="../since-prototype/">
+        <link rel="next" href="../FROM-SCRATCH-DECISION/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Scale results - GaiaKeep GFS</title>
+        <title>Tape simulation - GaiaKeep GFS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#scale-results" class="md-skip">
+        <a href="#tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Scale results
+              Tape simulation
             
           </span>
         </div>
@@ -262,13 +262,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../status/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
           
   
   
@@ -308,11 +306,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../design/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -782,10 +782,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -805,22 +803,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -838,7 +833,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -856,7 +851,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../status/" class="md-nav__link">
+      <a href="../../built/status/" class="md-nav__link">
         
   
   
@@ -884,7 +879,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../prototype/" class="md-nav__link">
+      <a href="../../built/prototype/" class="md-nav__link">
         
   
   
@@ -909,37 +904,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scale results
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
         
   
   
@@ -955,70 +923,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#headline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Headline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#codec-with-no-fabric" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Codec, with no fabric
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#durability-data-path-by-object-size" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Durability data path by object size
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#index-scale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Index scale
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1031,7 +935,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../since-prototype/" class="md-nav__link">
+      <a href="../../built/since-prototype/" class="md-nav__link">
         
   
   
@@ -1059,7 +963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../measurements/" class="md-nav__link">
+      <a href="../../built/measurements/" class="md-nav__link">
         
   
   
@@ -1087,7 +991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../harnesses/" class="md-nav__link">
+      <a href="../../built/harnesses/" class="md-nav__link">
         
   
   
@@ -1330,6 +1234,8 @@
       
   
   
+    
+  
   
   
     
@@ -1393,20 +1299,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../design/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1424,13 +1333,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1450,7 +1359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/FORMAT-ADAPTERS/" class="md-nav__link">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
         
   
   
@@ -1478,7 +1387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/JOBS-AND-API/" class="md-nav__link">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
         
   
   
@@ -1506,7 +1415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CORE-LOG/" class="md-nav__link">
+      <a href="../CORE-LOG/" class="md-nav__link">
         
   
   
@@ -1534,7 +1443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/PACK-FORMAT/" class="md-nav__link">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
         
   
   
@@ -1562,7 +1471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-FORMAT/" class="md-nav__link">
+      <a href="../TAPE-FORMAT/" class="md-nav__link">
         
   
   
@@ -1587,10 +1496,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../design/TAPE-SIMULATION/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1606,6 +1542,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-simulators-model-defaults-tape_sim_profilelto9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The simulator's model (defaults, tape_sim_profile=lto9)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mhvtl-the-real-device-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. mhVTL (the real device path)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The benchmark (TapeBench, JSON into eval/results/bench/, gated by eval/bench_gate.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1618,7 +1646,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/FROM-SCRATCH-DECISION/" class="md-nav__link">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
         
   
   
@@ -1646,7 +1674,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/MODULE-DECISIONS/" class="md-nav__link">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
         
   
   
@@ -1674,7 +1702,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/COMPONENTS/" class="md-nav__link">
+      <a href="../COMPONENTS/" class="md-nav__link">
         
   
   
@@ -1702,7 +1730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TENANCY-AND-DEDUP/" class="md-nav__link">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
         
   
   
@@ -1730,7 +1758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SPECIFICATION/" class="md-nav__link">
+      <a href="../SPECIFICATION/" class="md-nav__link">
         
   
   
@@ -1758,7 +1786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
         
   
   
@@ -1786,7 +1814,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
         
   
   
@@ -1814,7 +1842,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-DIRECTION/" class="md-nav__link">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
         
   
   
@@ -1842,7 +1870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/BAREOS-RECOMMENDATION/" class="md-nav__link">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
         
   
   
@@ -1870,7 +1898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1898,7 +1926,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1926,7 +1954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SYSTEM-REPORT/" class="md-nav__link">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
         
   
   
@@ -1954,7 +1982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CORE-PRINCIPLES/" class="md-nav__link">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
         
   
   
@@ -1982,7 +2010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/EVALUATION-PLAN/" class="md-nav__link">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
         
   
   
@@ -2010,7 +2038,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/PROTOTYPE/" class="md-nav__link">
+      <a href="../PROTOTYPE/" class="md-nav__link">
         
   
   
@@ -2038,7 +2066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESULTS/" class="md-nav__link">
+      <a href="../RESULTS/" class="md-nav__link">
         
   
   
@@ -2066,7 +2094,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SCALE-RESULTS/" class="md-nav__link">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
         
   
   
@@ -2094,7 +2122,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CLAIMS/" class="md-nav__link">
+      <a href="../CLAIMS/" class="md-nav__link">
         
   
   
@@ -2122,7 +2150,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/global-federated-storage-plan/" class="md-nav__link">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
         
   
   
@@ -2204,10 +2232,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#headline" class="md-nav__link">
+  <a href="#1-the-simulators-model-defaults-tape_sim_profilelto9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Headline
+        1. The simulator's model (defaults, tape_sim_profile=lto9)
       
     </span>
   </a>
@@ -2215,10 +2243,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codec-with-no-fabric" class="md-nav__link">
+  <a href="#2-mhvtl-the-real-device-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Codec, with no fabric
+        2. mhVTL (the real device path)
       
     </span>
   </a>
@@ -2226,10 +2254,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#durability-data-path-by-object-size" class="md-nav__link">
+  <a href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Durability data path by object size
+        3. The benchmark (TapeBench, JSON into eval/results/bench/, gated by eval/bench_gate.py)
       
     </span>
   </a>
@@ -2237,13 +2265,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#index-scale" class="md-nav__link">
+  <a href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Index scale
+        4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2264,156 +2320,277 @@
 
 
 
-<h1 id="scale-results">Scale results<a class="headerlink" href="#scale-results" title="Permanent link">&para;</a></h1>
-<p>Generated 2026-09-18 from the scale campaigns. <strong>One host</strong> (14-core Apple silicon, 36 GB), all
-nodes on loopback: these are compute, broker and protocol ceilings, not wide-area figures. Full
-tables are in <a href="../../design/SCALE-RESULTS/">SCALE-RESULTS.md</a>.</p>
-<h2 id="headline">Headline<a class="headerlink" href="#headline" title="Permanent link">&para;</a></h2>
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks.</p>
+</div>
+<h1 id="tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark">Tape on simulated devices: the in-JVM simulator, mhVTL, and the tape benchmark<a class="headerlink" href="#tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark" title="Permanent link">&para;</a></h1>
+<p>Owner direction 2026-09-30: benchmark and test the tape path end to end on simulated tape devices. Two
+kinds exist, and they answer different questions:</p>
 <table>
 <thead>
 <tr>
-<th>Area</th>
+<th></th>
+<th>In-JVM simulator (<code>io.cresco.gfs.tape.sim</code>)</th>
+<th>mhVTL (<code>eval/tape/mhvtl</code>, Lima VM <code>gfs-tape</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What it is</td>
+<td>cartridges as directories, drives and a robot with an LTO-9-class time model</td>
+<td>the Linux virtual tape library: real <code>/dev/nst*</code>, <code>/dev/sg*</code>, a SCSI medium changer</td>
+</tr>
+<tr>
+<td>Exercises</td>
+<td>the binding, the catalogue, the crash rules, faults, <strong>mechanics</strong> (mount, locate, rewind, streaming, shoe-shining)</td>
+<td>the <strong>real device path</strong>: st writes and reads, mt positioning, mtx for the robot, raw SCSI (READ POSITION, LOG SENSE, MAM, SECURITY PROTOCOL IN) through this node's own command set over <code>sg_raw</code></td>
+</tr>
+<tr>
+<td>Timing</td>
+<td>modelled (SIMULATED), deterministic, run on a scaled clock</td>
+<td>real wall time, but mhVTL has <strong>no mechanical model</strong> (no load, locate or streaming delays)</td>
+</tr>
+<tr>
+<td>Where</td>
+<td>every JUnit run, the bench on any host</td>
+<td>the Lima VM only (test infrastructure; GPL; never in the code or its dependencies)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-the-simulators-model-defaults-tape_sim_profilelto9">1. The simulator's model (defaults, <code>tape_sim_profile=lto9</code>)<a class="headerlink" href="#1-the-simulators-model-defaults-tape_sim_profilelto9" title="Permanent link">&para;</a></h2>
+<p>Every figure is configurable (<code>tape_sim_*</code>, below) and none is a measurement.</p>
+<table>
+<thead>
+<tr>
+<th>Figure</th>
+<th>Default</th>
+<th>Config key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Robot move, slot to drive and back</td>
+<td>8 s each way</td>
+<td><code>tape_sim_robot_ms</code></td>
+</tr>
+<tr>
+<td>Load to ready</td>
+<td>15 s</td>
+<td><code>tape_sim_load_ms</code></td>
+</tr>
+<tr>
+<td>Unload</td>
+<td>15 s</td>
+<td><code>tape_sim_unload_ms</code></td>
+</tr>
+<tr>
+<td>Rewind</td>
+<td>3 s + 94 s x the distance from BOT (97 s from the end)</td>
+<td><code>tape_sim_rewind_max_ms</code></td>
+</tr>
+<tr>
+<td>Locate</td>
+<td>2 s settle + 100 s x the fraction of the tape travelled (a full-length locate about 102 s)</td>
+<td><code>tape_sim_locate_full_pass_ms</code>, <code>tape_sim_locate_settle_ms</code></td>
+</tr>
+<tr>
+<td>Read retry reposition</td>
+<td>5 s</td>
+<td><code>tape_sim_reposition_ms</code></td>
+</tr>
+<tr>
+<td>Native streaming</td>
+<td>400 MB/s</td>
+<td><code>tape_sim_stream_bytes_per_sec</code></td>
+</tr>
+<tr>
+<td>Speed matching floor</td>
+<td>177 MB/s</td>
+<td><code>tape_sim_min_stream_bytes_per_sec</code></td>
+</tr>
+<tr>
+<td>Drive buffer</td>
+<td>1 GiB</td>
+<td><code>tape_sim_buffer_bytes</code></td>
+</tr>
+<tr>
+<td>Backhitch (one buffer underrun, or a restart after a synchronous filemark)</td>
+<td>3 s</td>
+<td><code>tape_sim_backhitch_ms</code></td>
+</tr>
+<tr>
+<td>First byte at mid-tape (robot + load + locate)</td>
+<td>about 75 s</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Whole mount cycle at mid-tape</td>
+<td>about 148 s</td>
+<td>derived</td>
+</tr>
+</tbody>
+</table>
+<p><code>tape_sim_profile=simplant</code> restores the tape spec's M1 figures (robot 15 s, load 90 s, a 172 s full pass at
+0.6, rewind 50-90 s, unload 25 s, reposition 40 s: first byte about 157 s, cycle about 265 s). A simulated
+node's descriptor figures (first byte p50/p95, cycle, stream rate, reposition) follow its profile unless
+<code>tape_first_byte_*</code> etc. are set, with basis SIMULATED.</p>
+<p><strong>Streaming and shoe-shining.</strong> The tape runs at the host's feed rate clamped to [177, 400] MB/s (speed
+matching). Records arrive into the buffer; the host waits only while the buffer is full. A record that
+arrives after the buffer drained finds the tape stopped: it costs a 3 s backhitch before streaming resumes.
+A writer below 177 MB/s therefore stops the tape again and again (shoe-shining): its drive-time streaming
+rate collapses toward the feed and the drive's repositions (wear) grow. A synchronous filemark (immed=0, the
+binding's per-container durability barrier) stops the tape too: the next write pays one backhitch (counted
+as a sync stop, not a shoe-shine). Arrival times are the host's wall clock by default; a benchmark can feed
+a synthetic timeline (<code>SimDrive.arrivals</code>) to model a host of any rate deterministically.</p>
+<p><strong>The library.</strong> N drives (<code>tape_sim_drives</code>, 2), M slots (<code>tape_sim_slots</code>, 16) and cartridges
+(<code>tape_sim_cartridges</code>, 8; <code>tape_sim_worm_cartridges</code>; <code>tape_sim_capacity_bytes</code>, 64 GiB), one robot whose
+moves are charged to the drive they serve. Time runs <code>SCALED</code> (sleeps the modelled time divided by
+<code>tape_sim_time_scale</code>, paced by debt so sub-millisecond operations are not rounded up) or <code>INSTANT</code> (no sleep;
+the modelled time is only accounted). Cartridges are directories, so a simulated host restart keeps them.</p>
+<p><strong>Faults</strong> (<code>SimFaults</code>, each consumed as it fires): medium error at (cartridge, lbn); deferred write error at
+the next synchronous filemark; short write; silent corruption on write (any byte of a record); silent
+corruption of a stored record; unit attention and position lost; drive fault and cleaning required (next
+command); <strong>a drive that dies after N records</strong> (its buffer is lost, every command then fails with HARDWARE
+ERROR, the cartridge stays in it until the robot pulls it); early warning at a chosen byte count; end of
+medium; WORM overwrite; a foreign cartridge; a MAM epoch bumped by "another host"; power cut (every drive
+buffer dropped).</p>
+<h2 id="2-mhvtl-the-real-device-path">2. mhVTL (the real device path)<a class="headerlink" href="#2-mhvtl-the-real-device-path" title="Permanent link">&para;</a></h2>
+<p><code>eval/tape/mhvtl/README.md</code> has the VM (Lima <code>gfs-tape</code>, Ubuntu 24.04 aarch64, kernel 6.8), the mhVTL commit,
+the emulated library (STK L700 + two IBM ULT3580-TD9 = LTO-9 drives, cartridges GFS000L9..GFS007L9 of 4 GiB),
+what was verified, and what does not work (mhVTL keeps a 512 KiB transfer cap unless built with the flag
+setup.sh passes; no mechanical timing; no real encryption). <code>setup.sh</code> installs and configures it
+idempotently; <code>fresh-media.sh</code> recreates blank cartridges and waits (restarting mhVTL up to three times) until
+both drives are registered again; <code>run-bench.sh</code> runs the bench. Devices are named by unit serial
+(<code>tape_st_drives=sn=GFSDRV11:auto,sn=GFSDRV12:auto</code>, <code>tape_st_changer=sn=GFSLIB10</code>) and resolved in sysfs
+(VPD page 80h) at each start: after an mhVTL restart the /dev numbers change and udev's by-id links were seen
+to come back incomplete.</p>
+<p>The binding reaches mhVTL through <code>core_store_binding=tape-st</code> (dev mode only; test infrastructure):
+<code>StTapeDrive</code> (records on the no-rewind st node, mt for positioning, and this node's own SCSI command set
+over <code>sg_raw</code> for READ POSITION, LOG SENSE 31h, MAM and SECURITY PROTOCOL IN) and <code>MtxChanger</code>. What st
+imposes and how it is absorbed is in docs/TAPE-FORMAT.md §6.</p>
+<h2 id="3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy">3. The benchmark (<code>TapeBench</code>, JSON into eval/results/bench/, gated by eval/bench_gate.py)<a class="headerlink" href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code># the simulator (any host), about 10-15 min at the default 20x clock:
+java -cp "target/classes:target/test-classes:$(cat target/cp.txt)" io.cresco.gfs.tape.bench.TapeBench --backend sim
+# mhVTL, inside the VM:
+limactl shell gfs-tape bash -lc 'cd &lt;worktree&gt; &amp;&amp; bash eval/tape/mhvtl/run-bench.sh'
+python3 eval/bench_gate.py eval/results/bench/tape-&lt;backend&gt;-&lt;date&gt;.json
+</code></pre></div>
+<p>Sections: archive throughput (one write session = one drive, then a session per drive: containers are spooled
+first and released together, so the drives are measured, not this host's pace of producing data; on the
+simulator per-drive and aggregate rates are the drives' modelled busy time, with and without the one-off robot
+and mount); recall latency, first byte and full, from a cold library and with the cartridge mounted (model time
+on the simulator: exact); batching (one ticket for many extents across cartridges, against one ticket each);
+recalls per hour under a mixed workload (four closed-loop readers while a writer archives, one modelled hour
+on the scaled clock); shoe-shining (the binding's own spool-fed writes, and a synthetic writer fed at 600,
+250, 150, 50 and 20 MB/s). Every recalled extent is checked byte for byte. <code>bench_gate.py</code> fails a run on any
+wrong byte, a write anywhere but EOD, a batching speedup below 1, a failed mixed recall, (simulator) a spool-fed
+binding streaming under the drive's 177 MB/s floor or with more than one backhitch per GiB, (simulator) a
+mounted recall not faster than a cold one, or a large drop against a baseline. (The binding feeds the drive
+from its local spool as fast as the spool reads: the spool disk must read faster than the drive's
+speed-matching floor, or the drive shoe-shines. A run on a loaded host showed it: one backhitch, streaming
+held at 249 MB/s.)</p>
+<p>The campaign's tier T6 runs all of it: <code>T6.junit.tape</code>, <code>T6.bench.sim</code> (env junit) and <code>T6.bench.mhvtl</code>
+(env lima-tape, <code>--allow-vm</code>).</p>
+<h2 id="4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl">4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)<a class="headerlink" href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" title="Permanent link">&para;</a></h2>
+<h3 id="41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x">4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)<a class="headerlink" href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Result</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Archive, one write session (one drive), 1 GiB in 4 containers of 256 MiB</td>
+<td>23.3 MB/s effective; 46.2 MB/s leaving out the one-off robot + mount (23 s); tape streaming 384 MB/s</td>
+<td>drive busy time (model)</td>
+</tr>
+<tr>
+<td>Archive, a session per drive (2), 2 GiB</td>
+<td>46.5 MB/s aggregate (2 x 23-24); 91.6 MB/s steady state; each drive streamed 394-396 MB/s, split 1050 / 1119 MB</td>
+<td>drive busy time (model)</td>
+</tr>
+<tr>
+<td>Recall, cold library (4 extents, cartridges in slots)</td>
+<td>first byte p50 28.9 s (p90 29.3 s); full p50 31.4 s</td>
+<td>model, the busiest drive</td>
+</tr>
+<tr>
+<td>Recall, cartridge mounted</td>
+<td>first byte p50 3.1 s (p90 3.2 s); full p50 8.0 s</td>
+<td>model</td>
+</tr>
+<tr>
+<td>Batching, 24 extents on 2 cartridges</td>
+<td>one ticket 36.0 s (2 mounts, 7 locates) against one ticket each 114.3 s (2 mounts, 24 locates): <strong>3.2x</strong></td>
+<td>model</td>
+</tr>
+<tr>
+<td>Recalls per hour, 4 readers + an archiving writer (1.3 GB archived meanwhile), 2 drives</td>
+<td>325 per hour, 0 failed or wrong; latency p50 6.7 s, p90 19.0 s</td>
+<td>scaled clock (host overhead included; varied 192-490 with host load)</td>
+</tr>
+<tr>
+<td>Shoe-shining, the binding (spool-fed, 2 GiB)</td>
+<td>0 underruns, streaming 394.9 MB/s</td>
+<td>model</td>
+</tr>
+<tr>
+<td>Shoe-shining, a synthetic writer at 600 / 250 / 150 / 50 / 20 MB/s (512 MiB)</td>
+<td>0 / 0 / 1 / 3 / 8 underruns; tape streaming 399 / 250 / 89 / 45 / 20 MB/s</td>
+<td>model</td>
+</tr>
+</tbody>
+</table>
+<p>Reading the archive rows: at 256 MiB containers every container pays a LOCATE back for its FULL read-back
+verify (2 s settle and the distance) and its bytes cross the head twice, and a session pays one robot + mount
+(23 s): the steady state here is about 47 MB/s per drive. With the production 16 GiB containers the same
+model gives about 190 MB/s per drive (a write and a verify read at about 400 MB/s each, the locate amortised).
+Two sessions double the aggregate: the drives are independent.</p>
+<h3 id="42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model">4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)<a class="headerlink" href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
 <th>Result</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Federation size</td>
-<td><strong>240 sites</strong> on one host; solving placement and promoting takes 3 ms; the index uses 19 % of one core under heartbeats</td>
+<td>Archive, one write session, 512 MiB (3 containers)</td>
+<td>21.1 MB/s, including the FULL read-back verify of every container, over st/mt/mtx and sg_raw</td>
 </tr>
 <tr>
-<td>Index</td>
-<td><strong>1,000,000 files</strong> ingested at <strong>143,444 files/s</strong>; 1,811 MB heap; resolve p99 <strong>0.4 ms</strong> at 5,398 resolves/s; replica converged with an identical hash</td>
+<td>Archive, a session per drive (2), 1 GiB (5 containers)</td>
+<td>40.0 MB/s aggregate (the two drives in parallel)</td>
 </tr>
 <tr>
-<td>Durability data path</td>
-<td>Encode <strong>233–291 MB/s</strong>, restore <strong>254–393 MB/s</strong> for 256 MiB–1 GiB objects; every restore hash-verified</td>
+<td>Recall, cold (robot move by mtx, load, label check, locate by mt, 4 extents of 8 MiB)</td>
+<td>first byte p50 4.3 s (p90 7.4 s); full p50 11.0 s</td>
 </tr>
 <tr>
-<td>Loss detection and repair</td>
-<td>Every lost holder found by audit in <strong>&lt; 122 ms</strong> and regenerated without keys</td>
+<td>Recall, cartridge mounted</td>
+<td>first byte p50 3.2 s (p90 4.4 s); full p50 13.3 s</td>
 </tr>
 <tr>
-<td>Transport</td>
-<td>Fragment push peaks at <strong>577 MB/s</strong> node to node; client fetch 143.7 MB/s</td>
+<td>Batching, 24 extents on 2 cartridges</td>
+<td>one ticket 55.4 s against one ticket each 82.0 s: <strong>1.5x</strong> (2 mounts either way)</td>
 </tr>
 <tr>
-<td>Isolation</td>
-<td>Control-plane RPC p99 <strong>0.72 ms</strong> while a 444 MB/s fragment flood runs</td>
-</tr>
-<tr>
-<td>Storm</td>
-<td><strong>40 of 240 sites</strong> lost at once → 85 objects repaired in <strong>27.2 s</strong>; 7 objects beyond the code's tolerance reported, not hidden; control p99 0.5 ms during the storm</td>
-</tr>
-<tr>
-<td>Multi-region</td>
-<td>72 sites across 8 bridged regions</td>
+<td>Recalls per hour, 4 readers + an archiving writer (302 MB archived meanwhile)</td>
+<td>1,875 per hour, 0 failed or wrong; latency p50 6.8 s, p90 14.2 s</td>
 </tr>
 </tbody>
 </table>
-<h2 id="codec-with-no-fabric">Codec, with no fabric<a class="headerlink" href="#codec-with-no-fabric" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Operation</th>
-<th>Rate</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Reed–Solomon (10,4), 14 threads</td>
-<td>3,872 MB/s encode</td>
-</tr>
-<tr>
-<td>Reed–Solomon (10,4), one thread</td>
-<td>423–425 MB/s</td>
-</tr>
-<tr>
-<td>AES-256-GCM decrypt</td>
-<td>~3,400 MB/s per thread; 24,232 MB/s encrypt on 14 threads</td>
-</tr>
-<tr>
-<td>SHA-256</td>
-<td>2,318.9 MB/s</td>
-</tr>
-<tr>
-<td>Shamir split / combine (n=9, t=5)</td>
-<td>60 µs / 6 µs</td>
-</tr>
-</tbody>
-</table>
-<h2 id="durability-data-path-by-object-size">Durability data path by object size<a class="headerlink" href="#durability-data-path-by-object-size" title="Permanent link">&para;</a></h2>
-<p>Representative rows (full grid in the design record):</p>
-<table>
-<thead>
-<tr>
-<th>Object</th>
-<th>Code</th>
-<th style="text-align: right;">Encode MB/s</th>
-<th style="text-align: right;">Restore MB/s</th>
-<th style="text-align: right;">Detect + repair</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>64 MiB</td>
-<td>(10,4)</td>
-<td style="text-align: right;">245.2</td>
-<td style="text-align: right;">242.4</td>
-<td style="text-align: right;">1.07 s</td>
-</tr>
-<tr>
-<td>256 MiB</td>
-<td>(3,2)</td>
-<td style="text-align: right;">278.3</td>
-<td style="text-align: right;">392.6</td>
-<td style="text-align: right;">2.11 s</td>
-</tr>
-<tr>
-<td>1 GiB</td>
-<td>(10,4)</td>
-<td style="text-align: right;">270.8</td>
-<td style="text-align: right;">253.5</td>
-<td style="text-align: right;">7.99 s</td>
-</tr>
-</tbody>
-</table>
-<h2 id="index-scale">Index scale<a class="headerlink" href="#index-scale" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">Files</th>
-<th style="text-align: right;">Ingest files/s</th>
-<th style="text-align: right;">Heap MB</th>
-<th>Resolve p50 / p99 ms</th>
-<th>Replica equal</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">100,000</td>
-<td style="text-align: right;">123,736</td>
-<td style="text-align: right;">138</td>
-<td>0.4 / 0.8</td>
-<td>yes</td>
-</tr>
-<tr>
-<td style="text-align: right;">250,000</td>
-<td style="text-align: right;">142,501</td>
-<td style="text-align: right;">304</td>
-<td>0.2 / 0.4</td>
-<td>yes</td>
-</tr>
-<tr>
-<td style="text-align: right;">1,000,000</td>
-<td style="text-align: right;">143,444</td>
-<td style="text-align: right;">1,811</td>
-<td>0.4 p99</td>
-<td>yes</td>
-</tr>
-</tbody>
-</table>
-<p>The replica must be sized like the core: a 1 GB replica ran out of memory at 10⁶ files.</p>
+<p>What these measure: the software path and the Linux device stack against a library that answers at once.
+Every positioning step is a process (mt, mtx, sg_raw) of tens of milliseconds, which dominates the small-data
+rows; mhVTL itself streams 190-310 MB/s with dd (eval/tape/mhvtl/README.md). A mounted recall is not faster
+than a cold one here because mhVTL has no load or robot time to save; the simulator carries that difference
+(3.1 s against 28.9 s).</p>
+<p>Every recalled extent in both runs matched byte for byte; no write went anywhere but the medium's EOD.</p>
 
 
 

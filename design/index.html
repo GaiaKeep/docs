@@ -16,7 +16,7 @@
         <link rel="prev" href="../roadmap/open-questions/">
       
       
-        <link rel="next" href="FROM-SCRATCH-DECISION/">
+        <link rel="next" href="FORMAT-ADAPTERS/">
       
       
         
@@ -1283,6 +1283,18 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1338,6 +1350,174 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="TAPE-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1953,6 +2133,36 @@
 </thead>
 <tbody>
 <tr>
+<td><a href="FORMAT-ADAPTERS/">Format-aware dedup adapters</a></td>
+<td>Current</td>
+<td>Audited DICOM, NIfTI and TIFF cut adapters: metadata edits do not rewrite bulk data (shipped in 1.3, 2026-10-01).</td>
+</tr>
+<tr>
+<td><a href="JOBS-AND-API/">Jobs and the API</a></td>
+<td>Current</td>
+<td>Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01).</td>
+</tr>
+<tr>
+<td><a href="CORE-LOG/">The replicated core log</a></td>
+<td>Current</td>
+<td>The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01).</td>
+</tr>
+<tr>
+<td><a href="PACK-FORMAT/">Pack container format</a></td>
+<td>Current</td>
+<td>The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01).</td>
+</tr>
+<tr>
+<td><a href="TAPE-FORMAT/">Tape format</a></td>
+<td>Current (software path)</td>
+<td>How containers map to tape; items marked [HW] still need a real drive.</td>
+</tr>
+<tr>
+<td><a href="TAPE-SIMULATION/">Tape simulation</a></td>
+<td>Current</td>
+<td>The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks.</td>
+</tr>
+<tr>
 <td><a href="FROM-SCRATCH-DECISION/">From-scratch decision</a></td>
 <td>Current</td>
 <td>The statement of purpose and the decision to remove Bareos (2026-09-20)</td>
@@ -1960,7 +2170,7 @@
 <tr>
 <td><a href="MODULE-DECISIONS/">Module decisions (measured)</a></td>
 <td>Current</td>
-<td>The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25).</td>
+<td>The decisions each component raises, with the measurements behind them</td>
 </tr>
 <tr>
 <td><a href="COMPONENTS/">Component definitions</a></td>

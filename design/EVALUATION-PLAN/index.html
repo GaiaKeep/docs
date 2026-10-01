@@ -1283,6 +1283,18 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1338,6 +1350,174 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2539,7 +2719,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <td>region-per-site topology</td>
 <td>7 regional controllers federated to a global</td>
 <td>E2–E11 pass unchanged</td>
-<td>PLAN (multi-host)</td>
+<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (3 regions: the writer's WAN bytes are exactly the blocks with no copy in its region); DGX: <code>eval/dgx/offload.sh mesh</code></td>
 </tr>
 </tbody>
 </table>
@@ -3244,7 +3424,19 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <td>E7.15</td>
 <td>network partition (bridge down)</td>
 <td>SUSPECT not LOST until lost_ms; no repair storm; heals on reconnect</td>
-<td>PLAN (multi-host)</td>
+<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (a region cut mid-publish loses nothing, records nothing there, heals and chains through it again), <code>FollowerReadTest</code> (a cut-off follower refuses reads, never serves stale); DGX silent-region form: <code>eval/dgx/offload.sh silent</code></td>
+</tr>
+<tr>
+<td>E-BR</td>
+<td>broker sizing</td>
+<td>every class saturated at the heap <code>eval/broker_sizing.py</code> gives; negative control at 1 GB</td>
+<td>no OOM, no temp spooling, flow-control stalls &lt; 1 s</td>
+</tr>
+<tr>
+<td>E-TP-CH</td>
+<td>chain against star, R=3</td>
+<td>core_throughput C with <code>core_replication=star</code> then <code>chain</code> (<code>eval/dgx/offload.sh chain</code>, <code>mesh</code>)</td>
+<td>chain R=3 &gt;= 1.5x star R=3 and &gt;= 0.7x R=1</td>
 </tr>
 <tr>
 <td>E7.16</td>
@@ -3762,9 +3954,9 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <tr>
 <td>E13.9</td>
 <td>WAN emulation</td>
-<td>30 ms/50 ms/1 % loss per site</td>
-<td>throughput model; repair completes</td>
-<td>PLAN</td>
+<td>30 ms/80 ms RTT, 0-1 % loss per site (Lima VM netem)</td>
+<td>§1a ingest and read-back goodput &gt;= 0.5 of the run's LAN reference; commit RPC &lt;= 20 s</td>
+<td>RUN 2026-09-30: stock 1/7 cells pass; with the node-leg drain fix (c71fbf1), BBR on the hosts and dataplane_shards=5, 6/7 and 4/7 on a repeat (30 ms passes in every run, 0.74-1.15 at 0-1 % loss; at 80 ms ingest 0.55-0.67 but range reads 0.25-0.57, the open item); commit RPC &lt;= 18 s throughout; repair and 150 ms profiles not rerun (eval/results/campaign/2026093<em>-2</em>; docs/OPERATIONS.md §2.1; OUT-24)</td>
 </tr>
 <tr>
 <td>E13.10</td>
@@ -3812,8 +4004,8 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 </tr>
 <tr>
 <td>E14.5</td>
-<td>operator runbooks: add site, retire site, rotate key, promote replica</td>
-<td>PLAN</td>
+<td>operator runbooks: bootstrap, add site, drain/decommission/lost site, rotate key, replace a core peer, fence recovery, audit verify, DR drill, procure a site</td>
+<td>WRITTEN (storage core, 2026-09-26); PLAN (drilled end to end)</td>
 </tr>
 <tr>
 <td>E14.6</td>
@@ -3823,62 +4015,115 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 </tbody>
 </table>
 <h2 id="e15-compliance-traceability-nist-800-53-rev5-cmmc-l2">E15 — Compliance traceability (NIST 800-53 rev5 / CMMC L2)<a class="headerlink" href="#e15-compliance-traceability-nist-800-53-rev5-cmmc-l2" title="Permanent link">&para;</a></h2>
+<p><em>Repointed 2026-09-26 from the prototype to the storage core (OUT-12). Evidence is JUnit test
+classes and committed results files. </em><em>UNIT (wave 1)</em><em> = passed on the wave-1 package branches;
+the merged suite and the live fabric checks have not run yet, so no row is RUN. The prototype's own
+evidence stays in E4-E9.</em></p>
 <table>
 <thead>
 <tr>
 <th>control</th>
-<th>GFS evidence</th>
+<th>storage-core mechanism</th>
+<th>evidence</th>
 <th>status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>AC-3, AC-6</td>
-<td>project ACLs, owner/delegate checks, origin grant verification (E4, E5)</td>
-<td>RUN</td>
+<td>every <code>core.*</code> request signed by a principal (ECDSA P-384) and authorized against its role bindings for the resolved tenant, collection or version</td>
+<td><code>CoreServiceAuthTest</code>, <code>PrincipalRegistryTest</code>, <code>RequestVerifierTest</code>, <code>PolicyEngineTest</code></td>
+<td>UNIT (wave 1); live F11 PLAN</td>
 </tr>
 <tr>
 <td>AC-4</td>
-<td>site admission + inter-tenant flow policy (E12.1–E12.3)</td>
-<td>PLAN</td>
+<td>tenant isolation in policy and at the service; grants with scope and issuer; keyless GLOBAL domains only for signed public data</td>
+<td><code>CoreServiceAuthTest</code>, <code>GrantLifecycleTest</code>, <code>PolicyEngineTest</code>, <code>StorageEngineTest</code></td>
+<td>UNIT (wave 1); tenant-namespaced fabric (E12.2) PLAN</td>
 </tr>
 <tr>
-<td>AU-2/3/10/12</td>
-<td>audit journal of privileged actions (E9.14), signed events (D4)</td>
-<td>RUN / PLAN</td>
+<td>AC-5</td>
+<td>system administration grants no data access; no principal binds a role to itself; unscoped roles bind only to system principals</td>
+<td><code>CoreServiceAuthTest</code>, <code>PrincipalRegistryTest</code></td>
+<td>UNIT (wave 1)</td>
 </tr>
 <tr>
-<td>IA-2/3</td>
-<td>ORCID/InCommon identities, cert-bound nodes</td>
-<td>PLAN</td>
+<td>AU-2, AU-3, AU-12</td>
+<td>every signed request and every refusal recorded before it runs (principal, action, target, decision, digest, result)</td>
+<td><code>AuditLogTest</code>, <code>CoreServiceAuthTest</code></td>
+<td>UNIT (wave 1)</td>
+</tr>
+<tr>
+<td>AU-9, AU-10</td>
+<td>HMAC-SHA-384 chained audit log, chain head anchored in the replicated metadata log; per-request signatures bind each action to a key</td>
+<td><code>AuditLogTest</code>, <code>RequestVerifierTest</code></td>
+<td>UNIT (wave 1)</td>
+</tr>
+<tr>
+<td>AU-11</td>
+<td>audit retention and archiving</td>
+<td>-</td>
+<td>PLAN (owner question S9)</td>
+</tr>
+<tr>
+<td>IA-2, IA-3, IA-5</td>
+<td>principals authenticate per request; each storage node has its own P-384 key, pinned by the core; core-to-node requests and replies signed both ways; key records checked for strength and custody</td>
+<td><code>RequestVerifierTest</code>, <code>XAuthTest</code>, <code>NodeProtocolTest</code>, <code>SecretQualityTest</code>, <code>KeyFilesTest</code></td>
+<td>UNIT (wave 1); federated user identity PLAN</td>
+</tr>
+<tr>
+<td>SC-5</td>
+<td>bounded frames, nonce caches, staging and download budgets, admission refusals instead of queues</td>
+<td><code>FrameBusTest</code>, <code>DownloadBudgetTest</code>, <code>StreamServiceTest</code>, <code>RequestVerifierTest</code></td>
+<td>UNIT (wave 1)</td>
 </tr>
 <tr>
 <td>SC-8</td>
-<td>mTLS hops + dataplane frames hashed</td>
-<td>RUN (hash) / PLAN (mTLS on)</td>
+<td>client transfers keyed per transfer (ECDH P-384, HKDF-SHA-384, AES-256-GCM, HMAC acknowledgements, signed key exchange); node bodies bound to signed digests; replication messages MAC'd</td>
+<td><code>GktTest</code>, <code>GktConformanceTest</code> (Java/Python golden vectors), <code>CoreTransferTest</code>, <code>RaftCodecTest</code></td>
+<td>UNIT (wave 1); mTLS on fabric hops PLAN</td>
 </tr>
 <tr>
-<td>SC-12/13</td>
-<td>AES-256-GCM, SHA-256/384, DRBG, Shamir custody (U1–U5, E6, E9)</td>
-<td>RUN</td>
+<td>SC-12, SC-13</td>
+<td>master key from 0600 key records or a PKCS#11 envelope, Shamir escrow, kid-aware rotation; one crypto facade with an SP 800-90A DRBG; CNSA suite (AES-256, SHA-384, HMAC-SHA-384, P-384)</td>
+<td><code>KeyRecordTest</code>, <code>KeySourcesTest</code>, <code>Pkcs11KekTest</code>, <code>KeySplitTest</code>, <code>MasterKeyRotationTest</code>, <code>RotateMasterVerbTest</code>, <code>GfsCryptoTest</code></td>
+<td>UNIT (wave 1); FIPS 140-3 validated module PLAN (S7)</td>
 </tr>
 <tr>
 <td>SC-28</td>
-<td>fragments ciphertext at rest (E6.8); index/journal at rest</td>
-<td>RUN / PLAN</td>
+<td>blocks encrypted before they leave the core; upload staging sealed at rest; metadata log integrity-protected</td>
+<td><code>BlockCodecTest</code>, <code>StreamServiceTest</code>, <code>CoreLogTest</code>; cost: <code>eval/results/staging_cost_dgx_20260926.json</code></td>
+<td>UNIT (wave 1); metadata confidentiality PLAN (S11)</td>
 </tr>
 <tr>
 <td>SI-7</td>
-<td>scrub + hash verification on every fetch (E8)</td>
-<td>RUN</td>
+<td>content-derived block ids verified on every read; scheduled scrub; MAC-chained logs replayed fail-closed</td>
+<td><code>StorageEngineTest</code>, <code>MaintenanceSchedulerTest</code>, <code>CoreLogTest</code>, <code>IndexJournalTest</code></td>
+<td>UNIT (wave 1)</td>
 </tr>
 <tr>
-<td>CP-9/10</td>
-<td>restore drills incl. site loss and key loss (E7, E9)</td>
-<td>RUN</td>
+<td>CP-9, CP-10</td>
+<td>metadata committed by a majority of three core peers before acknowledgement, leader failover, snapshot catch-up; durable collections need two or more replicas; automatic repair after a grace; drain, lost and decommission of sites</td>
+<td><code>RaftSimTest</code>, <code>ReplicatedCoreTest</code>, <code>CoreServiceClusterTest</code>, <code>SiteLifecycleTest</code>, <code>MaintenanceSchedulerTest</code></td>
+<td>UNIT (wave 1); live failover and DR drill PLAN; power-loss campaign in progress</td>
+</tr>
+<tr>
+<td>MP-6</td>
+<td>discarding an upload erases its staging cryptographically; tenant key destruction</td>
+<td><code>StreamServiceTest</code></td>
+<td>UNIT (staging); key destruction PLAN</td>
+</tr>
+<tr>
+<td>CM-6</td>
+<td>plain secrets refused in plugin config; an unproven fsync barrier refuses start; test hooks off by default</td>
+<td><code>NodeSecretsTest</code>, <code>CoreLogTest</code>, <code>CoreTransferTest</code></td>
+<td>UNIT (wave 1)</td>
 </tr>
 </tbody>
 </table>
+<p>Scale and cost evidence behind these rows: <code>eval/results/scale/summary.json</code> (metadata heap, replay,
+snapshot and install at 10^7-10^8 blocks), <code>eval/results/dedup/</code> (block size on real imaging),
+<code>eval/results/modules/dgx/index_resolve_durable-local-223123.json</code> (durable audit cost).</p>
 <h2 id="e16-pilot-readiness-btsa-nine-sites">E16 — Pilot readiness (BTSA, nine sites)<a class="headerlink" href="#e16-pilot-readiness-btsa-nine-sites" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

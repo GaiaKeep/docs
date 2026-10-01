@@ -1,0 +1,5032 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/PACK-FORMAT/">
+      
+      
+        <link rel="prev" href="../CORE-LOG/">
+      
+      
+        <link rel="next" href="../TAPE-FORMAT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Pack container format - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-gaiakeep-pack-container-format-version-1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pack container format
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What it is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Blocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Records
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-header-plaintext-272-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Header plaintext (272 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Kinds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-metadata-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Metadata bodies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-index-entries-120-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Index entries (120 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-checkpoint-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 CHECKPOINT body
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-footer-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 FOOTER body
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-running-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 Running hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Trailer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Writing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Writing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-order-and-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Order and identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-the-durability-barrier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 The durability barrier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-sealing-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Sealing layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Reading
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Reading">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-opening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Opening
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-the-index-one-seek-to-the-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 The index: one seek to the end
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-one-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 One record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-the-recovery-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 The recovery scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-full-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Full verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-what-a-reader-must-never-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 What a reader must never do
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-what-each-check-catches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. What each check catches
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-disclosure-what-is-on-the-medium-outside-a-seal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Disclosure: what is on the medium outside a seal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-tape-how-this-maps-onto-lto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Tape: how this maps onto LTO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-defaults-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Defaults and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-repack-d4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Repack (D4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-how-this-answers-specification-84" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. How this answers SPECIFICATION §8.4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-integration-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Integration plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Integration plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#151-fsbinding-packs-into-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.1 FsBinding packs into containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#152-startup-no-longer-stats-every-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.2 Startup no longer stats every file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#153-packing-classes-and-the-compaction-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.3 Packing classes and the compaction trigger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#154-the-engines-read-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.4 The engine's read path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#155-tape-parcels-are-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.5 Tape parcels are containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#156-the-deferred-read-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.6 The deferred-read contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#157-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.7 Keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#158-migration-from-file-per-extent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.8 Migration from file-per-extent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#159-what-wippackint-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.9 What wip/packint built
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-open-questions-this-depends-on-and-the-defaults-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Open questions this depends on, and the defaults chosen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-the-reference-reader-evalpack_readerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. The reference reader (eval/pack_reader.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Measurements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What it is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Blocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Records
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-header-plaintext-272-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Header plaintext (272 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Kinds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-metadata-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Metadata bodies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-index-entries-120-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Index entries (120 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-checkpoint-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 CHECKPOINT body
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-footer-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 FOOTER body
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-running-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 Running hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Trailer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Writing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Writing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-order-and-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Order and identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-the-durability-barrier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 The durability barrier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-sealing-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Sealing layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Reading
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Reading">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-opening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Opening
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-the-index-one-seek-to-the-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 The index: one seek to the end
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-one-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 One record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-the-recovery-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 The recovery scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-full-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Full verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-what-a-reader-must-never-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 What a reader must never do
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-what-each-check-catches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. What each check catches
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-disclosure-what-is-on-the-medium-outside-a-seal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Disclosure: what is on the medium outside a seal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-tape-how-this-maps-onto-lto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Tape: how this maps onto LTO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-defaults-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Defaults and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-repack-d4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Repack (D4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-how-this-answers-specification-84" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. How this answers SPECIFICATION §8.4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-integration-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Integration plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Integration plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#151-fsbinding-packs-into-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.1 FsBinding packs into containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#152-startup-no-longer-stats-every-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.2 Startup no longer stats every file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#153-packing-classes-and-the-compaction-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.3 Packing classes and the compaction trigger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#154-the-engines-read-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.4 The engine's read path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#155-tape-parcels-are-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.5 Tape parcels are containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#156-the-deferred-read-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.6 The deferred-read contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#157-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.7 Keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#158-migration-from-file-per-extent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.8 Migration from file-per-extent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#159-what-wippackint-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.9 What wip/packint built
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-open-questions-this-depends-on-and-the-defaults-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Open questions this depends on, and the defaults chosen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-the-reference-reader-evalpack_readerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. The reference reader (eval/pack_reader.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Measurements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01).</p>
+</div>
+<h1 id="the-gaiakeep-pack-container-format-version-1">The GaiaKeep pack container, format version 1<a class="headerlink" href="#the-gaiakeep-pack-container-format-version-1" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-26. Branch <code>wip/pack</code>. Implements OUT-15 (pack blocks into large files) and the on-media
+format half of OUT-16 (tape parcels). Java: <code>io.cresco.gfs.core.pack</code>. Independent reference
+reader: <code>eval/pack_reader.py</code>, written from this document alone. Golden containers:
+<code>src/test/resources/pack/golden-v1-*.gkp</code>, each with a <code>.json</code> manifest.</em></p>
+<p>This document is normative for §2 to §9 and §17. Everything a reader needs is in those sections; a
+reader must not need the Java source. Sections §10 to §16 give the rationale, the disclosure
+inventory, the tape mapping, repack, the answer to SPECIFICATION §8.4, the integration plan and the
+open questions. §18 reports measurements.</p>
+<hr />
+<h2 id="1-what-it-is">1. What it is<a class="headerlink" href="#1-what-it-is" title="Permanent link">&para;</a></h2>
+<p>One on-media format for every medium: a <strong>container</strong> is a file (on disk or NVMe) or a tape file
+(one parcel between filemarks) that holds many <strong>extents</strong>, the sealed blocks the storage core
+stores today (<code>FsBinding</code>/<code>BlockStore</code> keep each as its own file plus a <code>.meta</code> sidecar). The
+container does not re-encrypt extent bytes: they are already AES-256-GCM ciphertext produced by
+<code>BlockCodec</code>. It does seal its own metadata, because the design record requires it (SPECIFICATION
+§13.1: nothing outside a seal may be a function of plaintext, "not names, not real lengths, not
+record counts, not timestamps finer than a day").</p>
+<p>Properties:</p>
+<ul>
+<li><strong>Self-describing and versioned.</strong> Every block carries magic, version, block size and container id.</li>
+<li><strong>Append-only while open, sealed once closed.</strong> No byte is ever rewritten, except that a disk
+  writer may rewrite the 64-byte header of its current, partially written tail block (§7.3). A tape
+  writer never rewrites anything.</li>
+<li><strong>Every record is independently verifiable</strong> under the container key: its header is AES-GCM
+  sealed and its payload has a SHA-384 in that header.</li>
+<li><strong>Every block is independently checkable without a key</strong>: a CRC-32 in its cleartext header.</li>
+<li><strong>The index is at the end.</strong> A trailer in the last 256 bytes locates a footer that indexes every
+  record; the footer ends where the trailer begins. Periodic checkpoints repeat the index in the
+  stream, so a container whose footer never landed is recovered by scanning.</li>
+<li><strong>A holder without the key sees block headers and pseudorandom bytes</strong>: no identifiers, no record
+  boundaries, no lengths, no counts, no times (§10).</li>
+</ul>
+<hr />
+<h2 id="2-conventions">2. Conventions<a class="headerlink" href="#2-conventions" title="Permanent link">&para;</a></h2>
+<ul>
+<li>All integers are <strong>unsigned, big-endian</strong>. <code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code> are 1, 2, 4, 8 bytes.</li>
+<li>Offsets and lengths are in bytes. A "hex" value is lower-case hexadecimal.</li>
+<li><code>‖</code> is concatenation. <code>"ABCD"</code> is the ASCII bytes of the string, no terminator.</li>
+<li><code>align16(x)</code> is <code>x</code> rounded up to a multiple of 16.</li>
+<li><strong>SHA-384</strong>: FIPS 180-4. <strong>HMAC-SHA-384</strong>: RFC 2104 with SHA-384.</li>
+<li><strong>HKDF(ikm, info, L)</strong>: RFC 5869 with SHA-384 and <strong>no salt</strong> (the RFC's default: a salt of 48
+  zero bytes). Output length <code>L</code> bytes.</li>
+<li><strong>info(p1, p2, ...)</strong>: for each part in order, <code>u32 length(p) ‖ p</code>, concatenated. A string part is
+  its UTF-8 bytes; a byte-string part is used as is. Example: <code>info("gfs/pack/v1/meta")</code> is
+  <code>00000010 ‖ "gfs/pack/v1/meta"</code>.</li>
+<li><strong>AES-256-GCM</strong>: NIST SP 800-38D, 96-bit IV, 128-bit tag. A sealed value is the ciphertext
+  followed by its 16-byte tag (<code>len(sealed) = len(plaintext) + 16</code>).</li>
+<li><strong>CRC-32</strong>: the ISO-HDLC CRC-32 of zlib, PNG and Ethernet (reflected polynomial 0xEDB88320, initial
+  value and final XOR 0xFFFFFFFF); Java <code>java.util.zip.CRC32</code>, Python <code>zlib.crc32</code>.</li>
+<li>A <strong>container id</strong> (<code>cid</code>) is 16 random bytes. It is never reused under one pack root (§7.1).</li>
+</ul>
+<hr />
+<h2 id="3-keys">3. Keys<a class="headerlink" href="#3-keys" title="Permanent link">&para;</a></h2>
+<p>The caller supplies a 32-byte <strong>pack root</strong> <code>K_root</code>. Integration derives it from the core master
+key (§15.7); this format does not care where it comes from. From it and the container id:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Derivation</th>
+<th>Length</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>K_c</code></td>
+<td><code>HKDF(K_root, info("gfs/pack/v1/container", cid), 32)</code></td>
+<td>32</td>
+<td>derives the four below</td>
+</tr>
+<tr>
+<td><code>K_meta</code></td>
+<td><code>HKDF(K_c, info("gfs/pack/v1/meta"), 32)</code></td>
+<td>32</td>
+<td>AES-256-GCM: record headers, metadata bodies, trailer</td>
+</tr>
+<tr>
+<td><code>K_mac</code></td>
+<td><code>HKDF(K_c, info("gfs/pack/v1/mac"), 48)</code></td>
+<td>48</td>
+<td>HMAC-SHA-384: the trailer MAC</td>
+</tr>
+<tr>
+<td><code>K_sync</code></td>
+<td><code>HKDF(K_c, info("gfs/pack/v1/sync"), 48)</code></td>
+<td>48</td>
+<td>HMAC-SHA-384: record sync words</td>
+</tr>
+<tr>
+<td><code>K_tag</code></td>
+<td><code>HKDF(K_root, info("gfs/pack/v1/tag"), 48)</code></td>
+<td>48</td>
+<td>HMAC-SHA-384: extent tags</td>
+</tr>
+</tbody>
+</table>
+<p><code>K_tag</code> alone depends only on the root, so an extent keeps the same tag in every container under that
+root, and repack can move a record whose id it does not know. Everything else is per container.</p>
+<p><strong>Tag</strong> of an extent id: <code>tag(id) = HMAC-SHA-384(K_tag, UTF-8(id))[0:32]</code>.</p>
+<p><strong>Sync word</strong> of a record: <code>sync(seq) = HMAC-SHA-384(K_sync, u64 seq)[0:8]</code>.</p>
+<p><strong>GCM IVs</strong> are a counter pair, never random (SPECIFICATION §20 applied to container metadata, OPEN-QUESTIONS S1):
+<code>IV = u64 seq ‖ u32 domain</code>, with domain 1 for a record header, 2 for a metadata body, 3 for the
+trailer (whose seq is <code>0xFFFFFFFFFFFFFFFF</code>). Each <code>(seq, domain)</code> is used once per container, and
+each container has its own <code>K_meta</code>, so no IV is ever reused under a key.</p>
+<p><strong>Test vectors</strong> (<code>K_root = 000102...1f</code>, <code>cid = a0a1...af</code>, the growing golden container):</p>
+<div class="highlight"><pre><span></span><code>info("gfs/pack/v1/container", cid) = 000000156766732f7061636b2f76312f636f6e7461696e657200000010a0a1a2a3a4a5a6a7a8a9aaabacadaeaf
+K_c    = c966c31ddfc919d596c60b97849caee7bc915ce9f4c5999111239fe96470c896
+K_meta = b75b9a25d0baad0614bcb5fc122baa4b5d13980135018ad504eaf038cb4219c5
+K_mac  = e7f4e64b82d03a90ab324f91aaf6d3df1289e7119847e6fe45925f1d0a707e6612ed9c83e4aa35742e04f6d69b48f295
+K_sync = 30597a2b2d861256f460b400efa640fb25e001d7807342fc5c97e339bf8d8364027154183052540c2e2713ce6c8fa350
+K_tag  = e038bfd0a00c3a17b9883f80c731b1136142e35040072c78872f9344ab819e6f7a7e9438d1b6d7100cca8b0a92fd3646
+tag("b_none_objid-0") = 9887f09f2e31a12616a6ea5a062a37c5d4b3f4072fff2801e0aa66e2186dec4f
+sync(0) = 9b838e126ffc1c83   sync(1) = e3897543dfe69ff0   sync(2) = cf6ee83139a8ad2e
+R_0     = 4de79d1499f5cf9ac10635185977bf48d8e99d222b6525f973b7d1ca111366dc919eb4de8a677e4e3ab206fa36ef327b
+IV, header of seq 1 = 000000000000000100000001   IV, body of seq 4 = 000000000000000400000002
+IV, trailer         = ffffffffffffffff00000003
+</code></pre></div>
+<hr />
+<h2 id="4-blocks">4. Blocks<a class="headerlink" href="#4-blocks" title="Permanent link">&para;</a></h2>
+<p>A container is a sequence of <strong>blocks</strong> of <code>B = 2^log2</code> bytes, <code>16 &lt;= log2 &lt;= 23</code> (64 KiB to
+8 MiB). Every block begins with a 64-byte cleartext <strong>block header</strong>; the remaining
+<code>P = B - 64</code> bytes are the block's <strong>payload</strong>. A sealed container is a whole number of blocks.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td>magic <code>"GKPB"</code> (47 4B 50 42)</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td>format version, <code>1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+<td>flags: bit 0 <code>FIRST</code> (set on block 0), bit 1 <code>LAST</code> (set on the block holding the trailer); other bits 0</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">1</td>
+<td><code>log2</code> of the block size</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">16</td>
+<td>container id</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">8</td>
+<td>block index, from 0</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">4</td>
+<td><code>fill</code>: payload bytes this header vouches for, <code>0 &lt;= fill &lt;= P</code>; <code>P</code> in every block of a sealed container</td>
+</tr>
+<tr>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">4</td>
+<td>CRC-32 of <code>payload[0:fill]</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">20</td>
+<td>zero</td>
+</tr>
+<tr>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">4</td>
+<td>CRC-32 of header bytes <code>[0, 60)</code></td>
+</tr>
+</tbody>
+</table>
+<p>A block header is <strong>valid</strong> when its magic and header CRC match, its version is 1, <code>log2</code> is in
+range and <code>fill &lt;= P</code>. Reserved flag bits and the 20 reserved bytes are written as zero and ignored
+by a version-1 reader (the header CRC covers them). A valid header whose payload CRC also matches
+the bytes present proves the block intact. No key is needed for any of this.</p>
+<p><strong>The stream.</strong> The payloads of blocks 0, 1, 2, ... concatenated form the <strong>stream</strong>. Stream offset
+<code>s</code> is at file offset <code>(s div P) * B + 64 + (s mod P)</code>. Records live in the stream and cross block
+boundaries freely; the 64 header bytes in between are not part of any record.</p>
+<hr />
+<h2 id="5-records">5. Records<a class="headerlink" href="#5-records" title="Permanent link">&para;</a></h2>
+<h3 id="51-layout">5.1 Layout<a class="headerlink" href="#51-layout" title="Permanent link">&para;</a></h3>
+<p>The stream is a sequence of <strong>records</strong>. Record <code>i</code> has sequence number <code>seq = i</code> (the first record
+is seq 0, the next seq 1, with no gaps) and starts at a stream offset <code>o</code> that is a multiple of 16:</p>
+<table>
+<thead>
+<tr>
+<th>Stream range</th>
+<th style="text-align: right;">Size</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[o, o+8)</code></td>
+<td style="text-align: right;">8</td>
+<td>sync word <code>sync(seq)</code> (§3). A search hint only; never trusted</td>
+</tr>
+<tr>
+<td><code>[o+8, o+296)</code></td>
+<td style="text-align: right;">288</td>
+<td>sealed header: <code>AES-256-GCM(K_meta, IV = u64 seq ‖ u32 1, AAD = "GKPR" ‖ cid, header plaintext)</code>; 272 bytes of ciphertext then the 16-byte tag</td>
+</tr>
+<tr>
+<td><code>[o+296, o+296+L)</code></td>
+<td style="text-align: right;"><code>L</code></td>
+<td>payload, <code>L = payload_length</code> from the header</td>
+</tr>
+<tr>
+<td><code>[o+296+L, align16(o+296+L))</code></td>
+<td style="text-align: right;">0-15</td>
+<td>filler: CSPRNG bytes, not authenticated, ignored</td>
+</tr>
+</tbody>
+</table>
+<p>The next record starts at <code>align16(o + 296 + L)</code>. The smallest record occupies 304 bytes
+(<code>MIN_RECORD</code>). A record's <strong>digest</strong> is SHA-384 of its bytes from <code>o</code> to <code>o+296+L</code> (sync word,
+sealed header and payload; not the filler).</p>
+<h3 id="52-header-plaintext-272-bytes">5.2 Header plaintext (272 bytes)<a class="headerlink" href="#52-header-plaintext-272-bytes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td><code>kind</code> (§5.3)</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td><code>flags</code>: bit 0 <code>RELOCATED</code> (the record was copied from another container; <code>ref_container</code>, <code>ref_seq</code> name the source). Other bits 0</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td><code>id_form</code>: 0 <code>NONE</code> (no extent id: metadata records), 1 <code>SEALED</code> (the id is in this header), 2 <code>TAG_ONLY</code> (only the tag is kept)</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td><code>id_len</code>: bytes of <code>id</code> in use, 0..128; 0 unless <code>id_form = 1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td><code>aux</code>: TOMBSTONE reason code (1 abandoned write, 2 reclaimed, 3 superseded); 0 otherwise</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>seq</code>; must equal the seq in the IV</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td><code>payload_length</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">48</td>
+<td><code>payload_sha384</code>: SHA-384 of the payload as stored; 48 zero bytes for PAD</td>
+</tr>
+<tr>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">32</td>
+<td><code>tag</code>: <code>tag(extent id)</code> for EXTENT; the dead record's tag for TOMBSTONE; zeros otherwise</td>
+</tr>
+<tr>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">128</td>
+<td><code>id</code>: the extent id, UTF-8, <code>id_len</code> bytes then zeros; all zeros unless <code>id_form = 1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">232</td>
+<td style="text-align: right;">8</td>
+<td><code>stored_ms</code>: when the extent was first stored (ms since the Unix epoch); 0 if unknown</td>
+</tr>
+<tr>
+<td style="text-align: right;">240</td>
+<td style="text-align: right;">8</td>
+<td><code>retain_until_ms</code>: the extent's retention floor when written; 0 for none</td>
+</tr>
+<tr>
+<td style="text-align: right;">248</td>
+<td style="text-align: right;">16</td>
+<td><code>ref_container</code>: RELOCATED: the source container id; zeros otherwise</td>
+</tr>
+<tr>
+<td style="text-align: right;">264</td>
+<td style="text-align: right;">8</td>
+<td><code>ref_seq</code>: RELOCATED: the source seq; TOMBSTONE: the dead record's seq; 0 otherwise</td>
+</tr>
+</tbody>
+</table>
+<p>A header <strong>opens</strong> at stream offset <code>o</code> with seq <code>n</code> when GCM authentication succeeds with
+<code>IV = u64 n ‖ u32 1</code>, the decrypted <code>seq</code> equals <code>n</code>, <code>kind</code> is 1 to 6, <code>id_form</code> is 0 to 2,
+<code>id_len</code> is at most 128, and <code>id_len</code> is 0 unless <code>id_form</code> is 1. Nothing else may be read from a
+header that does not open.</p>
+<h3 id="53-kinds">5.3 Kinds<a class="headerlink" href="#53-kinds" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><code>kind</code></th>
+<th>Name</th>
+<th>Payload</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td><code>HEADER</code></td>
+<td>sealed body (§5.4), 272 bytes</td>
+<td>seq 0 at stream offset 0; exactly one</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>EXTENT</code></td>
+<td>the extent's stored bytes, as is</td>
+<td><code>id_form</code> 1 or 2; <code>tag</code> set</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>TOMBSTONE</code></td>
+<td>empty; <code>payload_sha384 = SHA-384("")</code></td>
+<td><code>ref_seq</code> names an earlier EXTENT of this container, which is dead from here on; <code>tag</code> is that extent's tag</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>CHECKPOINT</code></td>
+<td>sealed body (§5.6)</td>
+<td>written periodically by the writer</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><code>FOOTER</code></td>
+<td>sealed body (§5.7)</td>
+<td>the last record of a sealed container</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td><code>PAD</code></td>
+<td>CSPRNG bytes; never hashed</td>
+<td>at most one, immediately before the FOOTER</td>
+</tr>
+</tbody>
+</table>
+<p>An extent is <strong>live</strong> in a container when an EXTENT record holds it and no TOMBSTONE in the same
+container names that record's seq.</p>
+<h3 id="54-metadata-bodies">5.4 Metadata bodies<a class="headerlink" href="#54-metadata-bodies" title="Permanent link">&para;</a></h3>
+<p>HEADER, CHECKPOINT and FOOTER payloads are sealed:
+<code>payload = AES-256-GCM(K_meta, IV = u64 seq ‖ u32 2, AAD = "GKPM" ‖ cid ‖ u8 kind, body)</code>,
+and <code>payload_sha384</code> is SHA-384 of that payload as stored (ciphertext and tag).</p>
+<p><strong>HEADER body</strong> (256 bytes):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td>format version, 1</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td><code>log2</code> of the block size</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td>zero</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td><code>checkpoint_every_records</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>checkpoint_every_bytes</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td><code>capacity_bytes</code>: the container's fixed file size, or 0 for a growing container</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">8</td>
+<td><code>created_ms</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">8</td>
+<td><code>lease_epoch</code>: the writer's fencing epoch (STORAGE-BINDINGS-DECISION §6); 0 if none</td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">32</td>
+<td><code>binding</code>: <code>u8 n</code> (0..31), then <code>n</code> bytes of UTF-8, then zeros. E.g. <code>fs</code>, <code>tape</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">128</td>
+<td><code>locus</code>: <code>u8 n</code> (0..127), then <code>n</code> bytes of UTF-8, then zeros. An opaque locus token</td>
+</tr>
+<tr>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">56</td>
+<td>zero</td>
+</tr>
+</tbody>
+</table>
+<h3 id="55-index-entries-120-bytes">5.5 Index entries (120 bytes)<a class="headerlink" href="#55-index-entries-120-bytes" title="Permanent link">&para;</a></h3>
+<p>CHECKPOINT and FOOTER bodies carry arrays of entries, one per record:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td><code>seq</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>offset</code>: stream offset of the record (its sync word)</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td><code>payload_length</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">1</td>
+<td><code>kind</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">1</td>
+<td><code>flags</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">1</td>
+<td><code>id_form</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">1</td>
+<td>zero</td>
+</tr>
+<tr>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">4</td>
+<td><code>aux</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">8</td>
+<td><code>ref_seq</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">32</td>
+<td><code>tag</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">48</td>
+<td><code>payload_sha384</code></td>
+</tr>
+</tbody>
+</table>
+<p>An entry repeats its record's header fields except the id, the times and <code>ref_container</code>. Because
+the entry is authenticated, it proves a record's payload even when that record's own header is
+damaged. The footer is the container's <code>extent id → (offset, length)</code> map in keyed form: a caller
+holding an extent id computes <code>tag(id)</code> (§3) and looks the tag up, so the index needs no id in any
+form.</p>
+<h3 id="56-checkpoint-body">5.6 CHECKPOINT body<a class="headerlink" href="#56-checkpoint-body" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td>checkpoint number, from 1</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td><code>n</code>: entry count</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>first_seq</code>: seq of the first entry</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">48</td>
+<td><code>R_k</code>: the running hash (§5.8) before this checkpoint, <code>k</code> being the checkpoint's own seq</td>
+</tr>
+<tr>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">48</td>
+<td>digest of the previous CHECKPOINT record, or of the HEADER record for checkpoint 1</td>
+</tr>
+<tr>
+<td style="text-align: right;">112</td>
+<td style="text-align: right;">120·n</td>
+<td>entries for seqs <code>first_seq .. k-1</code>, in order</td>
+</tr>
+</tbody>
+</table>
+<p>Checkpoint 1 covers seqs from 0; checkpoint <code>j+1</code> covers from the seq of checkpoint <code>j</code> (so each
+checkpoint record is itself listed by the next). Together the checkpoints index every record before
+the last of them.</p>
+<h3 id="57-footer-body">5.7 FOOTER body<a class="headerlink" href="#57-footer-body" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td><code>n</code>: entry count, equal to the footer's own seq</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>data_end</code>: the 16-aligned stream offset after the last record that is not PAD or FOOTER (after its filler): the PAD's offset if there is a PAD, else the FOOTER's</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">48</td>
+<td><code>R_n</code>: the running hash before the footer</td>
+</tr>
+<tr>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">48</td>
+<td>digest of the HEADER record</td>
+</tr>
+<tr>
+<td style="text-align: right;">112</td>
+<td style="text-align: right;">48</td>
+<td>digest of the last CHECKPOINT record, or zeros if there is none</td>
+</tr>
+<tr>
+<td style="text-align: right;">160</td>
+<td style="text-align: right;">4</td>
+<td>checkpoint count</td>
+</tr>
+<tr>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">4</td>
+<td>zero</td>
+</tr>
+<tr>
+<td style="text-align: right;">168</td>
+<td style="text-align: right;">120·n</td>
+<td>entries for seqs <code>0 .. n-1</code>, in order</td>
+</tr>
+</tbody>
+</table>
+<h3 id="58-running-hash">5.8 Running hash<a class="headerlink" href="#58-running-hash" title="Permanent link">&para;</a></h3>
+<p><code>R_0 = SHA-384("GKPRUN01" ‖ cid)</code> and <code>R_{i+1} = SHA-384(R_i ‖ sealed header of record i)</code>, the
+sealed header being its 288 stored bytes. <code>R_n</code> commits to every record before seq <code>n</code>: each sealed
+header authenticates its payload's SHA-384.</p>
+<hr />
+<h2 id="6-trailer">6. Trailer<a class="headerlink" href="#6-trailer" title="Permanent link">&para;</a></h2>
+<p>The last 256 bytes of the stream (and so of the file) of a sealed container:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td>magic <code>"GKPT"</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td>format version, 1</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2</td>
+<td>zero</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">248</td>
+<td><code>AES-256-GCM(K_meta, IV = FF FF FF FF FF FF FF FF ‖ u32 3, AAD = trailer[0:8] ‖ cid, T)</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>T</code>, the 232-byte trailer plaintext:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td><code>footer_offset</code>: stream offset of the FOOTER record</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td><code>footer_bytes</code>: <code>footer_offset + footer_bytes</code> = stream length − 256</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td><code>data_end</code>, as in the footer</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">8</td>
+<td><code>footer_seq</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">8</td>
+<td><code>closed_ms</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">48</td>
+<td>digest of the HEADER record</td>
+</tr>
+<tr>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">48</td>
+<td>digest of the FOOTER record</td>
+</tr>
+<tr>
+<td style="text-align: right;">136</td>
+<td style="text-align: right;">48</td>
+<td><code>R_n</code>, the running hash before the footer</td>
+</tr>
+<tr>
+<td style="text-align: right;">184</td>
+<td style="text-align: right;">48</td>
+<td><code>mac = HMAC-SHA-384(K_mac, "GKPTMAC1" ‖ cid ‖ T[0:184])</code></td>
+</tr>
+</tbody>
+</table>
+<p>The trailer MAC covers the header (by digest), the footer (by digest) and every record (by the
+running hash). A reader that cannot verify it <strong>must not use the trailer or the footer it points at</strong>.</p>
+<hr />
+<h2 id="7-writing">7. Writing<a class="headerlink" href="#7-writing" title="Permanent link">&para;</a></h2>
+<h3 id="71-order-and-identity">7.1 Order and identity<a class="headerlink" href="#71-order-and-identity" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Choose a fresh random container id. Never write two containers with one id under one pack root:
+   the id selects <code>K_meta</code>, and the record seq is the GCM counter under it.</li>
+<li>Write the HEADER record (seq 0) at stream offset 0.</li>
+<li>Append EXTENT and TOMBSTONE records. After each, if at least <code>checkpoint_every_bytes</code> of stream
+   or <code>checkpoint_every_records</code> records have been written since the last checkpoint (or since the
+   start), write a CHECKPOINT.</li>
+<li>To seal: optionally a PAD, then the FOOTER, then the trailer (§7.4).</li>
+</ol>
+<p>A seq is spent when its header is encrypted. After any write error the writer stops for good; it
+never re-encrypts different content under a spent seq. A container left unsealed by a crash is
+never appended to again: readers recover it (§8.4) and a new container carries on.</p>
+<h3 id="72-blocks">7.2 Blocks<a class="headerlink" href="#72-blocks" title="Permanent link">&para;</a></h3>
+<p>Bytes are put into the current block's payload; when it is full the block is emitted with
+<code>fill = P</code>. On tape each block is exactly one <code>write(2)</code> of <code>B</code> bytes (one tape record).</p>
+<h3 id="73-the-durability-barrier">7.3 The durability barrier<a class="headerlink" href="#73-the-durability-barrier" title="Permanent link">&para;</a></h3>
+<p>On a medium that can rewrite (disk, NVMe) the writer may make every record so far durable before the
+current block is full: it writes the block header with <code>fill</code> = the payload bytes so far and those
+payload bytes, then syncs. When more bytes arrive it appends them and <strong>rewrites that block's 64-byte
+header</strong> (payload first, then header, so a crash between leaves an older header whose <code>fill</code> and CRC
+still describe a correct prefix). This is the only rewrite in the format. A tape writer never does
+it: on tape the only barrier is sealing.</p>
+<h3 id="74-sealing-layout">7.4 Sealing layout<a class="headerlink" href="#74-sealing-layout" title="Permanent link">&para;</a></h3>
+<p>Let <code>data_end</code> be the (16-aligned) stream offset after the last record, <code>n</code> the records so far, and
+<code>F(m) = align16(296 + 16 + 168 + 120·m)</code> the size of a footer record with <code>m</code> entries. The footer
+<strong>ends exactly where the trailer begins</strong>, and any gap before it is one PAD record:</p>
+<ul>
+<li><strong>Fixed capacity</strong> (a tape parcel): stream length <code>S = (capacity / B) · P</code>. If
+  <code>S − 256 − F(n) − data_end = 0</code> there is no PAD; otherwise a PAD record occupies exactly
+  <code>S − 256 − F(n+1) − data_end</code> bytes (at least 304; the writer refuses appends that would make this
+  impossible). The PAD's payload length is that size minus 296.</li>
+<li><strong>Growing</strong>: <code>S</code> is the smallest multiple of <code>P</code> with <code>S ≥ data_end + F(n) + 256</code>; if that leaves a
+  gap, <code>S</code> grows by <code>P</code> until <code>S − 256 − F(n+1) − data_end ≥ 304</code>, and the gap is one PAD as above.</li>
+</ul>
+<p>The FOOTER then occupies <code>[S − 256 − F, S − 256)</code> and the trailer <code>[S − 256, S)</code>. The last block is
+emitted with the <code>LAST</code> flag, and the file is exactly <code>S / P</code> blocks.</p>
+<hr />
+<h2 id="8-reading">8. Reading<a class="headerlink" href="#8-reading" title="Permanent link">&para;</a></h2>
+<h3 id="81-opening">8.1 Opening<a class="headerlink" href="#81-opening" title="Permanent link">&para;</a></h3>
+<p>The container id and block size come from the block-0 header if it is valid and says index 0.
+Otherwise from any other valid block header: for each <code>log2</code> from 16 to 23, a valid header at file
+offset <code>k·2^log2</code> (<code>k ≥ 1</code>) whose <code>log2</code> and index <code>k</code> agree. (A reader may bound how many <code>k</code> it
+probes; the Java reader probes up to 1,024 per block size.) If no header is valid the caller must
+supply the container id (the catalogue has it; files are named <code>&lt;cid hex&gt;.gkp</code>), and the reader
+tries each <code>log2</code> for which the file size is a whole number of blocks until the trailer opens.</p>
+<p><code>blocks = ceil(file size / B)</code>. The stream bytes <strong>present</strong> are
+<code>(blocks − 1)·P + max(0, bytes of the last block − 64)</code>, and 0 for an empty file. A reader uses every
+byte present, including bytes past a tail block's <code>fill</code> that a crash between the payload write and
+the header rewrite of §7.3 can leave: a record there is data if it authenticates.</p>
+<h3 id="82-the-index-one-seek-to-the-end">8.2 The index: one seek to the end<a class="headerlink" href="#82-the-index-one-seek-to-the-end" title="Permanent link">&para;</a></h3>
+<ol>
+<li>The file size must be a whole number of blocks; <code>S = blocks · P</code>.</li>
+<li>Read the trailer (stream <code>[S − 256, S)</code>). Check magic and version; open <code>T</code> with GCM; recompute
+   and compare the MAC in constant time. Check <code>footer_offset</code> is a multiple of 16,
+   <code>footer_offset + footer_bytes = S − 256</code> and <code>footer_bytes ≥ 304</code>.</li>
+<li>Read stream <code>[footer_offset, S − 256)</code>. Its header must open with seq <code>footer_seq</code> and kind
+   FOOTER; <code>align16(296 + payload_length)</code> must equal <code>footer_bytes</code> (the footer fills the space
+   before the trailer exactly); its payload must hash to <code>payload_sha384</code>; the record digest must
+   equal the trailer's footer digest; its body must open (§5.4) and agree with the trailer on
+   <code>n = footer_seq</code>, <code>data_end</code>, <code>R_n</code> and the header digest; the entries must have seqs <code>0..n−1</code>.</li>
+</ol>
+<p>If any step fails the container is <strong>not sealed</strong> for this reader, and nothing from the trailer or
+footer is used. On tape: the trailer is in the container's last block, so the index costs one locate
+to that block and a short read back of the footer, which ends where the trailer begins.</p>
+<h3 id="83-one-record">8.3 One record<a class="headerlink" href="#83-one-record" title="Permanent link">&para;</a></h3>
+<p>Given an index entry (or a location <code>seq</code>, <code>offset</code>, <code>payload_length</code>): read stream
+<code>[offset, offset + 296 + payload_length)</code>. The header must open with that seq and agree with the entry
+on <code>kind</code>, <code>payload_length</code>, <code>tag</code> and <code>payload_sha384</code>; the payload must hash to it. If only the
+header fails to open, an authenticated entry still proves the payload (the record's id, times and
+provenance are then unknown). A payload that does not hash is never returned.</p>
+<h3 id="84-the-recovery-scan">8.4 The recovery scan<a class="headerlink" href="#84-the-recovery-scan" title="Permanent link">&para;</a></h3>
+<p>This needs neither trailer nor footer. A reader may implement it differently but must recover the
+same records, report the same <code>valid_end</code> and <code>torn_at</code>, and reach the same verdict.</p>
+<p><strong>Terms.</strong> A record is <strong>found</strong> when its own header opens and its payload hashes (and, for HEADER,
+CHECKPOINT and FOOTER, its body opens), or when only an authenticated index entry proves it: its
+payload bytes are present and hash to the entry's <code>payload_sha384</code> (and a metadata body then opens
+too). A found record is reported with <code>via: "header"</code> or <code>via: "index"</code>. A PAD is never found through
+an entry (it has nothing to prove) and is never counted as lost. Every other record the walk meets
+but cannot find is <strong>damaged</strong>. A <strong>gap</strong> is any record whose header did not open; a header that
+opened over a damaged payload is not a gap, because the running hash covers headers only.</p>
+<ol>
+<li><strong>Index.</strong> Try §8.2. If it succeeds the container is <strong>sealed</strong>: the footer's entries are
+   <strong>known</strong> and the walk's <strong>limit</strong> is <code>S − 256</code>. If it fails but the container carries the
+   <strong>marks of sealing</strong> — a whole number of blocks, and either the trailer magic and version at
+   <code>S − 256</code> or a valid last block header with the <code>LAST</code> flag and index <code>blocks − 1</code> — it is treated
+   as a damaged sealed container: the limit is still <code>S − 256</code>, and whatever the walk cannot reach is
+   damage, never a torn tail. Otherwise the container is <strong>unsealed</strong>, the limit is the stream bytes
+   present, and nothing is known yet.</li>
+<li><strong>Blocks.</strong> For each block <code>i</code>, check that its header is valid, names this container, has index
+   <code>i</code> and this <code>log2</code>, that at least <code>fill</code> payload bytes are present, and that the payload CRC
+   matches; for a sealed container also that <code>fill = P</code>, <code>FIRST</code> is set exactly on block 0 and <code>LAST</code>
+   exactly on the last block. Report one problem per bad block, naming the first check that failed.
+   Block damage never stops the walk: the records decide.</li>
+<li><strong>Walk.</strong> <code>pos = 0</code>, <code>expect = 0</code>. While <code>pos + 296 ≤ limit</code>:</li>
+<li>Try to open the header at <code>pos + 8</code> with seq <code>expect</code>. Ignore the sync word.</li>
+<li><strong>It opens.</strong> Let <code>end = pos + 296 + payload_length</code>. If <code>end &gt; limit</code> the record runs off the
+     end: unsealed, this is the torn tail (<code>torn_at = pos</code>, stop); otherwise it is damage (stop).
+     Else verify the payload (PAD: skip it) and open the body of a HEADER, CHECKPOINT or FOOTER; a
+     CHECKPOINT's or FOOTER's entries become known. The record is found, or damaged if its payload
+     does not hash or its body does not open. Advance <code>pos = align16(end)</code>, <code>expect += 1</code>. <strong>Stop after
+     any FOOTER whose header opened</strong>, whatever its body: it is the last record.</li>
+<li><strong>It does not open, and an entry for <code>expect</code> is known with <code>offset = pos</code>.</strong> The header is
+     damaged (a gap). Try to find the record through the entry. Either way advance
+     <code>pos = align16(pos + 296 + entry payload_length)</code>, <code>expect += 1</code>, and stop if the entry is the
+     FOOTER's. (Entries for <code>expect</code> exist ahead of the walk only when the footer is known: a
+     checkpoint lists earlier records, so in an unsealed walk this branch does not fire and step 4
+     does that work.)</li>
+<li><strong>Otherwise, resynchronise.</strong> For <code>p = pos + 16, pos + 32, ...</code> while <code>p + 296 ≤ limit</code>, the
+     seqs that could start at <code>p</code> are <code>expect .. expect + floor((p − pos) / 304)</code> (a record occupies at
+     least 304 bytes). If the 8 bytes at <code>p</code> equal the sync word of one of them, <code>s</code>, and the header at
+     <code>p + 8</code> opens with seq <code>s</code>, the region <code>[pos, p)</code> is damaged with seqs <code>expect .. s − 1</code> and the
+     walk resumes at <code>pos = p</code>, <code>expect = s</code>. If nothing is found: unsealed, <code>torn_at = pos</code> and stop;
+     otherwise the region <code>[pos, limit)</code> is damaged (seqs <code>expect .. footer_seq − 1</code> when the footer is
+     known, else unknown) and stop.</li>
+</ol>
+<p>Resynchronisation over <code>d</code> bytes computes up to <code>d / 304</code> sync words: about 3.5 million HMACs,
+   seconds of CPU, for a 1 GiB region. A reader may bound the distance it scans and report the rest as
+   damage; it must say so.
+4. <strong>Entries the walk did not use.</strong> Every known entry for a record not yet found (other than PAD and
+   FOOTER, and in a sealed container only seqs below <code>footer_seq</code>) is tried again through the entry.
+   Bodies opened here can add entries: repeat until nothing new is found. A known entry that still
+   cannot be proved, and lies in no damaged region already reported, is reported damaged by itself.
+   A damaged region is <strong>recovered</strong> when every seq in it was found (or is a known PAD).
+5. <strong>End.</strong> <code>valid_end</code> is <code>pos</code> when the walk stopped. In an unsealed container, if the walk stopped
+   short of the limit without a FOOTER and without having set <code>torn_at</code>, then <code>torn_at = valid_end</code>
+   (a fragment of a record). Everything from <code>torn_at</code> on is the torn tail: bounded, reported, never
+   data, and not damage. If <strong>no record at all</strong> is found, report the problem "no record
+   authenticates" (the wrong key, or not a container); there is then no torn tail.
+6. <strong>Integrity.</strong> While the walk has had no gap, it keeps the running hash (§5.8). At each CHECKPOINT
+   whose header opened it compares <code>R_k</code>, and at the FOOTER it compares <code>R_n</code> against the trailer's
+   or, when §8.2 failed, the FOOTER body's; once a gap has occurred these running-hash checks are
+   <strong>not checkable</strong> and are skipped. When the HEADER record was found through its own header, its
+   digest is compared against the one the trailer (or else a FOOTER body) records. A mismatch is an
+   <strong>integrity problem</strong>: it cannot happen without the key, so it means a writer defect or a keyed
+   forgery, and it fails both <code>scan</code> and <code>verify</code>.</p>
+<h3 id="85-full-verification">8.5 Full verification<a class="headerlink" href="#85-full-verification" title="Permanent link">&para;</a></h3>
+<p>A container <strong>verifies</strong> when all of the following hold. These are the checks a conforming verifier
+must make. Some field-level rules of §4 to §7 (reserved zero fields, TOMBSTONE <code>aux</code> range, the PAD's
+zero hash, checkpoint cadence, §7.4 sizing) are obligations on the writer that a verifier is not yet
+required to check (§16, P4).</p>
+<ol>
+<li>§8.2 succeeds; §8.4 reports no bad block, no damage (recovered or not), no torn tail and no
+   integrity problem; the running hash and the header digest were both checkable and match.</li>
+<li>The walk found exactly <code>footer_seq + 1</code> records, every one through its own header, and each agrees
+   with its footer entry on all nine entry fields (<code>offset</code>, <code>payload_length</code>, <code>kind</code>, <code>flags</code>,
+   <code>id_form</code>, <code>aux</code>, <code>ref_seq</code>, <code>tag</code>, <code>payload_sha384</code>).</li>
+<li>Kinds: HEADER is exactly seq 0 (at offset 0); FOOTER is exactly seq <code>footer_seq</code>; there is at most
+   one PAD and only at seq <code>footer_seq − 1</code>; HEADER, CHECKPOINT, FOOTER and PAD have <code>id_form</code> 0,
+   <code>flags</code> 0, a zero tag and <code>ref_seq</code> 0; only bit 0 of <code>flags</code> is ever set, and only on an EXTENT;
+   every EXTENT has <code>id_form</code> 1 or 2, and a SEALED one has <code>tag = tag(id)</code>; an EXTENT without
+   <code>RELOCATED</code> has a zero <code>ref_container</code> and <code>ref_seq</code> 0; every TOMBSTONE has payload length 0 and
+   names by <code>ref_seq</code> an earlier EXTENT whose tag equals its own.</li>
+<li>The HEADER body has version 1, the blocks' <code>log2</code>, and <code>capacity_bytes</code> either 0 or the file size.</li>
+<li>Checkpoints, in seq order, are numbered 1, 2, 3, ...; checkpoint <code>j</code> has <code>first_seq</code> equal to the
+   seq of checkpoint <code>j − 1</code> (0 for the first) and <code>n = its seq − first_seq</code>; its previous-digest is
+   the digest of checkpoint <code>j − 1</code> (of the HEADER record for the first); its <code>R_k</code> matched the walk;
+   and each of its entries equals the footer's entry for that seq on all nine fields.</li>
+<li>The FOOTER body's checkpoint count equals the checkpoints found; its last-checkpoint digest is the
+   last checkpoint record's digest (zeros if none); and <code>data_end</code> is the PAD's offset if there is a
+   PAD, else the FOOTER's.</li>
+</ol>
+<h3 id="86-what-a-reader-must-never-do">8.6 What a reader must never do<a class="headerlink" href="#86-what-a-reader-must-never-do" title="Permanent link">&para;</a></h3>
+<p>Return a payload that has not been proved by a header that opens or an authenticated entry; use
+anything from a trailer whose MAC fails; trust a sync word; or treat a torn tail as data.</p>
+<hr />
+<h2 id="9-what-each-check-catches">9. What each check catches<a class="headerlink" href="#9-what-each-check-catches" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Fault</th>
+<th>Detected by</th>
+<th>Localised to</th>
+<th>Extents lost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A bit flip anywhere in a block</td>
+<td>payload or header CRC-32 (keyless)</td>
+<td>the block</td>
+<td>nothing, unless it hit a record</td>
+</tr>
+<tr>
+<td>A flip in a record payload</td>
+<td><code>payload_sha384</code></td>
+<td>that record</td>
+<td>that record</td>
+</tr>
+<tr>
+<td>A flip in a sealed record header</td>
+<td>GCM tag</td>
+<td>that record</td>
+<td>nothing: the footer entry (or a checkpoint entry) proves the payload; the id and times are lost</td>
+</tr>
+<tr>
+<td>A flip in a sync word or filler</td>
+<td>block CRC only</td>
+<td>the block</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>A flip in a CHECKPOINT</td>
+<td>its payload hash</td>
+<td>that checkpoint</td>
+<td>nothing while the footer stands</td>
+</tr>
+<tr>
+<td>A flip in the FOOTER or trailer</td>
+<td>footer hash / GCM / MAC</td>
+<td>the tail</td>
+<td>nothing: the walk re-derives the index</td>
+</tr>
+<tr>
+<td>A torn tail (power loss mid-write)</td>
+<td>a header that does not open, or a payload that runs off the end</td>
+<td><code>torn_at</code></td>
+<td>the torn record; everything before it is recovered</td>
+</tr>
+<tr>
+<td>A footer that never landed</td>
+<td>§8.2 fails</td>
+<td>the tail</td>
+<td>nothing: the walk and the checkpoints recover every record</td>
+</tr>
+<tr>
+<td>An unreadable tape block</td>
+<td>the reader's I/O error; the block counts as damaged</td>
+<td>the block</td>
+<td>the records overlapping it; the walk resynchronises by sync word</td>
+</tr>
+<tr>
+<td>A trailer from another container, or a forged one</td>
+<td>GCM (the AAD binds the cid) and MAC</td>
+<td>the tail</td>
+<td>the index is refused</td>
+</tr>
+<tr>
+<td>Wrong key</td>
+<td>nothing opens</td>
+<td>—</td>
+<td>nothing is listed</td>
+</tr>
+<tr>
+<td>A block from the wrong container or position</td>
+<td>block header cid and index</td>
+<td>the block</td>
+<td>as for damage</td>
+</tr>
+<tr>
+<td>A sealed container truncated on purpose (tail removed)</td>
+<td>nothing in the container: it reads as an unsealed one with fewer records</td>
+<td>—</td>
+<td>caught only against the catalogue, which records that the container was sealed and its footer digest (§15.2), as SPECIFICATION §7.1 cross-checks checkpoints against the registry</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-disclosure-what-is-on-the-medium-outside-a-seal">10. Disclosure: what is on the medium outside a seal<a class="headerlink" href="#10-disclosure-what-is-on-the-medium-outside-a-seal" title="Permanent link">&para;</a></h2>
+<p>This is SPECIFICATION §13.2's inventory for this format.</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Field</th>
+<th>Bits it carries</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Block header</td>
+<td>magic, version, flags, block size</td>
+<td>none (constants; FIRST/LAST mark the first and last block)</td>
+</tr>
+<tr>
+<td>Block header</td>
+<td>container id</td>
+<td>a random 128-bit label, unlinkable across containers</td>
+</tr>
+<tr>
+<td>Block header</td>
+<td>block index, fill, CRCs</td>
+<td>the container's size in blocks, which on a fixed-capacity parcel is a constant; CRCs of ciphertext</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>sync words</td>
+<td>nothing: pseudorandom under a per-container key, so they do not even mark record boundaries</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>sealed headers, sealed bodies, trailer ciphertext</td>
+<td>nothing without <code>K_meta</code></td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>extent payloads</td>
+<td>the extent ciphertext, as it is already on disk today</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>filler, PAD</td>
+<td>CSPRNG output</td>
+</tr>
+<tr>
+<td>Trailer</td>
+<td>magic and version</td>
+<td>that the container is sealed</td>
+</tr>
+</tbody>
+</table>
+<p>A holder with the medium and no key cannot find record boundaries, so cannot learn record lengths,
+record counts, ids, times, the binding or the locus. The one exception is inherent to GLOBAL
+(convergent) extents, not to the container: anyone with a candidate public plaintext can compute its
+ciphertext and search for it (TENANCY-AND-DEDUP §3 accepts this for public data).</p>
+<p><strong>Identifiers (SPECIFICATION §19).</strong> No extent id is ever written outside a seal. §19.3's test —
+a field is legal iff an adversary with a candidate plaintext and no key cannot reproduce it — is met
+by every field above. Inside the seal the policy is per domain, from the decision log ("no
+plaintext-derived identifier on write-once media: mandatory in sealed domains, relaxed in global"):</p>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th><code>id_form</code></th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sealed tenant, write-once medium</td>
+<td><code>TAG_ONLY</code></td>
+<td>the id <code>HMAC(K_dom, H)</code> is a function of plaintext under a tenant-root key; SPECIFICATION §13.1's third clause keeps it off WORM even sealed. The keyed tag lets the engine find the record; media-only rebuild yields tags, and meaning comes back only through the catalogue (§2.2 of the specification)</td>
+</tr>
+<tr>
+<td>Everything else</td>
+<td><code>SEALED</code></td>
+<td>GLOBAL ids are public by design; <code>HMAC(K_dom, H)</code> needs <code>K_dom</code> to test; NONE ids are random. Sealing keeps them from anyone without <code>K_meta</code>, and lets a catalogue-free rebuild name every extent</td>
+</tr>
+</tbody>
+</table>
+<p><code>PackFormat.idFormFor(sealedTenant, writeOnce)</code> returns this. The integration passes the domain's
+flags; the pack package never decides policy on its own.</p>
+<p><strong>What the key holder learns.</strong> <code>K_meta</code> (a storage-layer key, like SPECIFICATION §7.4's
+<code>K_idx(v)</code>) reveals each record's length, time, retention floor, tag and (SEALED) id. This is what
+the index and the node's <code>.meta</code> sidecars hold in the clear today. Hiding lengths from a <code>K_meta</code>
+holder would need a second key per record; it is not done (§16).</p>
+<hr />
+<h2 id="11-tape-how-this-maps-onto-lto">11. Tape: how this maps onto LTO<a class="headerlink" href="#11-tape-how-this-maps-onto-lto" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>One block is one tape record.</strong> The drive runs in variable-block mode and every write is exactly
+  <code>B</code> bytes, one <code>write(2)</code> per record (risk register row 5: a short write mis-frames every later
+  read, so any other length is a hard failure). <code>B</code> is recorded in every block header, so a reader
+  sizes its buffer from the medium. LTO drives accept records up to 8 MiB (<code>READ BLOCK LIMITS</code>
+  reports the drive's limit), which is why <code>log2 ≤ 23</code>.</li>
+<li><strong>One container is one parcel, and one tape file.</strong> A single filemark follows each container
+  (risk register row 3: no double filemark at EOD). The container is self-delimiting (its trailer is
+  in its last block), so the filemark is a positioning aid and never needed for parsing. No
+  structure spans a filemark.</li>
+<li><strong>Fixed-size parcels.</strong> The tape binding writes containers with <code>capacity_bytes</code> = the parcel size
+  (SPECIFICATION §3.1: 1 GiB), padded with a CSPRNG PAD record, so every parcel on a cartridge has
+  the same length and none carries a cleartext length.</li>
+<li><strong>No seek-back.</strong> The header is the first record, written once. The index is at the end. Nothing
+  is rewritten (§7.3's tail rewrite is disk-only and is refused by a sequential sink).</li>
+<li><strong>The index after one seek to the end</strong>: locate to the parcel's last block (<code>first block + capacity/B − 1</code>),
+  read the trailer, read back the footer that ends where the trailer begins (a few blocks: 120 bytes
+  per record, about 2 MB for a 1 GiB parcel of 64 KiB extents).</li>
+<li><strong>Found by scanning</strong> when the tail is lost: §8.4 reads front to back, which is the drive's natural
+  direction; checkpoints bound what a lost tail costs to index.</li>
+<li><strong>Hardware compression off</strong>, drive encryption off (SPECIFICATION §6.1): the stream is
+  ciphertext and CSPRNG and would not compress anyway, and compression would re-vary stored length.
+  Logical Block Protection (a CRC-32C the drive appends per record) may be on; it is independent of
+  the block CRC-32 here, which travels with the data onto disk and into staging.</li>
+</ul>
+<p><strong>Block size: 1 MiB by default.</strong> It is the value SPECIFICATION §6.1 requires for streaming (1–2 MiB
+keeps a 400 MB/s drive above its speed-match floor through a spooled feed), it is within every LTO
+drive's record limit and the Linux <code>st</code> driver's default buffer, and at 64 header bytes per MiB the
+cost is 0.006 %. 256 KiB is the floor we would accept on tape (LTFS uses 512 KiB); smaller blocks
+cost more records per second without buying anything, because the host writes whole blocks from
+memory either way. 2 MiB and 4 MiB are allowed; M2 (the LTO-10 speed-match floor) decides whether
+anything above 1 MiB is needed. The same default serves disk, where the block size only sets how
+coarsely damage is localised by the keyless CRC.</p>
+<hr />
+<h2 id="12-defaults-and-why">12. Defaults and why<a class="headerlink" href="#12-defaults-and-why" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Block size</td>
+<td>1 MiB (<code>log2 = 20</code>)</td>
+<td>§11</td>
+</tr>
+<tr>
+<td>Container size (disk)</td>
+<td>1 GiB, growing, rolled over when full</td>
+<td>one unit on every medium, equal to the tape parcel; 10^6 files per PB instead of 10^9–10^10</td>
+</tr>
+<tr>
+<td>Container size (tape)</td>
+<td>1 GiB fixed (<code>capacity_bytes</code>)</td>
+<td>SPECIFICATION §3.1 parcel</td>
+</tr>
+<tr>
+<td>Record alignment</td>
+<td>16 bytes</td>
+<td>AES block size; keeps the resync scan to one probe per 16 bytes</td>
+</tr>
+<tr>
+<td>Checkpoint interval</td>
+<td>64 MiB of stream or 4,096 records</td>
+<td>a lost tail costs at most one interval of index; each checkpoint is at most ~480 KB; 16 per 1 GiB container</td>
+</tr>
+<tr>
+<td>Record header</td>
+<td>296 bytes</td>
+<td>the id field is fixed at 128 bytes so a header's length never depends on the id; 0.45 % on 64 KiB extents, 0.03 % on 1 MiB</td>
+</tr>
+<tr>
+<td>Index entry</td>
+<td>120 bytes</td>
+<td>each record is listed twice (a checkpoint and the footer): 0.37 % on 64 KiB extents. Measured total overhead: 0.88 % on 64 KiB extents, 0.10 % on 1 MiB (§18)</td>
+</tr>
+<tr>
+<td>Filler and PAD</td>
+<td>AES-256-CTR keystream under a fresh random key from the JDK <code>SecureRandom</code></td>
+<td>CSPRNG output at memory speed; zeros would expose every record boundary (SPECIFICATION §3.1)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-repack-d4">13. Repack (D4)<a class="headerlink" href="#13-repack-d4" title="Permanent link">&para;</a></h2>
+<p><code>io.cresco.gfs.core.pack.Repack</code> copies the live records of a set of containers into new containers
+and drops the rest. The rewrite rule it follows (OPEN-QUESTIONS D4): a rewrite <strong>copies ciphertext
+bit-identically and always mints a fresh container</strong> (a fresh id, so a fresh <code>K_meta</code> and a fresh
+counter space); it never re-encrypts and never reuses a counter. Each copied record carries
+<code>RELOCATED</code> with its source <code>(container, seq)</code>, so the new container proves where everything in it
+came from, and a record missing from the output is either in the plan's dropped list with a reason
+or the verification fails. A botched repack cannot read as a lawful redaction.</p>
+<p><strong>Liveness.</strong> The caller supplies a predicate over <code>(container, seq, extent id or null, tag, length,
+stored_ms, retain_until_ms)</code>. It is evaluated once, at planning, and the decision is recorded. Records
+named by a TOMBSTONE are dead. A record whose retention floor has not passed is kept whatever the
+predicate says, since dropping it would be a reclaim and reclaim refuses under a floor. Records a
+damaged source cannot prove are listed as dropped with "unreadable in source; repair from another copy".</p>
+<p><strong>States</strong>, persisted in the job's work directory (<code>repack.json</code>, written atomically: temp file, sync,
+rename, directory sync):</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Done</th>
+<th>A crash here leaves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PLANNED</code></td>
+<td>the live set and the dropped list are decided</td>
+<td>sources untouched</td>
+</tr>
+<tr>
+<td><code>COPIED</code></td>
+<td>new containers written in <code>work/out</code>, each sealed and synced</td>
+<td>sources untouched; on resume every file in <code>work/out</code> is verified and adopted only if it is sealed, verifies in full and holds exactly planned records none of which is already covered; anything else (a torn output) is deleted and its records copied again</td>
+</tr>
+<tr>
+<td><code>VERIFIED</code></td>
+<td>every output verified in full; the planned set is covered exactly once</td>
+<td>sources untouched</td>
+</tr>
+<tr>
+<td><code>PUBLISHED</code></td>
+<td>outputs moved atomically into the output directory; directory synced</td>
+<td>sources untouched; an interrupted move is recognised by name</td>
+</tr>
+<tr>
+<td><code>MAPPED</code></td>
+<td><code>map.json</code> written: old → new locations, one line per record</td>
+<td>sources untouched; the map is re-read, never re-derived differently</td>
+</tr>
+<tr>
+<td><code>ACKNOWLEDGED</code></td>
+<td>the caller has journaled the map as reloc deltas</td>
+<td>sources untouched</td>
+</tr>
+<tr>
+<td><code>RETIRED</code></td>
+<td>each source retired (disk: deleted and directory synced), one at a time, recorded after each</td>
+<td>the remaining sources; all outputs are published and verified</td>
+</tr>
+</tbody>
+</table>
+<p>A source is never retired before <code>ACKNOWLEDGED</code>, and <code>retire()</code> re-checks that every output is
+present and its index authenticates before it retires anything. Each map line is
+<code>{extentId, tag, fromContainer, fromSeq, fromOffset, toContainer, toSeq, toOffset, length}</code>
+(<code>extentId</code> null for TAG_ONLY records): exactly what the engine journals as a reloc delta.</p>
+<p>Repack stays within one pack root: a TAG_ONLY record's tag is valid only under the root that made it,
+and a SEALED record from another root is refused (its tag would not match its id).</p>
+<hr />
+<h2 id="14-how-this-answers-specification-84">14. How this answers SPECIFICATION §8.4<a class="headerlink" href="#14-how-this-answers-specification-84" title="Permanent link">&para;</a></h2>
+<p>§8.4 left a hole: with <code>K_rdom</code> retired the purity unit became the object, pure packing is ruinous
+for small objects, and "the packing unit and the shred unit must be re-separated by something".</p>
+<p>The container separates them by construction:</p>
+<ul>
+<li><strong>The shred unit is never the container.</strong> A container holds opaque ciphertext and has no content
+  key; destroying a container key (<code>K_meta</code>) destroys only the container's metadata, never an extent's
+  confidentiality, and this document never calls it an erasure (SPECIFICATION §13.3 claim 1). Shredding
+  stays key destruction at the object or domain (TENANCY-AND-DEDUP §8); a pooled container may hold
+  records of many objects and domains without widening any shred.</li>
+<li><strong>Reclaim is a rewrite of the container, not an erasure inside it.</strong> <code>live_fraction</code> is computable
+  exactly, with zero medium access, per container: the engine knows which extents it references and
+  each extent's location (§15.2). That is the quantity §8.4 rule 1 said pooling made "uncomputable";
+  at record granularity it is exact again, because the unit of accounting is the record, not the
+  parcel. Repack (§13) is the rewrite, so pooled packing no longer strands dead space permanently on
+  rewritable media, and on WORM it is exactly §11.3's migration-time compaction.</li>
+<li><strong>Blast radius is bounded by the index, not by guesswork.</strong> Damage is localised to a block by CRC
+  and to a record by its authenticated header or entry; a mistake names its records.</li>
+<li><strong>What is packed together is the caller's decision, above the encryption boundary</strong> (§8.4's first
+  sentence): the binding appends to whichever open container the packer chooses (by collection,
+  retention class, and later co-access), and the format records no cohort, domain or affinity in
+  the clear.</li>
+</ul>
+<p>What this does <strong>not</strong> settle: §8.4 rule 2 (interleave consent units versus cluster by co-access,
+OPEN-QUESTIONS D2) is a placement policy, not a format property; the container supports either. §15.3
+states the default.</p>
+<hr />
+<h2 id="15-integration-plan">15. Integration plan<a class="headerlink" href="#15-integration-plan" title="Permanent link">&para;</a></h2>
+<p>§15.1 to §15.4, §15.7 and §15.8 are built on branch <code>wip/packint</code> (§15.9 says what, and where the build
+departs from the plan below); §15.5 and §15.6 (tape) are not. Each item names the files it touches.</p>
+<h3 id="151-fsbinding-packs-into-containers">15.1 <code>FsBinding</code> packs into containers<a class="headerlink" href="#151-fsbinding-packs-into-containers" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Layout.</strong> <code>&lt;root&gt;/pack/&lt;cid&gt;.gkp</code> for containers, <code>&lt;root&gt;/pack/open/</code> for containers still being
+  written, and <code>&lt;root&gt;/pack/catalogue/</code> for the node catalogue (§15.2). <code>BlockStore</code> keeps its custody
+  share functions and loses extent storage.</li>
+<li><strong>Write path.</strong> <code>beginWrite</code> picks (or opens) the active container for the write's packing class
+  (§15.3). A <code>ContainerWriter</code> is single-threaded, and appends to one write may arrive concurrently
+  today, so the binding holds one lock per active container; the lock order is the record order.
+  The sink is <code>PackSink.async(PackSink.file(path), 4)</code>: blocks are written in order on a background
+  thread, up to four ahead, so hashing and sealing overlap the device (§18); <code>sync()</code> and <code>finish()</code>
+  wait for the queue before they force, and a failed write surfaces at the next call. <code>append(writeId, extentId, data, sha256)</code> checks the caller's SHA-256, then
+  <code>ContainerWriter.append(extentId, data, idForm, now, 0)</code> and returns an <code>ExtentRef</code> whose <code>opaque</code>
+  is the <code>Location</code> string (<code>gkp1:&lt;cid&gt;:&lt;seq&gt;:&lt;offset&gt;:&lt;len&gt;</code>); <code>durable = false</code>. <code>seal(writeId)</code>
+  calls <code>ContainerWriter.sync()</code> (§7.3) and then marks every ref of the write durable: one
+  <code>force</code> per seal, as today's <code>commitStaged</code> pays one per batch. <code>abandonWrite</code> appends TOMBSTONE
+  records (reason 1) for the write's extents, which makes them dead to repack at once.</li>
+<li><strong>Rollover.</strong> When <code>fits()</code> refuses, <code>finish()</code> the container (sealed; moved from <code>open/</code> to
+  <code>pack/</code> by rename) and open the next. An idle timeout (default 10 min) seals a container that has
+  stopped growing, so the unsealed tail is bounded in time as well as size.</li>
+<li><strong>Reads.</strong> <code>readNow</code> and <code>enqueue</code> take locations: the engine passes <code>opaque</code> back (§15.4);
+  <code>ContainerReader.read(Location)</code> is a single positioned read of 296 + length bytes and a verify.
+  Readers are cached per container (an open file handle each).</li>
+<li><strong>Descriptor.</strong> <code>capacityBytes</code> becomes the pack directory's measured free space refreshed at every
+  rollover, not <code>getTotalSpace()</code> once at commission (OUT-15); <code>appendOnly</code> stays <code>NO</code>.</li>
+<li><strong><code>reclaim</code>.</strong> Appends a TOMBSTONE (reason 2) and answers <code>LOGICAL_ONLY</code> until repack rewrites the
+  container, then <code>ERASED</code> — the honest two-step that STORAGE-BINDINGS-DECISION §4 asks for.</li>
+<li><strong><code>verify(CONTENT)</code>.</strong> <code>read(Location)</code>; scrub becomes <code>ContainerReader.verify()</code> per container,
+  rate-limited and resumable by container (OUT-36), replacing NodeAgent's 60 s re-hash of every file.</li>
+</ul>
+<h3 id="152-startup-no-longer-stats-every-file">15.2 Startup no longer stats every file<a class="headerlink" href="#152-startup-no-longer-stats-every-file" title="Permanent link">&para;</a></h3>
+<p>Today <code>BlockStore</code> lists the directory twice and stats every file into a heap map (OUT-15). With
+containers:</p>
+<ul>
+<li><strong>The engine holds locations.</strong> <code>RefIndex</code> records, per (block, site), the binding's <code>opaque</code>
+  location (a new <code>loc</code> delta, journaled with the placement it belongs to). The node needs no
+  per-extent state at startup at all.</li>
+<li><strong>The node catalogue is a cache.</strong> For <code>locate(extentId)</code> and <code>x.reclaim(extentId)</code> without a
+  location, the node keeps an append-only catalogue log <code>tag → location</code>, synced at each seal, and
+  rebuilds it from container footers when it is missing (one index read per container: §8.2). For
+  each sealed container it also records the footer digest and record count, so a sealed container
+  that later reads as unsealed (its tail removed) is an integrity alarm, not a torn write.</li>
+<li><strong>Startup reads</strong> the list of sealed containers (a few thousand files per PB-node, one directory
+  listing), and recovers each container in <code>open/</code> with <code>ContainerReader.scan()</code>: the records it
+  proves are adopted (their writes were sealed, or they are orphans the engine will reclaim), the torn
+  tail is discarded, and the container is sealed as it stands into a new file by repack, or its
+  proven prefix is kept read-only. Nothing is ever appended to it again (§7.1).</li>
+<li><strong>Usage</strong> is the sum of container sizes (one stat per container), and dead space is
+  <code>Σ size − Σ live</code>, from the engine.</li>
+</ul>
+<h3 id="153-packing-classes-and-the-compaction-trigger">15.3 Packing classes and the compaction trigger<a class="headerlink" href="#153-packing-classes-and-the-compaction-trigger" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Packing class</strong> (what shares an open container): <code>(domain, retention class)</code> by default, so a
+  domain's reclaim and a retention class's expiry empty whole containers where they can. This is the
+  reclamation grouping of D2; interleaving across consent units is available by making the class
+  coarser. Sealed tenants never share a container with another tenant.</li>
+<li><strong>Trigger.</strong> The engine computes each container's <code>live_fraction</code> from its own references (no
+  medium access). A container is a repack candidate when <code>live_fraction &lt; 0.5</code> (D8's recommendation,
+  "refuse above 50 % live") or when it holds more than 25 % of a node's dead bytes. Candidates are
+  batched (up to 8 per job) by packing class, and run as a budgeted standing obligation
+  (SPECIFICATION §10.6, OUT-36): one job at a time per node, rate-limited in bytes per second.</li>
+<li><strong>Journal.</strong> The engine plans the job with its liveness predicate (the <code>RefIndex</code> holder set, and
+  the retention floor), runs it, journals the returned map as one <code>reloc</code> delta batch
+  (<code>(domain, block, site) → new opaque</code>), and only then calls <code>acknowledge()</code> and <code>retire()</code>. A crash
+  of the index between <code>MAPPED</code> and <code>ACKNOWLEDGED</code> leaves both copies; the job's map is re-read and
+  journaled again, idempotently.</li>
+</ul>
+<h3 id="154-the-engines-read-path">15.4 The engine's read path<a class="headerlink" href="#154-the-engines-read-path" title="Permanent link">&para;</a></h3>
+<p><code>StorageEngine.fetch/fetchMany</code> pass <code>(extentId, opaque)</code> pairs; <code>FsBinding.readNow</code> reads by
+location; a stale location (the record moved) fails its tag and seq checks and the engine retries
+through the node catalogue, then repairs. <code>ExtentBinding</code> gains <code>readNow(String[] extentIds, String[]
+opaque)</code> (a default method delegating to today's signature, so <code>MemBinding</code> and <code>RemoteBinding</code>
+compile unchanged); <code>RemoteBinding</code>/<code>ExtentServer</code> carry the <code>opaque</code> array in <code>x.fetch</code>.</p>
+<h3 id="155-tape-parcels-are-containers">15.5 Tape parcels are containers<a class="headerlink" href="#155-tape-parcels-are-containers" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The tape binding writes each parcel as one fixed-capacity container (<code>capacity_bytes</code> = 1 GiB,
+  <code>binding = "tape"</code>, <code>locus</code> = an opaque volume token) to the <code>st</code> device through a sequential sink:
+  one <code>write(2)</code> per block, one filemark per parcel, positions confirmed by <code>READ POSITION</code> after the
+  filemark (risk register rows 4 and 6). <code>ExtentRef.opaque</code> is the <code>Location</code> plus the volume and
+  parcel ordinal, which live in the volume registry, not in the container.</li>
+<li>The tape sink is <code>PackSink.async(PackSink.sequential(st, B), n)</code>, so the drive is fed from memory
+  while the next blocks are framed; order and whole-block writes are unchanged.</li>
+<li>Parcels are spooled on disk as containers first (the spool is the same format), so despool is a
+  byte copy of whole blocks at streaming rate, and a spool crash is recovered by §8.4.</li>
+<li>The volume index (SPECIFICATION §7.1 checkpoints and trailer, <code>res_ords</code>) is a Layer-1 structure
+  <strong>above</strong> containers; each parcel's footer is what it indexes. Erasure coding (RS over parcels) is
+  later work (owner decision: 3-way replication now) and would code over whole containers.</li>
+<li><strong>Reads.</strong> A read of extents on tape reads whole parcels (or block ranges of them) sequentially to
+  staging and serves records from there with <code>ContainerReader</code>, so the reader never needs random
+  access to the medium.</li>
+</ul>
+<h3 id="156-the-deferred-read-contract">15.6 The deferred-read contract<a class="headerlink" href="#156-the-deferred-read-contract" title="Permanent link">&para;</a></h3>
+<p>A tape read is not a call that returns bytes: <code>enqueue(extentIds, deadline, sink)</code> returns a ticket
+in milliseconds; the plant scheduler groups tickets by cartridge and parcel, mounts, reads the needed
+parcels front to back into staging, verifies each record with <code>ContainerReader.read</code>, writes the
+payloads to the sink and completes the ticket. <code>ticket()</code> reports <code>QUEUED → RUNNING → DONE</code> with
+<code>estCompleteMs</code> from the plan. The engine must stop busy-polling with a 30 s timeout against a 265 s
+mount (OUT-16): its fetch waits on the ticket with the deadline the caller set, and <code>cancel()</code> has the
+post-condition the descriptor declares. The container format supports this by making the parcel
+self-verifying: staging holds whole containers, so a read verifies against the parcel's own index
+with no catalogue round trip.</p>
+<h3 id="157-keys">15.7 Keys<a class="headerlink" href="#157-keys" title="Permanent link">&para;</a></h3>
+<p>The pack root is <code>HKDF(core_master_key, info("gfs/pack/root/v1", node_id), 32)</code>, derived by the index
+and provisioned to the storage node with its registration (a storage-layer key, like <code>K_idx(v)</code>:
+compromise is bounded to one node's containers' metadata, never to content). Rotating it means
+repacking under the new root. OUT-03/OUT-25 (master key custody) apply unchanged.</p>
+<h3 id="158-migration-from-file-per-extent">15.8 Migration from file-per-extent<a class="headerlink" href="#158-migration-from-file-per-extent" title="Permanent link">&para;</a></h3>
+<p>A one-time job per node: list the existing extent files, append each (with its sidecar's times and
+retention floor) to containers of its packing class, emit the map as reloc deltas, and after
+acknowledgement delete the files. It is the repack procedure with a different source reader.</p>
+<h3 id="159-what-wippackint-built">15.9 What <code>wip/packint</code> built<a class="headerlink" href="#159-what-wippackint-built" title="Permanent link">&para;</a></h3>
+<p><strong>Store and binding.</strong> <code>io.cresco.gfs.store.PackStore</code> is the node's packed store; <code>FsBinding.packed(...)</code>
+puts it behind <code>ExtentBinding</code> (<code>core_store_format=pack</code>, the default for a storage node; <code>files</code> keeps one
+file per extent). Every <code>BindingContractTest</code> passes for it (locus <code>PACK</code> in the test fixtures). Seal is one
+<code>ContainerWriter.sync()</code> per container the write touched (in parallel) and one catalogue force.
+<code>ExtentRef.opaque</code> is the <code>Location</code> string. Abandon appends TOMBSTONE records (reason 1) where the
+container is still open. Rollover seals the container and renames it from <code>open/</code> into <code>pack/</code>; an idle
+container is sealed after <code>core_pack_idle_seal_ms</code> (10 min). Each packing class has <code>core_pack_stripes</code>
+(2) open containers, so concurrent appends do not queue on one writer; at most <code>core_pack_max_open</code> (32)
+are open, each holding about 5 MiB of blocks. Reads go through <code>core.pack.LocationReader</code>: thread-safe,
+one positional read per record, and it checks the record's <strong>tag</strong> against the asked-for extent, so a
+stale or wrong location can never return another extent's bytes (§8.3 checks only the header and the
+payload hash), and a location that runs past the bytes its container holds is refused before anything is
+allocated for it (a location is data from the journal; the bound is compared without overflow). A container's reader is opened before rollover moves
+its file into place, so no first read can name the path in between. All file operations go through <code>FileOps</code> (<code>PackSink.file(ops, ...)</code>,
+<code>ContainerReader.open(FileChannel, ...)</code>, <code>Repack.Config.ops</code>), so the power-loss harness runs the store.</p>
+<p><strong>Reclaim is <code>LOGICAL_ONLY</code>.</strong> The extent leaves the catalogue (a forced <code>DEAD</code> frame) and is tombstoned
+while its container is open; its bytes go when repack rewrites the container. The packed locus declares
+<code>deleteSupported = NO</code>, and the contract test now asserts the outcome the descriptor declares (ERASED for
+a locus that can delete one extent, LOGICAL_ONLY for one that cannot). The engine already treats every
+outcome but RETAINED as removed.</p>
+<p><strong>The node catalogue (P3).</strong> <code>store.PackLog</code> + <code>store.PackCatalogue</code>. An append-only log of typed frames,
+each <code>u8 type ‖ u16 length ‖ payload ‖ mac16</code>, <code>mac = HMAC-SHA-384(K, prev_mac ‖ type ‖ length ‖
+payload)[0:16]</code> with <code>K = HKDF(K_root, info("gfs/pack/log/v1", kind), 48)</code>, chained from a random log id in
+a 40-byte header (<code>"GKCL"</code>, version 1, kind, log id, and a key check <code>HMAC-SHA-384(K, "GKCL-KEY" ‖ u16 kind ‖
+log id)[0:16]</code>, so a log written under another root is refused whole, never read as damage to cut).
+Frames: PUT (tag, cid, seq, offset, length, id), DEAD, MOVE, SEALED (cid, file bytes, records, log2,
+footer digest), RECOVERED, RETIRED. A log is created whole and synced under a temporary name before it is
+named, so one shorter than its header is damage. <strong>Torn tail or damage</strong> is decided so that no
+acknowledged frame is ever cut: the writer never leaves more than <code>catalogueMaxUnforcedBytes</code> (1 MiB)
+unforced, forcing first when an append would; a failing frame with more than that after it is damage; within
+the bound it is damage when the next frame chains to its stored MAC (its payload or type was hit), or to the
+MAC its contents recompute to (its MAC was hit), or its contents authenticate under another length (its
+length was hit). A sector that never landed cannot produce any of these, because a frame is shorter than a
+sector and the next begins where it ends; the 1,500-round power-cut campaign (all three loss modes) raised
+none. Damage sets the log aside and rebuilds it from the containers' own indexes. What stays ambiguous is a
+hit on the payload or MAC of the very last frame. Frames re-read after load (listing, the catalogue
+rewrite) are verified again, so a frame changed on the medium since is never listed or rewritten under a
+fresh MAC. The log is rewritten (live entries only) once it holds more than twice the frames it describes
+plus <code>catalogueRewriteSlackFrames</code> (65,536); a rewrite records each sealed container at the size its seal
+recorded, never the size it has now, so a cut container's alarm survives it. The power-cut campaign runs
+with the slack at 24, so rewrites are cut too (1,500 rounds, seed 11, clean). In memory the map keeps 16 bytes of each tag and
+the location in primitive arrays (about 48 bytes an extent). Startup lists <code>pack/</code> and <code>pack/open/</code> once,
+stats each container once (a sealed container shorter than the catalogue recorded is an alarm), replays
+the log, and recovers each container left in <code>open/</code> with the recovery scan into a read-only container.
+With a catalogue it trusts, a record the catalogue does not name (never acknowledged, or reclaimed since)
+is never adopted; only a rebuild adopts what the containers hold.</p>
+<p><strong>Retention floors</strong> live in their own log (same frames, kind 2), forced before <code>retain</code> returns and
+never rebuilt: a floor log missing while containers exist, or damaged, makes every reclaim fail
+(fail closed) and the node reports it CRITICAL. Its frames fill fixed <strong>64-byte slots</strong> (the header fills
+the first), eight to a 512-byte sector so none straddles one, and at most one slot is ever unforced (an
+append forces whatever is pending first). A power cut therefore leaves the last slot whole or all zeros,
+and a failing slot is a torn tail only when it and everything after it are zero: damage anywhere, the last
+frame included, is refused, never cut.</p>
+<p><strong>The index holds locations (§15.2).</strong> <code>BlockTable.setLocation/location</code> keep, per (block, site), the
+binding's opaque; <code>CompactBlockTable</code> stores the packed form in 16 bytes per inline site (container
+ordinal, seq, offset/16, length), other strings in its side map, and the fact <code>l(domain, id, site,
+location)</code> joins the table digest (and so <code>metaHash</code>). New deltas, in <code>StorageEngine.PACK_OPS</code> (the
+delta-type registry must list them): <strong><code>loc</code></strong> (lines <code>domain, block, site, location</code>), journaled in the
+same batch as the placement it belongs to (<code>landed</code>, or repair's <code>sites</code>); and <strong><code>locMove</code></strong> (lines
+<code>domain, block, site, from, to</code>), applied only while the location is still <code>from</code> or unset. The plan
+above calls the second "reloc"; that op name is taken (COPY-on-withdrawal relocations). Snapshots carry
+locations in an eighth <code>blk</code> field, present only when a block has one. A binding whose address is the id
+(RAM, the file store, a remote node today) journals nothing new.</p>
+<p><strong>A foreign root is refused.</strong> A root under which neither log's key check holds and no container with a
+valid block header authenticates is another root (a master rotated since the containers were written and
+the custody file lost, or roots mixed up between nodes): the store refuses to open under it before it
+creates or cuts anything, and the node stays rootless (writes refused, presence UNKNOWN). Accepted, it
+would have rebuilt an empty catalogue and the node's own compaction would have retired every container.</p>
+<p><strong>Compaction by the engine's references (§15.3).</strong> <code>StorageEngine.compactSite</code> (and the scheduler's
+COMPACT pass, <code>core_pack_compact_period_ms</code>, 1 h): containers the locus reports compactable (sealed, no
+write in flight in them) whose recorded live bytes are below <code>core_pack_compact_live_fraction</code> (0.5) of
+their size, or that hold more than <code>core_pack_compact_dead_share</code> (0.25) of the site's dead bytes and are
+at least 20 % dead; up to <code>core_pack_compact_batch</code> (8) per job. A record is kept when the index records
+the block's copy on that site and its location is that record, or no location is recorded (it cannot
+tell), or a write that placed it is still owed its landing; retention floors keep anything under them.
+The map is journaled as <code>locMove</code> and made durable before <code>finishCompaction</code> retires the sources; a job a
+restart interrupted after its map is journaled again, then finished. A source is retired only once its live
+records are copied, so it must prove what it holds first: one that does not open, in which nothing
+authenticates, whose scan reports integrity damage, or that was sealed and no longer proves its seal (its
+index does not open, or its footer is not the one the catalogue recorded: a removed tail would otherwise scan
+as a crash's torn tail) is <strong>set aside</strong> (never compacted, so never deleted;
+an integrity alarm), and so is one where a live record fails verification during the copy (the job is
+re-planned without it). One bad container never blocks the others, and none is ever deleted for holding
+records compaction could not read. At startup, jobs are resumed only after every container is registered and
+(on a rebuild) indexed, so a record a rebuild adopted from a source is moved with the job, not dropped with
+the source. It runs as maintenance, so gc,
+withdrawal and reconciliation wait for it. For a <strong>remote</strong> node the index holds no locations (x.* still
+carries ids: the transport redesign owns <code>RemoteBinding</code>), so the node compacts on its own by its
+catalogue (<code>FsBinding.compactByCatalogue</code>, every <code>core_pack_compact_node_ms</code>, 10 min): a record is kept
+while the catalogue names it.</p>
+<p><strong>Reads with locations (§15.4).</strong> <code>ExtentBinding.readNow(ids, opaque)</code> is a default method; the engine
+passes the locations it holds, and the packed binding falls back to its catalogue when one is stale.</p>
+<p><strong>Keys (§15.7).</strong> <code>KeyRing.packRoot(node, kid)</code> is exactly <code>HKDF(master_kid, info("gfs/pack/root/v1",
+node id), 32)</code>. The leader sends it with <strong><code>x.packroot</code></strong> (a destructive x.* verb: never served unsigned)
+wrapped to the node's pinned identity key (<code>crypto.PackRootWrap</code>: ECDH P-384 with a fresh ephemeral
+key, HKDF-SHA-384, AES-256-GCM, node id and kid bound in). The node keeps the wrapped root
+(<code>store.PackRootCustody</code>, <code>pack-root.json</code> beside <code>node-identity.p8</code>) and reinstalls it at start; until it
+has one it refuses writes and answers <code>UNKNOWN</code>, never <code>ABSENT</code>, for what its containers might hold. A
+node reports only the root's fingerprint (<code>packKey</code>) and kid (<code>packKid</code>) in its descriptor; one that holds
+another root than the index derives is a key-mismatch alarm and is never re-keyed.</p>
+<p><strong>Migration (§15.8).</strong> <code>FsBinding.migrateLegacy</code>: files are appended, their floors put in the pack, the batch
+sealed (containers and catalogue forced), and only then are the files deleted under one directory barrier. An
+extent a cut left in both places keeps its file's floor (a reclaim takes the larger of the two floors), and a
+reclaim erases the file with the logical reclaim, so no later batch can pack a reclaimed extent again; a file
+whose digest no independent sidecar vouches for is left in place. Until migrated, files stay readable
+through the packed locus. A storage node runs it in the background (<code>core_pack_migrate=auto</code>). The index
+journals no locations for migrated copies (it cannot see them move on a remote node); they are found by id.</p>
+<p><strong>Not built here:</strong> tape (§15.5, §15.6); scrub by container (<code>ContainerReader.verify</code> per container,
+OUT-36; the engine's scrub still reads each copy); capacity refreshed at rollover (the free-space probe
+refreshes every 500 ms as before); a <code>core.compact</code> operator verb (it should be a C3 job once the jobs API
+is merged; the scheduler runs compaction meanwhile); carrying locations across x.* (transport redesign).</p>
+<hr />
+<h2 id="16-open-questions-this-depends-on-and-the-defaults-chosen">16. Open questions this depends on, and the defaults chosen<a class="headerlink" href="#16-open-questions-this-depends-on-and-the-defaults-chosen" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Dependency</th>
+<th>Default taken here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>S1</strong> K_meta counter discipline</td>
+<td>container metadata is GCM under a key</td>
+<td><strong>Answered for containers</strong>: IV = (seq, domain) under a per-container key; injective by construction, no RNG in the IV. The catalogue cnodes are outside this format and remain open</td>
+</tr>
+<tr>
+<td><strong>S2</strong> Idempotency-key lease</td>
+<td>two writers under one container id would share a counter space</td>
+<td>A container id is fresh random per container and never reopened; the file sink refuses an existing name; the tape binding must check its catalogue for the id before writing. A lease is still needed for cross-host writers</td>
+</tr>
+<tr>
+<td><strong>B3</strong> Independent reference reader</td>
+<td>the format is a one-way door</td>
+<td><code>eval/pack_reader.py</code>, written from this document alone, checks the goldens and Java-written containers (§17)</td>
+</tr>
+<tr>
+<td><strong>B4</strong> Publish the format</td>
+<td>a future reader</td>
+<td>This document contains no secret and is written to be published; the owner decides</td>
+</tr>
+<tr>
+<td><strong>B5</strong> Block size, filemarks, partitions, checkpoints</td>
+<td>tape layout</td>
+<td>1 MiB blocks; one filemark per container; no partitions; checkpoints every 64 MiB inside a container. The volume-level index checkpoints are Layer 1</td>
+</tr>
+<tr>
+<td><strong>D1</strong> Which data on drive-enforced WORM</td>
+<td>none: the format never rewrites on tape</td>
+<td>the tape writer behaves as WORM on every cartridge</td>
+</tr>
+<tr>
+<td><strong>D2</strong> Interleave consent units vs. group for reclamation</td>
+<td>packing class (§15.3)</td>
+<td>group by <code>(domain, retention class)</code> on disk; tape policy open</td>
+</tr>
+<tr>
+<td><strong>D3</strong> Repack granularity</td>
+<td>repack</td>
+<td>record-granular: citations name extents, not positions, and positions change only through journaled reloc deltas, so sub-container repack breaks nothing</td>
+</tr>
+<tr>
+<td><strong>D4</strong> The rewrite rule</td>
+<td>repack</td>
+<td>adopted in the form of §13: bit-identical payloads, fresh container key, provenance on every record</td>
+</tr>
+<tr>
+<td><strong>D8</strong> GC on by default</td>
+<td>compaction trigger</td>
+<td>on for disk, <code>live_fraction &lt; 0.5</code>; off for WORM</td>
+</tr>
+<tr>
+<td><strong>M1</strong> Mount cycle</td>
+<td>none for the format</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>M2</strong> Speed-match floor</td>
+<td>block size above 1 MiB?</td>
+<td>1 MiB until measured</td>
+</tr>
+<tr>
+<td><strong>S7</strong> FIPS 140-3 module</td>
+<td>JCA provider</td>
+<td>JDK JCA only; algorithms are CNSA (SHA-384, HMAC-SHA-384, AES-256-GCM, HKDF-SHA-384)</td>
+</tr>
+<tr>
+<td><strong>new: P1</strong> Lengths from a <code>K_meta</code> holder</td>
+<td>§10</td>
+<td>not hidden; would need a per-record key</td>
+</tr>
+<tr>
+<td><strong>new: P2</strong> Keyless proof of possession</td>
+<td>block CRC-32 detects media errors but is forgeable</td>
+<td>a keyed or Merkle challenge over blocks is future work (SPECIFICATION §4 <code>prove</code>)</td>
+</tr>
+<tr>
+<td><strong>new: P3</strong> Node catalogue format</td>
+<td>§15.2</td>
+<td>append-only, MAC-chained <code>tag → location</code> log; built on <code>wip/packint</code> (§15.9)</td>
+</tr>
+<tr>
+<td><strong>new: P4</strong> Reference-reader findings still open</td>
+<td>§8.1, §8.4, §8.5, §17</td>
+<td>the second pass of <code>eval/pack_reader.py</code> raised 11 points (a gap found through its entry is reported as recovered damage; a wrong key on a sealed-looking file also yields one damage region; a resync that loses no seq has null seqs; <code>--cid</code> needs a trailer that opens, though the HEADER record could supply the block size; the 1,024-probe bound; writer-side rules §8.5 does not require). None changes the byte layout; each is a reporting or verifier-scope rule to settle before the format is frozen</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="17-the-reference-reader-evalpack_readerpy">17. The reference reader (<code>eval/pack_reader.py</code>)<a class="headerlink" href="#17-the-reference-reader-evalpack_readerpy" title="Permanent link">&para;</a></h2>
+<p>Python 3 standard library plus the <code>cryptography</code> package (for AES-GCM only). Written from this
+document; it must not import or port the Java implementation.</p>
+<div class="highlight"><pre><span></span><code>python3 eval/pack_reader.py list    --key HEX [--cid HEX] [--json] FILE...   # §8.2: the index of sealed containers
+python3 eval/pack_reader.py verify  --key HEX [--cid HEX] [--json] FILE...   # §8.5: full verification
+python3 eval/pack_reader.py scan    --key HEX [--cid HEX] [--json] FILE...   # §8.4: recovery scan
+python3 eval/pack_reader.py extract --key HEX [--cid HEX] --seq N FILE       # one verified payload to stdout
+python3 eval/pack_reader.py selftest                                         # the §3 test vectors
+</code></pre></div>
+<p><code>--cid</code> supplies the container id for §8.1's last resort, when no block header is valid.</p>
+<p><code>--key</code> is the 32-byte pack root in hex. Exit status: 0 when every file succeeded, 1 when any file did
+not (including a file that cannot be opened), 2 for a usage error. Success is, for <code>list</code>: the index
+authenticated (§8.2); for <code>verify</code>: the container verifies (§8.5); for <code>scan</code>: every damaged region
+was recovered and there was no integrity problem (bad blocks and a torn tail are reported but
+allowed; a wrong key fails, by "no record authenticates"); for <code>extract</code>: the record was found and
+written.</p>
+<p><code>list</code> reads the footer and each record's header, not the payloads. <code>extract</code> uses the index when the
+container is sealed and the scan otherwise; it writes the payload as stored (for HEADER, CHECKPOINT
+and FOOTER, the sealed body, not the opened one) and refuses a PAD, which carries nothing provable.</p>
+<p>With <code>--json</code> the output is a JSON array with one object per file:</p>
+<div class="highlight"><pre><span></span><code>{
+  "file": str, "container_id": hex, "log2_block": int, "file_bytes": int, "blocks": int,
+  "sealed": bool,                 # §8.2 succeeded
+  "ok": bool,                     # the command's success criterion above
+  "problems": [str],              # human-readable; includes §8.4 integrity problems
+  "bad_blocks": [{"index": int, "problem": str}],      # one per bad block: the first check it failed
+  "damage": [{"seq_from": int|null, "seq_to": int|null, "stream_from": int, "stream_to": int,
+              "recovered": bool, "reason": str}],      # one per damaged region (§8.4 step 3 or 4);
+                                                       # seq_to null when the range's end is unknown
+  "torn_at": int|null,            # §8.4 step 5; null when there is no torn tail
+  "valid_end": int|null,          # §8.4 step 5 (scan and verify); null for list
+  "footer_seq": int|null, "run_hash": hex|null,        # from the trailer, only when sealed (§8.2)
+  "header": {"version", "log2_block", "checkpoint_every_records", "checkpoint_every_bytes",
+             "capacity_bytes", "created_ms", "lease_epoch", "binding", "locus"},   # {} if unreadable
+  "records": [ {
+      "seq": int, "kind": "HEADER|EXTENT|TOMBSTONE|CHECKPOINT|FOOTER|PAD",
+      "flags": int, "id_form": int, "extent_id": str|null, "tag": hex, "offset": int,
+      "payload_length": int, "payload_sha384": hex, "stored_ms": int|null,
+      "retain_until_ms": int|null, "ref_container": hex|null, "ref_seq": int, "aux": int,
+      "via": "header|index"
+  } ]
+}
+</code></pre></div>
+<p><code>records</code> lists every record the reader found, in seq order, including HEADER, CHECKPOINT, PAD and
+FOOTER. <code>via</code> is <code>"header"</code> when the record's own header opened and <code>"index"</code> when only an entry
+proved it; with <code>"index"</code>, the four fields an entry does not carry (<code>extent_id</code>, <code>stored_ms</code>,
+<code>retain_until_ms</code>, <code>ref_container</code>) are null. For <code>list</code> the records are the footer's entries plus
+the FOOTER record itself, each with its header read (so <code>via: "header"</code> unless that header fails to
+open).</p>
+<p>The golden manifests (<code>src/test/resources/pack/golden-v1-*.json</code>) list, for each golden container,
+the fields above that any correct reader must reproduce, and the key (<code>key</code>).</p>
+<hr />
+<h2 id="18-measurements">18. Measurements<a class="headerlink" href="#18-measurements" title="Permanent link">&para;</a></h2>
+<p><code>PackMeasurementsTest</code>, 2026-09-26, <code>eval/results/pack_bench_20260926-110204.json</code> (earlier runs of
+the same harness: <code>-104742</code>, <code>-105433</code>). One Mac: Apple M3 Max, 36 GB, internal SSD (APFS, 92 %
+full), JDK 23.0.2, one writer thread. <strong>Other agents' test suites were running throughout</strong> (load
+average 6–7), so the device figures are low and noisy for this SSD; the CPU figures are steady across
+all three runs. 1 GiB per case, three repetitions, medians. Reads come from the page cache (the file
+was just written), so read and verify figures are the CPU cost of verification, not a cold-disk rate.</p>
+<table>
+<thead>
+<tr>
+<th>Extent / block</th>
+<th style="text-align: right;">Raw write + sync</th>
+<th style="text-align: right;">Pack write</th>
+<th style="text-align: right;">Pack write, async sink</th>
+<th style="text-align: right;">Writer CPU only</th>
+<th style="text-align: right;">Index open</th>
+<th style="text-align: right;">Verified read, in order / random</th>
+<th style="text-align: right;">Full verify</th>
+<th style="text-align: right;">Scan, unsealed</th>
+<th style="text-align: right;">Space overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64 KiB / 1 MiB</td>
+<td style="text-align: right;">242 MB/s</td>
+<td style="text-align: right;">174 MB/s</td>
+<td style="text-align: right;"><strong>375 MB/s</strong></td>
+<td style="text-align: right;">1,224 MB/s</td>
+<td style="text-align: right;">6.2 ms</td>
+<td style="text-align: right;">1,313 / 1,338 MB/s</td>
+<td style="text-align: right;">1,107 MB/s</td>
+<td style="text-align: right;">1,105 MB/s</td>
+<td style="text-align: right;">0.88 %</td>
+</tr>
+<tr>
+<td>1 MiB / 1 MiB</td>
+<td style="text-align: right;">369 MB/s</td>
+<td style="text-align: right;">171 MB/s</td>
+<td style="text-align: right;"><strong>357 MB/s</strong></td>
+<td style="text-align: right;">1,258 MB/s</td>
+<td style="text-align: right;">0.4 ms</td>
+<td style="text-align: right;">1,330 / 1,345 MB/s</td>
+<td style="text-align: right;">1,106 MB/s</td>
+<td style="text-align: right;">1,101 MB/s</td>
+<td style="text-align: right;">0.10 %</td>
+</tr>
+<tr>
+<td>64 KiB / 256 KiB</td>
+<td style="text-align: right;">220 MB/s</td>
+<td style="text-align: right;">104 MB/s</td>
+<td style="text-align: right;">201 MB/s</td>
+<td style="text-align: right;">1,241 MB/s</td>
+<td style="text-align: right;">6.1 ms</td>
+<td style="text-align: right;">1,303 / 1,314 MB/s</td>
+<td style="text-align: right;">1,093 MB/s</td>
+<td style="text-align: right;">1,104 MB/s</td>
+<td style="text-align: right;">0.88 %</td>
+</tr>
+</tbody>
+</table>
+<p>Primitives on one core: SHA-384 1,540 MB/s; CRC-32 9,495 MB/s; sealing one record header (AES-GCM,
+272 bytes) 0.34 µs; one sync word 0.43 µs.</p>
+<p>What the numbers say:</p>
+<ul>
+<li><strong>The writer's own cost is SHA-384 of each payload</strong>: 1.22–1.26 GB/s on one core, three times an
+  LTO-10 drive's 400 MB/s. Framing, sealing and the running hash are under 2 µs per record.</li>
+<li><strong>Written synchronously the writer adds its hashing to the device time; with the async sink the
+  two overlap</strong> and it reaches the device: 357–375 MB/s against 369 MB/s for raw 1 MiB writes (the
+  raw 64 KiB case, 242 MB/s, is lower because it writes in 64 KiB pieces; the container always
+  writes whole blocks). The integration uses the async sink (§15.1). A 1 MiB block writes faster than
+  256 KiB here, which supports the default.</li>
+<li><strong>Reading and verifying are SHA-384-bound</strong>: about 1.1–1.35 GB/s, so a full verification of a
+  1 GiB container costs about 0.95 s of one core; the keyless CRC pass alone is about 0.1 s per GiB.</li>
+<li><strong>Opening the index is one trailer read and one footer read</strong>: 0.4 ms for 1,024 records, 6 ms for
+  16,384 (a 2 MB footer).</li>
+<li><strong>Recovering a container whose footer never landed costs one sequential read</strong> at verify speed.</li>
+<li><strong>Against today's file-per-extent path</strong>, reproduced in the same run under the same contention
+  (a file and sidecar per 64 KiB extent, data synced in parallel at seal, one directory sync):
+  3.2 MB/s written, because the path pays one fsync per extent (4,096 for 256 MiB) where a container
+  pays one per seal. MODULE-DECISIONS F-C10-2 measured the same path at 46–78 MB/s (R = 3 publish)
+  on a quieter machine; the ratio that does not depend on the load is fsyncs per seal, N against 1.
+  Its startup listing and stat took 41 ms for 8,192 files (5 µs a file): at 10^9 extents (2×10^9
+  files) that is about 2.8 hours and a 10^9-entry heap map, where a pack store lists about 10^6
+  containers per PB (about 5 s at the same rate) and holds no per-extent state. The 10^9 figure is an
+  extrapolation, not a measurement.</li>
+</ul>
+<hr />
+<h2 id="19-tests">19. Tests<a class="headerlink" href="#19-tests" title="Permanent link">&para;</a></h2>
+<p><code>src/test/java/io/cresco/gfs/core/pack/</code>:</p>
+<ul>
+<li><code>ContainerTest</code>: round trip; 3,000 extents and one spanning five blocks, across blocks and
+  checkpoints; the sync barrier and the partial tail block (a crash snapshot after every sync recovers
+  exactly what was synced); the sequential sink (whole blocks only, no rewrite, no partial barrier);
+  the async sink (order, barriers, and a failing device that surfaces at a later call and ends the
+  writer); fixed-capacity parcels, full and nearly empty; no id, length or time readable outside a
+  seal, and under a wrong key nothing listed and no torn tail; tombstones; the location string.</li>
+<li><code>DamageTest</code>: a torn tail at every byte offset of the last record (which straddles a block header),
+  sealed and unsealed; bit flips across the whole container (every 53rd byte, every block header, the
+  footer and trailer region, and every record's sync word, header and payload edges): each detected,
+  localised to its block, costing at most its own record, and never read as a torn tail; the first two
+  block headers damaged (the container still opens); a footer that never landed (truncated, and
+  destroyed in place) recovered by scan; a trailer whose MAC fails, a flipped trailer, a trailer from
+  another container, and a wrong root: the metadata is refused and the records still authenticate on
+  their own.</li>
+<li><code>RepackTest</code>: live records move bit-identically with provenance, dead and tombstoned ones are
+  dropped and reported, retention floors hold, TAG_ONLY stays TAG_ONLY, the map is stable; a crash at
+  each of twelve points (plan, first and seventeenth copied record, first and second output closed,
+  copied, verified, published, mapped, acknowledged, first and second source retired) is resumed to
+  the same final state, and no source is retired before the map is acknowledged.</li>
+<li><code>GoldenTest</code>: the committed goldens read exactly as their manifests say; the reference reader
+  agrees on both goldens, on a fresh 300-extent Java-written container, and on a torn copy of it.</li>
+<li><code>PackMeasurementsTest</code> (tag <code>measure</code>, not in the normal build): §18.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

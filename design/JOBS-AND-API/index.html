@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/COMPONENTS/">
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/JOBS-AND-API/">
       
       
-        <link rel="prev" href="../MODULE-DECISIONS/">
+        <link rel="prev" href="../FORMAT-ADAPTERS/">
       
       
-        <link rel="next" href="../TENANCY-AND-DEDUP/">
+        <link rel="next" href="../CORE-LOG/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Component definitions - GaiaKeep GFS</title>
+        <title>Jobs and the API - GaiaKeep GFS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#components-of-the-durable-storage-core" class="md-skip">
+        <a href="#jobs-1a-ingest-policy-profiles-and-the-fabric-api-wave-2-package-jobsapi" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Component definitions
+              Jobs and the API
             
           </span>
         </div>
@@ -1384,10 +1384,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../JOBS-AND-API/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1403,6 +1430,148 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-operation-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The operation model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The operation model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jobs-opmodel-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jobs (opmodel §2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingest-by-striped-parts-and-a-short-commit-opmodel-1a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingest by striped parts and a short commit (opmodel §1a)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-policy-profiles-owner-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Policy profiles (owner request)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-fabric-api-apispecmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The fabric API (api.spec.md)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The fabric API (api.spec.md)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#have-checks-in-format-adapter-domains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Have-checks in format-adapter domains
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-journal-deltas-added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Journal deltas added
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-config-keys-added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Config keys added
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-defaults-adopted-where-the-owner-has-not-decided-flagged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Defaults adopted where the owner has not decided (flagged)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-not-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Not built
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1580,37 +1749,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Component definitions
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
         
   
   
@@ -1626,70 +1768,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-components" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The components
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-each-module-test-must-establish" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What each module test must establish
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#measurements-for-module-level-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Measurements for module-level decisions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#not-in-this-build" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Not in this build
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2204,10 +2282,49 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-components" class="md-nav__link">
+  <a href="#1-the-operation-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The components
+        1. The operation model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The operation model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jobs-opmodel-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jobs (opmodel §2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingest-by-striped-parts-and-a-short-commit-opmodel-1a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingest by striped parts and a short commit (opmodel §1a)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-policy-profiles-owner-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Policy profiles (owner request)
       
     </span>
   </a>
@@ -2215,10 +2332,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-each-module-test-must-establish" class="md-nav__link">
+  <a href="#3-the-fabric-api-apispecmd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What each module test must establish
+        3. The fabric API (api.spec.md)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The fabric API (api.spec.md)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#have-checks-in-format-adapter-domains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Have-checks in format-adapter domains
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-journal-deltas-added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Journal deltas added
       
     </span>
   </a>
@@ -2226,10 +2371,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#measurements-for-module-level-decisions" class="md-nav__link">
+  <a href="#5-config-keys-added" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Measurements for module-level decisions
+        5. Config keys added
       
     </span>
   </a>
@@ -2237,10 +2382,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#not-in-this-build" class="md-nav__link">
+  <a href="#6-defaults-adopted-where-the-owner-has-not-decided-flagged" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Not in this build
+        6. Defaults adopted where the owner has not decided (flagged)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-not-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Not built
       
     </span>
   </a>
@@ -2266,176 +2422,457 @@
 
 <div class="admonition success">
 <p class="admonition-title">Status: Current</p>
-<p>Every component of the durable storage core: interface, what its tests must establish, the decision it feeds.</p>
+<p>Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01).</p>
 </div>
-<h1 id="components-of-the-durable-storage-core">Components of the durable storage core<a class="headerlink" href="#components-of-the-durable-storage-core" title="Permanent link">&para;</a></h1>
-<p><em>2026-09-23. </em><em>Status: all eleven components built and tested — 203 tests, 0 failures at the time (324 at <code>e3d7b46</code>, CI green); results and the decisions they raise in <code>MODULE-DECISIONS.md</code>.</em><em> The build plan the owner ordered: define every component, build each one with
-exhaustive module tests, make decisions module by module from measured results, then integration-test
-the assembled engine across the option matrix. Design of record: <code>TENANCY-AND-DEDUP.md</code>,
-<code>SPECIFICATION.md</code> §20, <code>ENTAIL-AGENT-NATIVE-FS.md</code> §3 and §6.</em></p>
-<p>All new code is under <code>io.cresco.gfs.core</code>. It is plain Java (JDK 21, no records, because the
-ClassIndex processor breaks CI) with no dependencies beyond the JDK. That keeps it testable without
-a Cresco fabric and lets the same code run inside the plugin. Tests are JUnit 5 under <code>src/test/java</code>
-(test scope only; never shipped).</p>
-<h2 id="the-components">The components<a class="headerlink" href="#the-components" title="Permanent link">&para;</a></h2>
+<h1 id="jobs-1a-ingest-policy-profiles-and-the-fabric-api-wave-2-package-jobsapi">Jobs, §1a ingest, policy profiles and the fabric API (wave 2, package jobsapi)<a class="headerlink" href="#jobs-1a-ingest-policy-profiles-and-the-fabric-api-wave-2-package-jobsapi" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-26. Branch wip/jobsapi, based on the wave-1 integration (6ee4356). Normative inputs: the
+operation model (opmodel.spec.md) and the API package spec (api.spec.md). This page lists what is
+built, the journal deltas and config keys it adds, the defaults adopted where the owner has not
+decided (each flagged), and what is not built.</em></p>
+<h2 id="1-the-operation-model">1. The operation model<a class="headerlink" href="#1-the-operation-model" title="Permanent link">&para;</a></h2>
+<p>Every core.<em> and x.</em> action is classified (<code>OperationClass</code>): C0 instant control, C1 bounded reads,
+C2 lifecycle mutations and C3 maintenance (async jobs), C4 ingest and download, X internal.
+<code>OperationClassTest</code> fails when a handled action is unclassified, when the table names an action
+nobody serves, and when any C2/C3 verb does not answer within the sync budget while its work is
+held. Every dispatch is timed; an RPC held past <code>core_sync_rpc_max_ms</code> is logged and counted
+(<code>core.status</code> <code>sync_rpc_overruns</code>).</p>
+<h3 id="jobs-opmodel-2">Jobs (opmodel §2)<a class="headerlink" href="#jobs-opmodel-2" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>Component</th>
-<th>Package</th>
-<th>Responsibility</th>
-<th>Module decision it feeds</th>
+<th>Verb</th>
+<th>Class</th>
+<th>Job work</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>C1</td>
-<td>Chunker</td>
-<td><code>core.chunk</code></td>
-<td>Split a byte stream into blocks: fixed, content-defined (Gear), keyed content-defined</td>
-<td>Default chunker and target size per mode</td>
+<td>core.withdraw</td>
+<td>C2 (request_id required)</td>
+<td>drop (one exclusive batch), then gc in slices</td>
 </tr>
 <tr>
+<td>core.rotatemaster (not dry_run)</td>
 <td>C2</td>
-<td>Block hash</td>
-<td><code>core.block</code></td>
-<td>Hash every block before storage; SHA-256 or SHA-384</td>
-<td>Confirm SHA-384 as the default</td>
+<td>rewrap roots</td>
 </tr>
 <tr>
+<td>core.compose (more than <code>core_compose_sync_files</code> files, or with request_id)</td>
+<td>C2</td>
+<td>commit; the job ends in the commit's batch</td>
+</tr>
+<tr>
+<td>core.extract (more than <code>core_extract_sync_leaves</code> files, or with request_id)</td>
+<td>C2</td>
+<td>freeze and pin</td>
+</tr>
+<tr>
+<td>core.publish with request_id</td>
+<td>C4 as a job</td>
+<td>publish; ends in the commit's batch</td>
+</tr>
+<tr>
+<td>core.commit</td>
+<td>C4 as a job</td>
+<td>§1a commit; ends in the commit's batch</td>
+</tr>
+<tr>
+<td>core.gc, core.repair, core.scrub, core.trim, core.recover</td>
 <td>C3</td>
-<td>Tenancy and policy</td>
-<td><code>core.tenancy</code></td>
-<td>Tenants, collections, dedup domains, grants; enforce sealed, withdrawal-sensitive, mode and grant rules</td>
-<td>Accept the policy defaults</td>
+<td>the engine's slices, a safe point between slices</td>
 </tr>
 <tr>
-<td>C4</td>
-<td>Key ring and KDF</td>
-<td><code>core.block</code></td>
-<td>Tenant root keys; HKDF-SHA-384 derivation of domain, block and boundary keys</td>
-<td>—</td>
-</tr>
-<tr>
-<td>C5</td>
-<td>Block codec</td>
-<td><code>core.block</code></td>
-<td>Seal and open a block per mode: block id, per-block key, GCM; NONE via <code>SegmentCipher</code></td>
-<td>Accept per-mode identity and key rules</td>
-</tr>
-<tr>
-<td>C6</td>
-<td>Reference index</td>
-<td><code>core.refs</code></td>
-<td>Reference counts, pins and replica locations per block; what is reclaimable</td>
-<td>Refcount semantics</td>
-</tr>
-<tr>
-<td>C7</td>
-<td>Versioning</td>
-<td><code>core.version</code></td>
-<td>File entries, runs, version roots, branches with compare-and-set, extracts and citation ids</td>
-<td>Version identity form</td>
-</tr>
-<tr>
-<td>C8</td>
-<td>Replica placement</td>
-<td><code>core.place</code></td>
-<td>Choose R loci under constraints: distinct failure domains, fail-closed durability, capacity; explicit unsatisfiability</td>
-<td>Placement defaults</td>
-</tr>
-<tr>
-<td>C9</td>
-<td>Loci</td>
-<td><code>extent</code></td>
-<td><code>ExtentBinding</code> implementations: <code>FsBinding</code> (exists), <code>MemBinding</code> (new: volatile RAM locus)</td>
-<td>—</td>
-</tr>
-<tr>
-<td>C10</td>
-<td>Storage engine</td>
-<td><code>core.engine</code></td>
-<td>Publish, read with verification, compose, grants and augment, withdraw, site loss, repair, scrub; all I/O <strong>through <code>ExtentBinding</code></strong></td>
-<td>—</td>
-</tr>
-<tr>
-<td>C11</td>
-<td>Integration matrix</td>
-<td><code>src/test</code></td>
-<td>The assembled engine across every option combination and failure scenario</td>
-<td>Which combinations become supported configurations</td>
+<td>core.site drain / lost / decommission / reconcile, and restore of a LOST site</td>
+<td>C3</td>
+<td>as the site lifecycle</td>
 </tr>
 </tbody>
 </table>
-<h2 id="what-each-module-test-must-establish">What each module test must establish<a class="headerlink" href="#what-each-module-test-must-establish" title="Permanent link">&para;</a></h2>
-<p><strong>C1 Chunker.</strong> Chunks reassemble to the input exactly, for every size including empty and one
-byte. Output is deterministic. Every chunk respects the minimum and maximum except the last.
-Boundaries survive insertion and prepend (content-defined) and don't (fixed). Keyed chunking
-differs from unkeyed and is stable per key. The streaming chunker matches the in-memory chunker.</p>
-<p><strong>C2 Block hash.</strong> Known-answer tests for both algorithms. Lengths are 32 and 48 bytes. Hashing is
-deterministic.</p>
-<p><strong>C3 Tenancy.</strong> The full matrix of tenant flags (sealed, withdrawal-sensitive, public-reference opt-in)
-× dedup mode × grant direction (same tenant, cross tenant, into sealed, out of sealed, out of NONE,
-from GLOBAL) produces exactly the allowed or refused outcome in <code>TENANCY-AND-DEDUP.md</code>. Defaults for
-withdrawal terms are applied. A mode can't change after creation.</p>
-<p><strong>C4 Keys.</strong> Derivations are deterministic, separated by domain and by label, and length-prefixed so
-labels can't collide. Different tenants get different domain keys.</p>
-<p><strong>C5 Codec.</strong> For each mode:
-- <strong>Shared modes converge:</strong> the same plaintext gives the same block id and ciphertext.
-- <strong>Domains are separated:</strong> the same plaintext in two keyed domains gives different ids and
-  ciphertext.
-- <strong>GLOBAL</strong> ids equal the raw hash.
-- <strong>NONE never converges.</strong>
-- Opening verifies authentication and binds the block id to the content, so tampered ciphertext or a
-  mismatched id is refused.
-- The confirmation-oracle rule holds: without the key, a guessed plaintext can't be matched to a
-  keyed-mode id.</p>
-<p><strong>C6 References.</strong> Adding and removing are idempotent per holder. A block becomes reclaimable exactly
-when it has no holders and no pins. A pin prevents reclamation. Randomised sequences agree with a
-reference model.</p>
-<p><strong>C7 Versioning.</strong>
-- Later runs shadow earlier ones, and tombstones delete.
-- A commit is refused unless it names the current head (compare-and-set).
-- Branches are independent.
-- A version id is deterministic from its content.
-- Extract selectors are deterministic, and citation ids are stable and change when the set changes.</p>
-<p><strong>C8 Placement.</strong>
-- R copies land on distinct failure domains.
-- Loci that can't show durability are refused unless attested.
-- Capacity is respected, and excluded loci are never chosen.
-- An unsatisfiable request fails with a reason that counts what was refused and why.
-- The choice is deterministic for a given seed.</p>
-<p><strong>C9 MemBinding.</strong> It passes the same contract checks as <code>FsBinding</code>. It declares itself volatile, so
-its barrier evidence is ABSENT, and wiping it models losing it.</p>
-<p><strong>C10 Engine.</strong> Every published version reads back byte-identical and verified. Unchanged files
-carry forward by reference. Deletes work. Composing GLOBAL datasets stores zero new blocks.
-Augmenting another tenant's data stores only changed blocks. Withdrawal reclaims exactly the
-unreferenced blocks. Losing R−1 sites leaves every version readable, and repair restores R copies.
-Corruption is found by scrub and repaired.</p>
-<p><strong>C11 Integration matrix.</strong> The C10 scenarios run across dedup mode × chunker × hash algorithm ×
-replication factor × locus type, plus the policy scenarios that must be refused. Every cell is
-recorded: pass or fail, logical and physical bytes, and the dedup ratio.</p>
-<h2 id="measurements-for-module-level-decisions">Measurements for module-level decisions<a class="headerlink" href="#measurements-for-module-level-decisions" title="Permanent link">&para;</a></h2>
-<p><code>ModuleMeasurements</code> writes <code>eval/results/modules/*.json</code>, summarised in <code>MODULE-DECISIONS.md</code>:</p>
+<p><code>core.auditverify</code> is not a job: A3 (fix-core) serves it on any peer, against that peer's own audit
+log, so it is a bounded read (C1). A page verifies until the log's end or the sync budget; a longer
+log answers <code>complete=false</code> with a cursor MAC'd by the peer's process, and <code>ok=true</code> comes only
+from the page that reaches the end.</p>
 <ul>
-<li>chunker × workload (append, insert, prepend, overwrite, whole-file change) → blocks retained and throughput;</li>
-<li>SHA-256 vs SHA-384 throughput;</li>
-<li>codec throughput per mode;</li>
-<li>engine publish and read throughput per mode and replication factor.</li>
+<li>Accept: authorized and validated, then <code>jobAccept</code> is journaled before the reply. The same
+  <code>(principal, request_id)</code> answers the same job, on a retry and on a new leader; other params under
+  the same key are refused (8). A key whose job ended retryable (FAILED retryable, CANCELLED,
+  ABANDONED) may start a new attempt.</li>
+<li>States: ACCEPTED, RUNNING (journaled before any work), DONE, FAILED, CANCELLED, ABANDONED.
+  <code>jobProgress</code> at most every <code>core_job_progress_ms</code>; events at most once a second.</li>
+<li>A job that commits a version ends in that commit's own batch (<code>jobEnd</code> with <code>at_head</code>): the
+  version and the job's end are durable together or not at all.</li>
+<li>Leader loss: the new leader resolves every open job: DONE from its journaled effect (withdraw,
+  site lifecycle), otherwise FAILED with code <code>interrupted</code>, retryable (<code>reupload</code> for commits).</li>
+<li>Admission: <code>core_jobs_per_principal</code> (8) and <code>core_jobs_max</code> (64); a full queue answers 11 with
+  <code>retry_after_ms</code> at once. Commits and request_id publishes are not counted (they follow an upload
+  the staging quotas admitted).</li>
+<li><code>core.job</code> (the job's principal; an auditor may read), <code>core.cancel job_id</code> (the principal or a
+  system-admin; cooperative, at safe points). Every accept is the request's own audit record; every
+  end is audited (<code>core.job.end</code>).</li>
+<li>Retention: ended jobs are forgotten (<code>jobForget</code>) after <code>core_job_retain_ms</code> (7 d).</li>
+<li>Events: <code>{job_id, seq, state, progress, result | error, ts, sig}</code> on the stream the request named
+  (<code>events</code>), GK-CJSON-1 canonical JSON signed ECDSA P-384 by the core identity, byte for byte the
+  clients' golden (<code>clients/conformance/event-golden-v1.json</code>, copied to test resources). seq is the
+  leader's term x 10^9 plus a per-job count, so it only rises. core.job stays authoritative.</li>
+<li><code>core.status</code> advertises <code>jobs-1</code> and <code>ingest-1a</code> in <code>capabilities</code>.</li>
 </ul>
-<h2 id="not-in-this-build">Not in this build<a class="headerlink" href="#not-in-this-build" title="Permanent link">&para;</a></h2>
-<p>These are deliberately deferred, with the reason:</p>
+<h3 id="ingest-by-striped-parts-and-a-short-commit-opmodel-1a">Ingest by striped parts and a short commit (opmodel §1a)<a class="headerlink" href="#ingest-by-striped-parts-and-a-short-commit-opmodel-1a" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Tape binding over raw SCSI</strong> needs hardware and the JDK decision (B2).</li>
-<li><strong>Quorum commit through the federation index across hosts.</strong> The in-process version log uses
-  compare-and-set; wiring into the Cresco index is the next stage.</li>
-<li><strong><code>prospect</code> cost model.</strong></li>
-<li><strong>Packing blocks into containers</strong>, and with it pin amplification.</li>
-<li><strong>The caching tier</strong> (after durable storage).</li>
-<li><strong>Erasure coding</strong> (later, by repack).</li>
-<li><strong>The metadata-key IV discipline (S1).</strong> Version roots and manifests are in-process objects here and
-  are not yet written to media.</li>
+<li>The first <code>core.put</code> names the target: <code>collection_id, branch, expected_head, base_vid, deletes,
+  request_id, note, ingest=1a</code>. A writer thread writes each file through <code>StorageEngine.Ingest</code> as
+  its bytes land (streaming read, sha256 checked, blocks pinned until the commit or the abort; the
+  write gate is held only while a file is written).</li>
+<li><code>core.commit(upload_id, request_id)</code>: a job, waited for at most <code>core_sync_rpc_max_ms - 2 s</code>;
+  otherwise <code>state=committing</code>, then a signed commit event <code>{upload_id, request_id, seq, state, vid,
+  number, error, ts, sig}</code> on the upload's down streams, and <code>core.putstatus</code> <code>commit_state</code>.</li>
+<li><code>core.putstatus</code> <code>ranges</code>: <code>{path: {part: [[first, end), ...]]}</code> in flow sequence numbers. A part
+  is re-opened with <code>resume=true</code>; its receiver starts from the chunks held. One writer per staged
+  slot. A flow that stalls or drops does not fail an §1a upload.</li>
+<li>The legacy <code>core.publish</code> never holds its RPC past the budget: 13 <code>committing</code>, then
+  <code>core.putstatus</code> <code>commit_state</code>; with request_id it is an idempotent job.</li>
+<li>A wave-1 staged upload whose puts say <code>resumable=true</code> is resumable the same way (a dropped flow
+  leaves its part resumable), is verified in full as any staged upload, and is published with
+  <code>core.publish</code>; the first put decides it. Commits verify every staged file was written (else
+  FAILED <code>incomplete</code>, reupload).</li>
+<li>eval/gkt.py: <code>ingest_commit(mc, files, target, request_id, upload_id=None, resume=True,
+  pause_after_chunks=None, stall_s=30)</code> (a stalled or failed flow re-opens its part with resume=true and
+  sends only what core.putstatus ranges say is missing; upload_id resumes an upload a paused or killed
+  client left; core.commit is repeated under the same request_id on a timeout or a leader change; a
+  commit that failed with reupload is uploaded again under a new upload_id and the same request_id;
+  eval/test_gkt_ingest_resume.py), <code>Job.start/wait/result/cancel</code>,
+  <code>have_upload</code>, <code>MultiClient.put_files(resume=True, pause_after_chunks=N | {part: N}, stall_s,
+  upload_id)</code> (eval/test_gkt_resume.py); <code>eval/test_gkt_events.py</code>, <code>eval/test_gkt_have.py</code> check them against the golden
+  vectors.</li>
+</ul>
+<h2 id="2-policy-profiles-owner-request">2. Policy profiles (owner request)<a class="headerlink" href="#2-policy-profiles-owner-request" title="Permanent link">&para;</a></h2>
+<p>A profile bundles the dedup mode and chunker spec, replication, durability, retention and GLOBAL
+eligibility. <code>core.profile op=create|list|get|of</code>; <code>core.collection profile=&lt;name&gt;</code> takes the
+profile's replication, durability and retention (a disagreeing param is refused, profile-conflict),
+the named domain (mode and chunker must match) or the tenant's profile domain, and records the
+profile, whole, with the collection in the same journal batch. Built-ins: radiology-dicom
+(<code>fmt:dicom@1+cdc:1048576:262144:4194304</code>, R=3, durable), pathology-wsi (<code>fmt:tiff@1+...</code>, R=3,
+durable), scratch-cache (R=1, cache, COLLECTION). Until the format adapters (wip/dicomchunk) are
+merged, the two fmt: built-ins refuse with profile-chunker-unavailable.</p>
+<h2 id="3-the-fabric-api-apispecmd">3. The fabric API (api.spec.md)<a class="headerlink" href="#3-the-fabric-api-apispecmd" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Verb</th>
+<th>Class</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>core.versions, core.version, core.branches</td>
+<td>C1</td>
+<td>reader on the collection</td>
+</tr>
+<tr>
+<td>core.diff</td>
+<td>C1</td>
+<td>reader on both versions' collections</td>
+</tr>
+<tr>
+<td>core.chunker</td>
+<td>C1</td>
+<td>reader or writer</td>
+</tr>
+<tr>
+<td>core.haveopen</td>
+<td>C0</td>
+<td>writer, and the oracle scope</td>
+</tr>
+<tr>
+<td>core.have</td>
+<td>C1</td>
+<td>the have-check's owner, a writer, the scope re-checked per page</td>
+</tr>
+<tr>
+<td>core.extract</td>
+<td>C2 when large</td>
+<td>reader on every member; cite: tenant-admin of every member tenant</td>
+</tr>
+<tr>
+<td>core.extractstatus</td>
+<td>C0</td>
+<td>the creator (state only), or a reader of every member</td>
+</tr>
+<tr>
+<td>core.extractlist, core.extractproof</td>
+<td>C1</td>
+<td>a reader of every member</td>
+</tr>
+<tr>
+<td>core.extractextend</td>
+<td>C0</td>
+<td>a reader of every member; past the class maximum, tenant-admin of every member tenant</td>
+</tr>
+<tr>
+<td>core.extractrelease</td>
+<td>C0</td>
+<td>the creator, or a tenant-admin of a member's tenant</td>
+</tr>
+<tr>
+<td>core.cut</td>
+<td>C0</td>
+<td>reader on every member</td>
+</tr>
+<tr>
+<td>core.cutinfo</td>
+<td>C0</td>
+<td>the creator, or a reader of every member</td>
+</tr>
+<tr>
+<td>core.cutrelease</td>
+<td>C0</td>
+<td>the creator, or a tenant-admin of a member's tenant</td>
+</tr>
+<tr>
+<td>core.transform</td>
+<td>C0</td>
+<td>tenant-admin of the image version's tenant</td>
+</tr>
+<tr>
+<td>core.derive</td>
+<td>C0</td>
+<td>reader on the whole input closure</td>
+</tr>
+<tr>
+<td>core.entail</td>
+<td>C1</td>
+<td>reader on the whole input closure</td>
+</tr>
+<tr>
+<td>core.built</td>
+<td>C0</td>
+<td>writer on the output collection, and reader on the input closure</td>
+</tr>
+<tr>
+<td>core.derivations</td>
+<td>C1</td>
+<td>tenant-admin@tenant_id, or any principal for its own</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>History: a per-collection branch index; cursors are bound to their verb and scope; pages are
+  bounded by their limit and <code>core_page_bytes</code>. ChainDiff: chain mode (the paths the runs after the
+  common history name) or scan mode, with scan and block budgets; property-tested against the
+  whole-map diff. Every version made through the API records who, when and a note (<code>vmetaAt</code> in its
+  own commit batch). New branch names follow the api §2.3 grammar; existing names stay usable.</li>
+<li>Have-check (the own-domain oracle rule, TENANCY §5): DOMAIN scope only for a principal who reads
+  the whole domain; FILE scope for named files of a version the caller reads; otherwise 4
+  have-read-gated. Present means a committed reference and a stored copy. Pages are AES-256-GCM
+  under keys from an ECDH exchange signed by the core identity. The publish of a have-check upload
+  pins present blocks only if still referenced (have-stale), reads them back authenticated, checks
+  every block canonical and the whole-file hash, and gives the FileEntry and run a full upload gives.</li>
+<li>Extracts: selector grammar v1, salted leaves, an RFC 6962 root over SHA-384, a certificate signed
+  by the core identity (verified again by every replica before xpin applies), pinning by runs or by
+  selection, the 4x amplification refusal with arithmetic and rewrites, dry_run.</li>
+<li>Cuts (api §4.10): one consistent point across up to 64 collections. Each member resolves to a
+  named version or its branch head, all in one <code>cut</code> delta; the apply re-checks that every
+  head-resolved member is still the head (a replica out of step refuses, fail closed). A cut holds
+  its members' runs like a pin (RESERVED) until released or expired, and blocks their withdrawal
+  under <code>core_withdraw_vs_pin=refuse</code>. <code>core.extract cut_id=... selectors=[{collection_id,
+  selector}]</code> then extracts against exactly the cut's versions; the certificate carries cut_id and
+  the citation the cut's id prefix. Cuts carry no pin-byte charge (they hold versions already stored).</li>
+<li>Transforms and derivations (api §7, ENTAIL §13 item 7): ids are keyed per tenant
+  (HMAC-SHA-384 under a key derived from the tenant root, V5 default). A transform's image is a file
+  in the fabric, frozen as a cite extract for a year (at most 16 GiB). <code>core.derive</code> records a
+  derivation once however many times it is asked (checked under the engine monitor) and each author
+  once. <code>core.entail</code> is read-through: recipe_valid, blocking reasons (always NO_EXECUTOR, since
+  execution is not built; INPUT_SWEPT, INPUT_REDACTED, TRANSFORM_IMAGE_LOST, NONDETERMINISTIC,
+  SHREDDED), the input closure (at most 10,000 nodes), decays_at, the recreation class and a p50/p90
+  build-time interval from the last 64 builds reported through <code>core.built</code>.</li>
+</ul>
+<h3 id="have-checks-in-format-adapter-domains">Have-checks in format-adapter domains<a class="headerlink" href="#have-checks-in-format-adapter-domains" title="Permanent link">&para;</a></h3>
+<p>New domains cut with <code>fmt:dicom@1,nifti@1,tiff@1+cdc:1048576:262144:4194304</code>: a block boundary where a DICOM
+file's pixel data, a NIfTI file's voxels, or a TIFF's IFDs, descriptions and image data begin. A client can
+cut exactly as the core does, so these domains take the have-check:</p>
+<ul>
+<li><code>core.chunker</code> answers <code>client_chunking=allowed</code>, <code>formats</code> (the adapters, <code>id@version</code>, in spec order),
+  <code>inner</code> (the chunker for each region) and that chunker's bounds and public gear table.</li>
+<li><code>core.haveopen</code> takes <code>chunker=</code>, the exact spec the client cut with. A format domain requires it, and any
+  domain refuses a spec other than its own (<code>7 chunker-mismatch</code>), before any hash is read. The adapters are
+  named by version, so a client that cuts with another version is refused.</li>
+<li>Per page, a block need only be within the inner chunker's bounds: a region's last block may be short
+  anywhere in the file.</li>
+<li>At the publish the core rebuilds the file in order (NEW blocks as received and hashed to their ids,
+  PRESENT blocks read back authenticated), re-cuts it with the domain's own chunker as it streams, and
+  requires every block it cuts to be exactly the declared block at that position (<code>non-canonical-block</code>),
+  as well as the whole-file hash (<code>declared-hash-mismatch</code>). A client that cuts otherwise commits nothing.</li>
+<li>The oracle rule, keyed and NONE refusals, budgets and every other have-check property are unchanged.
+  <code>core_have_format_adapters=false</code> refuses these domains again (<code>chunker-no-client-chunking</code>).</li>
+<li>Clients: <code>eval/fmtcut.py</code> ports CutStream and the three adapters line for line; <code>gkt.have_upload</code> uses
+  it and declares the spec. Conformance vectors generated from the Java adapters,
+  <code>src/test/resources/conformance/fmt-cut-v1.json</code> (84 cases) and <code>fmt-fuzz-v1.json</code> (1200 mutated
+  inputs), are asserted by <code>FmtConformanceTest</code> and <code>eval/test_fmtcut.py</code>.</li>
+<li>Measured (<code>eval/results/dedup/have_fmt_dicom_r1.json</code>, in process, synthetic): re-uploading 32
+  de-identified CT instances (16.8 MB) sends 26,720 B (0.16%, one header block per instance), against
+  16.07 MB (95.6%) in a plain 1 MiB CDC domain.</li>
+</ul>
+<h2 id="4-journal-deltas-added">4. Journal deltas added<a class="headerlink" href="#4-journal-deltas-added" title="Permanent link">&para;</a></h2>
+<p>All are applied through <code>StorageEngine.apply</code>, registered in the delta registry through
+<code>EngineExtension</code> (<code>StorageEngine.knownOps()</code>), replayed, snapshotted and counted in the metaHash.
+Unknown ops still throw.</p>
+<table>
+<thead>
+<tr>
+<th>Op</th>
+<th>Args</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>jobAccept</td>
+<td>job_id, principal, request_id, verb, target, params_digest, ts, events</td>
+</tr>
+<tr>
+<td>jobProgress</td>
+<td>job_id, progress_json, ts</td>
+</tr>
+<tr>
+<td>jobEnd</td>
+<td>job_id, state, result_json, error_json, ts, at_head</td>
+</tr>
+<tr>
+<td>jobForget</td>
+<td>job_id</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>scope, name, record_json, by, ts</td>
+</tr>
+<tr>
+<td>collProfile</td>
+<td>collection_id, scope, name, record_json</td>
+</tr>
+<tr>
+<td>vmetaAt / vmeta</td>
+<td>collection_id, branch, ts, by, note / vid, ts, by, note</td>
+</tr>
+<tr>
+<td>xpin</td>
+<td>extract_id, cert_json, signer_pub, sig, holds_json, ts</td>
+</tr>
+<tr>
+<td>xrelease</td>
+<td>extract_id, reason, ts, by</td>
+</tr>
+<tr>
+<td>xextend</td>
+<td>extract_id, pinned_until</td>
+</tr>
+<tr>
+<td>cut</td>
+<td>cut_id, record_json, holds_json, ts</td>
+</tr>
+<tr>
+<td>cutEnd</td>
+<td>cut_id, reason, ts, by (through ExtractTable.end)</td>
+</tr>
+<tr>
+<td>cutSnap</td>
+<td>a cut's full state, snapshots only</td>
+</tr>
+<tr>
+<td>transform</td>
+<td>transform_id, record_json, image_extract_id, by, tenant, ts</td>
+</tr>
+<tr>
+<td>derivation</td>
+<td>derivation_id, record_json, tenant, ts (a repeat is a no-op)</td>
+</tr>
+<tr>
+<td>derivAuthor</td>
+<td>derivation_id, principal, purpose_id, ts</td>
+</tr>
+<tr>
+<td>built</td>
+<td>derivation_id, output_json, actuals_json, receipt_id, ts, by</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-config-keys-added">5. Config keys added<a class="headerlink" href="#5-config-keys-added" title="Permanent link">&para;</a></h2>
+<p>core_sync_rpc_max_ms (20000), core_jobs_per_principal (8), core_jobs_max (64), core_job_progress_ms
+(10000), core_job_retain_ms (604800000), core_job_threads (4), core_job_retry_after_ms (1000),
+core_compose_sync_files (10000), core_ingest_max (64), core_ingest_per_principal (16),
+core_ingest_retain_ms (600000), core_diff_chain_max_runs (4096), core_diff_scan_budget (200000),
+core_diff_block_budget (10000000), core_page_bytes (4194304), core_have_page_max (1024),
+core_have_max_blocks (1048576), core_have_manifest_budget_bytes (1073741824),
+core_have_principal_budget_bytes (268435456), core_have_writer_only (deny),
+core_dedup_stats_read_gated (true), core_extract_max_amplification (4.0), core_extract_max_leaves
+(10000000), core_extract_selection_max_leaves (20000), core_extract_sync_leaves (100000),
+core_extract_pin_bytes_per_tenant (109951162777600), core_extract_max_active_per_principal (1024),
+core_withdraw_vs_pin (refuse), core_cut_max_ttl_ms (604800000), core_cut_max_active_per_principal (64),
+core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true).</p>
+<h2 id="6-defaults-adopted-where-the-owner-has-not-decided-flagged">6. Defaults adopted where the owner has not decided (flagged)<a class="headerlink" href="#6-defaults-adopted-where-the-owner-has-not-decided-flagged" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>I8, push or poll:</strong> push. Job and commit outcomes are pushed as signed events on the dataplane,
+  with core.job and core.putstatus as the authoritative poll fallback (opmodel §2 supersedes the
+  api spec's poll-only default).</li>
+<li><strong>V7, pins versus withdrawal:</strong> an extract pinning a collection refuses that collection's
+  withdrawal (<code>core_withdraw_vs_pin=refuse</code>); <code>withdraw_wins</code> releases it first. Extracts reaching
+  the data through a derivation or a grant never block and end BROKEN. A PIN-grant dependent's
+  extract that holds the base's runs is also ended BROKEN on the base's withdrawal (conservative:
+  api §4.8 would keep it valid; carrying the hold over to the inherited references is not built).</li>
+<li><strong>Dedup counters are read-gated</strong> (<code>core_dedup_stats_read_gated=true</code>): a writer-only caller's
+  publish reply no longer carries bytes_written, blocks_written or blocks_deduplicated.</li>
+<li><strong>Have-check for writers:</strong> <code>core_have_writer_only=deny</code> (a writer-only principal gets file scope
+  at most, never the domain).</li>
+<li><strong>Profile domains:</strong> a collection created under a profile without a domain gets the tenant's
+  profile domain (GROUP <code>profile/g/&lt;len&gt;:&lt;tenant&gt;/&lt;system|tenant&gt;/&lt;profile&gt;</code>, shared by that tenant's
+  collections of the profile, created on first use; COLLECTION or NONE: <code>profile/c/&lt;collection&gt;</code>).
+  <code>core.domain</code> refuses ids under <code>profile/</code>, so no other tenant can take one first. Profiles are immutable (a new policy
+  is a new name) and at most 256 per scope. None of the built-ins is GLOBAL-eligible.</li>
+<li><strong>Admission of commits:</strong> §1a commits and request_id publishes are not counted against the job
+  queues; §1a uploads are bounded by <code>core_ingest_max</code> and <code>core_ingest_per_principal</code> instead.</li>
+<li><strong>Selection pins travel in one journal entry</strong>, so <code>core_extract_selection_max_leaves</code> defaults to
+  20,000 (api §4.4 names 1,000,000 with xsel chunks, which are not built).</li>
+<li><strong>Extract salts for NONE domains</strong> use the public nonce (api §4.3 names HKDF(wrapKey(d))).</li>
+<li><strong>Derivation and transform ids are keyed per tenant (V5):</strong> HMAC-SHA-384 under
+  HKDF(tenant root, "gfs/ids/v1"), so the same recipe in two tenants has two ids and an id reveals
+  nothing across tenants. Shredding the tenant root makes entail report SHREDDED for good (the id no
+  longer recomputes, even under a later root), and core.derive refuses a shredded transform (7
+  shredded) without making a root.</li>
+<li><strong>Extract idempotency:</strong> an extract job's request_id is its idem_key (api §4.5): a retry, and the
+  resolution after a leader change, answer the pin already made; never a second pin.</li>
+<li><strong>core_api_deltas=true:</strong> see §7; turn it off on upgraded peers while any core peer still runs a
+  wave-1 build.</li>
+<li><strong>Cut bounds:</strong> a cut lives 1 d by default and at most 7 d (<code>core_cut_max_ttl_ms</code>); 64 active per
+  principal; at most 20,000 runs across its members' histories.</li>
+<li><strong>Extract member names:</strong> <code>core.extractrelease</code> instead of api §4.10's <code>core.unpin extract_id</code>, which
+  would have overloaded the storage-node key verb <code>core.unpin site_id</code>.</li>
+</ul>
+<h2 id="7-not-built">7. Not built<a class="headerlink" href="#7-not-built" title="Permanent link">&para;</a></h2>
+<ul>
+<li>api §1.6 probe-based apiFmt enablement (core.apienable after a signed core.status probe of every
+  voting peer) needs peer versions exchanged over the corelog. Built instead: <code>core_api_deltas</code>, an
+  operator switch checked at the engine's one emit point. Off, no wave-2 delta is emitted (the verbs
+  answer 8 api-not-enabled, commits carry no version record, core.status offers no jobs-1 or
+  ingest-1a); on (the default), a peer on an older build that receives one fences (fail closed).</li>
+<li>api §4: the xres/xsel two-phase reservation (the pin is one
+  atomic batch after an off-lock plan; selections above the single-entry bound are refused),
+  peer attestation (ExtractVerifier, core.extractattest), core identity history (a retired identity's
+  certificates would no longer verify on replay), extracts of entries kept only by inherited
+  references (refused, extract-unheld-entries).</li>
+<li>api §3: a have-check against a version in another domain (refused, have-foreign-base), the block-list
+  file hash. (Have-checks in format-adapter domains are built: see §3, "Have-checks in format-adapter
+  domains".)</li>
+<li>api §5-§9 (ENTAIL §13 items 6, 8-10): receipts, coverage and purposes, lease-based residency,
+  prospect and realise. Of §7: execution (entail always reports NO_EXECUTOR, executable=false),
+  certified de-identification and attested loci (refused unless NONE), receipt_id on core.built is
+  recorded but not checked against a receipt.</li>
+<li>§1a: a stale-head commit ends the ingest (the client uploads again under a new request_id);
+  reusing the written blocks on the new head is not built. While an §1a upload is written, the
+  leader's in-memory block registrations differ from its replicas' until the commit (the engine's
+  existing behaviour for any in-flight write, now as long as an upload).</li>
+<li>Open (integration, 2026-09-30): verbs that start long work outside the job table. core.archive and
+  core.archiveverify (tape) run as in-memory runs polled with core.archivestatus; they should become
+  journaled, idempotent jobs (C3). A core.compact operator verb for packed sites (packint: compaction
+  runs today only as the COMPACT maintenance pass and each node's own catalogue pass) should be built
+  as an async job, not a synchronous RPC.</li>
 </ul>
 
 

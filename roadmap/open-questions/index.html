@@ -1531,6 +1531,18 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1583,6 +1595,174 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/TAPE-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2432,7 +2612,7 @@ tape sites is survivable (it is if the DGX copy stays) and whether tape is prima
 <p><strong>P4 — Is this system the primary store for these datasets, or a durable tier behind the DGX
 filesystem?</strong> Primary means GFS must serve training-rate reads; tier means it only needs to
 materialise into the DGX.</p>
-<p><strong>P5 — Are humans ever consumers?</strong> You've said no. Confirm that means: no browsing UI, no FUSE
+<p><strong>P5 — Are humans ever consumers?</strong> <strong>ANSWERED IN PART 2026-09-19:</strong> not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
 mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
 tab) is still wanted for operators.</p>
 <p><strong>P6 — Are external institutions writers, readers, or only hosts?</strong> "Distribute around the state"
@@ -2469,13 +2649,13 @@ felix-hygiene tree, partner-institution engineers? This decides how much I write
 size the first order.</p>
 <hr />
 <h2 id="3-hardware-and-procurement">3. Hardware and procurement<a class="headerlink" href="#3-hardware-and-procurement" title="Permanent link">&para;</a></h2>
-<p><strong>H1 [NOW] — Stack or Cube for the first purchase?</strong> You said you may start with a Stack.
+<p><strong>H1 [NOW] — Stack or Cube for the first purchase?</strong> <strong>ANSWERED 2026-09-20:</strong> start with a Spectra Stack (decision log). You said you may start with a Stack.
 <strong>Rec:</strong> Stack, used as the instrument that measures the mount cycle, rewind, load/thread
 distribution and shoe-shine floor that every capacity figure depends on.</p>
 <p><strong>H2 [NOW] — Can you get Stack specifications?</strong> I need slots per module, drive bays per module,
 maximum modules, and <strong>whether one accessor serves the whole stack</strong>. The accessor turned out to be
 the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.</p>
-<p><strong>H3 — How many sites for phase one: 2 or 3?</strong> <strong>Rec:</strong> 3. Two cannot form a quorum for index
+<p><strong>H3 — How many sites for phase one: 2 or 3?</strong> <strong>ANSWERED 2026-09-20:</strong> three (decision log: 3-way replication across three sites). <strong>Rec:</strong> 3. Two cannot form a quorum for index
 commits. Two is survivable only if the DGX copy is retained (P3) and a witness is added (R4).</p>
 <p><strong>H4 — Which physical locations?</strong> UK campus buildings, partner institutions, colocation? Each
 must be a genuinely independent failure domain (power, network, building).</p>
@@ -2547,7 +2727,7 @@ placement for every registered node.</p>
 <code>delete</code>, no <code>list</code>)? <strong>Rec:</strong> yes.</p>
 <hr />
 <h2 id="5-redundancy-and-distribution">5. Redundancy and distribution<a class="headerlink" href="#5-redundancy-and-distribution" title="Permanent link">&para;</a></h2>
-<p><strong>R1 — Replication factor: 3?</strong> <strong>Rec:</strong> 3, equal to site count, so every site holds a complete
+<p><strong>R1 — Replication factor: 3?</strong> <strong>ANSWERED 2026-09-20:</strong> 3, across three sites; erasure coding later via repack (decision log). <strong>Rec:</strong> 3, equal to site count, so every site holds a complete
 copy and can serve any object disconnected.</p>
 <p><strong>R2 — Must every site hold every object (N = R), or may sites hold subsets?</strong> N = R keeps sites
 independently readable; more sites than copies makes each site smaller but not complete.</p>
@@ -2657,7 +2837,7 @@ replace it as the provenance primitive for PRIMED-AI?</strong></p>
 there other panAtlas artifacts you want measured and registered before they go into GFS?</strong></p>
 <hr />
 <h2 id="10-the-tape-binding">10. The tape binding<a class="headerlink" href="#10-the-tape-binding" title="Permanent link">&para;</a></h2>
-<p><strong>B1 [NOW] — Confirm Bareos is out.</strong> Decided on licence grounds: AGPL forbids the streaming
+<p><strong>B1 [NOW] — Confirm Bareos is out.</strong> <strong>ANSWERED 2026-09-20:</strong> yes, Bareos is removed (decision log: AGPL forbids the streaming integration; raw SCSI over <code>st</code>/<code>sg</code> instead). Decided on licence grounds: AGPL forbids the streaming
 integration, forcing every byte through staging. The real cost is losing a catalogue-free reader
 written by someone else.</p>
 <p><strong>B2 [NOW] — Java toolchain: move to JDK 22+ for the Foreign Function &amp; Memory API, or use JNA, or
@@ -2675,7 +2855,22 @@ repair? <strong>Rec:</strong> retry only on native sense data; otherwise stop an
 <p><strong>B7 — Multi-host access to one library:</strong> will more than one host ever drive one library? If so,
 fencing needs SCSI Persistent Reservation (H17) or a lease.</p>
 <p><strong>B8 — Test rig:</strong> use mhvtl (GPL kernel module, test host only, never shipped) for CI? Needs a
-Linux box — which one?</p>
+Linux box — which one? <strong>ANSWERED 2026-09-30 (owner direction):</strong> yes, as test infrastructure only: mhVTL
+in a dedicated Lima VM <code>gfs-tape</code> (eval/tape/mhvtl: two emulated IBM LTO-9 drives, an STK L700, real
+/dev/nst, sg and changer nodes), plus the in-JVM simulator with LTO-9-class timing
+(docs/TAPE-SIMULATION.md). mhVTL never enters the code or its dependencies.</p>
+<p><strong>Adopted defaults of the tape software path (OUT-16), each configurable and logged as ADOPTED DEFAULT
+at start; the owner may override:</strong> D1 <code>tape_worm_classes=""</code>; D2 <code>tape_volume_group_by=none</code> and
+<code>tape_container_domain_pure=true</code>; D4 no re-encryption; S1 counter-IV tape metadata; S2 leader-local,
+term-fenced idempotency leases on NONE writes (refuse rather than share); B3 the reference reader is a
+blocking gate (reader not yet written); B4 docs/TAPE-FORMAT.md private; B5 R = 1 MiB = pack block,
+quarter checkpoints; B6 retry only on native sense; B7 single host, advisory MAM epoch fencing; M1/M2
+MODELLED figures; P3/P4 tape copies additional to R and never counted (<code>core_place_on_deferred</code> off;
+the eviction of the last disk copies to tape is therefore not offered); <code>core_codec_verify_ids=false</code> in
+production; <code>tape_write_verify=FULL</code>; <code>tape_pool_barcodes</code> matches nothing until set;
+<code>tape_write_sessions=1</code> (one drive writes, the others serve recalls); <code>tape_sim_profile=lto9</code> (owner
+2026-09-30); <code>x_defer_orphan_ms=300000</code> (a node cancels a READ ticket its core stopped asking about);
+S4/S5 K_media per tape node, escrowed and attested outside dev mode.</p>
 <p><strong>B9 — Retire the Bareos documents</strong> or keep <code>BAREOS-RECOMMENDATION.md</code> as history?</p>
 <hr />
 <h2 id="11-other-bindings">11. Other bindings<a class="headerlink" href="#11-other-bindings" title="Permanent link">&para;</a></h2>
@@ -2707,7 +2902,7 @@ decides priority?</strong> At 100 TB/day scattered the plant is oversubscribed 2
 <p><strong>I8 — Do agents get notified when a realise completes (push), or do they poll?</strong></p>
 <hr />
 <h2 id="13-filerepo">13. filerepo<a class="headerlink" href="#13-filerepo" title="Permanent link">&para;</a></h2>
-<p><strong>F1 — Confirm filerepo's role:</strong> it materialises local versions (as a cache) and can publish new
+<p><strong>F1 — Confirm filerepo's role:</strong> <strong>ANSWERED 2026-09-23:</strong> filerepo = local copies, cache, and publishing new versions; the advanced caching tier comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
 versions, but is no longer primary storage.</p>
 <p><strong>F2 — Should filerepo's <code>phase0-crypto-baseline</code> branch (<code>repostate</code>, <code>clearRepo(force)</code>) merge to
 1.3?</strong></p>
@@ -2737,13 +2932,19 @@ query and a pathology system query?</p>
 <p><strong>M5 — A real request log to mine co-occurrence from.</strong> Does any exist (DGX job logs, panAtlas API
 logs)?</p>
 <p><strong>M6 — Power-loss test on the candidate site hosts</strong> — the only way to prove a barrier reaches
-power-safe media rather than just costs time. Worth doing?</p>
+power-safe media rather than just costs time. Worth doing? <strong>IN PART 2026-09-26 (OUT-01):</strong> the
+code's side is tested: a page-cache power-cut model in JUnit on every CI push (CrashFs,
+src/test/java/io/cresco/gfs/power), LazyFS rounds and whole-VM hard power-offs in a Linux VM
+(eval/power/, eval/results/power/). None of these can lose a drive's volatile write cache, and
+none ran on NFS/Lustre. What still needs a candidate site host: a real power cut (or a
+dm-log-writes replay) on the NVMe/RAID controller the store will use, with its write cache in its
+production setting.</p>
 <p><strong>M7 — Recompute cost of the derived panAtlas artifacts</strong> (X5).</p>
 <p><strong>M8 — Growth rate.</strong> There is one census and no time series. Planning uses 1 TB/day; at 0.5 or
 2 TB/day expansion dates move by years. Can you give a figure?</p>
 <hr />
 <h2 id="16-licensing-and-legal">16. Licensing and legal<a class="headerlink" href="#16-licensing-and-legal" title="Permanent link">&para;</a></h2>
-<p><strong>L1 — Confirm "permissive commercial licences only"</strong> covers everything that ships, and that
+<p><strong>L1 — Confirm "permissive commercial licences only"</strong> <strong>ANSWERED IN PART 2026-09-20:</strong> build from scratch or with permissively licensed libraries only (decision log). Still open: whether GPL is acceptable in test infrastructure that never ships. covers everything that ships, and that
 GPL is acceptable only in test infrastructure that never ships (mhvtl).</p>
 <p><strong>L2 — Do you want counsel to review</strong> the licence position, the DUA implications of partner sites
 holding ciphertext, and whether key destruction satisfies withdrawal obligations?</p>

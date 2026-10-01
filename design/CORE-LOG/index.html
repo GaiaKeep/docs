@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://gaiakeep.github.io/docs/built/scale/">
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/CORE-LOG/">
       
       
-        <link rel="prev" href="../prototype/">
+        <link rel="prev" href="../JOBS-AND-API/">
       
       
-        <link rel="next" href="../since-prototype/">
+        <link rel="next" href="../PACK-FORMAT/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Scale results - GaiaKeep GFS</title>
+        <title>The replicated core log - GaiaKeep GFS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#scale-results" class="md-skip">
+        <a href="#the-storage-cores-metadata-log" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Scale results
+              The replicated core log
             
           </span>
         </div>
@@ -262,13 +262,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../status/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
           
   
   
@@ -308,11 +306,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../design/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -782,10 +782,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -805,22 +803,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -838,7 +833,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -856,7 +851,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../status/" class="md-nav__link">
+      <a href="../../built/status/" class="md-nav__link">
         
   
   
@@ -884,7 +879,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../prototype/" class="md-nav__link">
+      <a href="../../built/prototype/" class="md-nav__link">
         
   
   
@@ -909,37 +904,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scale results
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
         
   
   
@@ -955,70 +923,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#headline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Headline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#codec-with-no-fabric" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Codec, with no fabric
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#durability-data-path-by-object-size" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Durability data path by object size
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#index-scale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Index scale
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1031,7 +935,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../since-prototype/" class="md-nav__link">
+      <a href="../../built/since-prototype/" class="md-nav__link">
         
   
   
@@ -1059,7 +963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../measurements/" class="md-nav__link">
+      <a href="../../built/measurements/" class="md-nav__link">
         
   
   
@@ -1087,7 +991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../harnesses/" class="md-nav__link">
+      <a href="../../built/harnesses/" class="md-nav__link">
         
   
   
@@ -1330,6 +1234,8 @@
       
   
   
+    
+  
   
   
     
@@ -1393,20 +1299,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../design/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1424,13 +1333,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1450,7 +1359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/FORMAT-ADAPTERS/" class="md-nav__link">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
         
   
   
@@ -1478,7 +1387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/JOBS-AND-API/" class="md-nav__link">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
         
   
   
@@ -1503,10 +1412,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../design/CORE-LOG/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1522,6 +1458,114 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#on-disk-core_log_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On disk (core_log_dir)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recovery-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery fails closed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#master-key-rotation-out-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Master-key rotation (OUT-25)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-raft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication (Raft)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-index-journal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration from the index journal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1534,7 +1578,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/PACK-FORMAT/" class="md-nav__link">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
         
   
   
@@ -1562,7 +1606,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-FORMAT/" class="md-nav__link">
+      <a href="../TAPE-FORMAT/" class="md-nav__link">
         
   
   
@@ -1590,7 +1634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-SIMULATION/" class="md-nav__link">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
         
   
   
@@ -1618,7 +1662,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/FROM-SCRATCH-DECISION/" class="md-nav__link">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
         
   
   
@@ -1646,7 +1690,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/MODULE-DECISIONS/" class="md-nav__link">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
         
   
   
@@ -1674,7 +1718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/COMPONENTS/" class="md-nav__link">
+      <a href="../COMPONENTS/" class="md-nav__link">
         
   
   
@@ -1702,7 +1746,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TENANCY-AND-DEDUP/" class="md-nav__link">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
         
   
   
@@ -1730,7 +1774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SPECIFICATION/" class="md-nav__link">
+      <a href="../SPECIFICATION/" class="md-nav__link">
         
   
   
@@ -1758,7 +1802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
         
   
   
@@ -1786,7 +1830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
         
   
   
@@ -1814,7 +1858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/STORAGE-DIRECTION/" class="md-nav__link">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
         
   
   
@@ -1842,7 +1886,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/BAREOS-RECOMMENDATION/" class="md-nav__link">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
         
   
   
@@ -1870,7 +1914,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1898,7 +1942,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESEARCH-PROMPT/" class="md-nav__link">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
         
   
   
@@ -1926,7 +1970,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SYSTEM-REPORT/" class="md-nav__link">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
         
   
   
@@ -1954,7 +1998,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CORE-PRINCIPLES/" class="md-nav__link">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
         
   
   
@@ -1982,7 +2026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/EVALUATION-PLAN/" class="md-nav__link">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
         
   
   
@@ -2010,7 +2054,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/PROTOTYPE/" class="md-nav__link">
+      <a href="../PROTOTYPE/" class="md-nav__link">
         
   
   
@@ -2038,7 +2082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/RESULTS/" class="md-nav__link">
+      <a href="../RESULTS/" class="md-nav__link">
         
   
   
@@ -2066,7 +2110,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/SCALE-RESULTS/" class="md-nav__link">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
         
   
   
@@ -2094,7 +2138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/CLAIMS/" class="md-nav__link">
+      <a href="../CLAIMS/" class="md-nav__link">
         
   
   
@@ -2122,7 +2166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design/global-federated-storage-plan/" class="md-nav__link">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
         
   
   
@@ -2204,10 +2248,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#headline" class="md-nav__link">
+  <a href="#on-disk-core_log_dir" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Headline
+        On disk (core_log_dir)
       
     </span>
   </a>
@@ -2215,10 +2259,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codec-with-no-fabric" class="md-nav__link">
+  <a href="#recovery-fails-closed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Codec, with no fabric
+        Recovery fails closed
       
     </span>
   </a>
@@ -2226,10 +2270,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#durability-data-path-by-object-size" class="md-nav__link">
+  <a href="#master-key-rotation-out-25" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Durability data path by object size
+        Master-key rotation (OUT-25)
       
     </span>
   </a>
@@ -2237,10 +2281,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#index-scale" class="md-nav__link">
+  <a href="#replication-raft" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Index scale
+        Replication (Raft)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-index-journal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration from the index journal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
       
     </span>
   </a>
@@ -2264,156 +2352,355 @@
 
 
 
-<h1 id="scale-results">Scale results<a class="headerlink" href="#scale-results" title="Permanent link">&para;</a></h1>
-<p>Generated 2026-09-18 from the scale campaigns. <strong>One host</strong> (14-core Apple silicon, 36 GB), all
-nodes on loopback: these are compute, broker and protocol ceilings, not wide-area figures. Full
-tables are in <a href="../../design/SCALE-RESULTS/">SCALE-RESULTS.md</a>.</p>
-<h2 id="headline">Headline<a class="headerlink" href="#headline" title="Permanent link">&para;</a></h2>
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01).</p>
+</div>
+<h1 id="the-storage-cores-metadata-log">The storage core's metadata log<a class="headerlink" href="#the-storage-cores-metadata-log" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-26. Package <code>io.cresco.gfs.core.log</code>. Covers OUT-08, OUT-13 (core), OUT-04 (core), OUT-14,
+OUT-35, OUT-40 and OUT-53.</em></p>
+<p>The storage core no longer journals through the prototype federation index. Every batch of engine
+deltas is an entry in the core's own log, replicated to the core peers with Raft, and acknowledged
+to the client only once a majority of peers has it on disk.</p>
+<h2 id="on-disk-core_log_dir">On disk (<code>core_log_dir</code>)<a class="headerlink" href="#on-disk-core_log_dir" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Area</th>
-<th>Result</th>
+<th>File</th>
+<th>Contents</th>
+<th>Written by</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Federation size</td>
-<td><strong>240 sites</strong> on one host; solving placement and promoting takes 3 ms; the index uses 19 % of one core under heartbeats</td>
+<td><code>core-log.header</code></td>
+<td>magic, format, cluster id, key-check value, MAC</td>
+<td>once, atomically</td>
 </tr>
 <tr>
-<td>Index</td>
-<td><strong>1,000,000 files</strong> ingested at <strong>143,444 files/s</strong>; 1,811 MB heap; resolve p99 <strong>0.4 ms</strong> at 5,398 resolves/s; replica converged with an identical hash</td>
+<td><code>raft-state</code></td>
+<td>current term, vote, this directory's raft state id, whether the peer votes (N18), MAC</td>
+<td>temp, fsync, rename, directory fsync</td>
 </tr>
 <tr>
-<td>Durability data path</td>
-<td>Encode <strong>233–291 MB/s</strong>, restore <strong>254–393 MB/s</strong> for 256 MiB–1 GiB objects; every restore hash-verified</td>
+<td><code>seg-&lt;first index&gt;.log</code></td>
+<td>segment header (first index, term and MAC before it, header MAC), then records</td>
+<td>append, one <code>force</code> per group commit</td>
 </tr>
 <tr>
-<td>Loss detection and repair</td>
-<td>Every lost holder found by audit in <strong>&lt; 122 ms</strong> and regenerated without keys</td>
+<td><code>snap-&lt;last index&gt;.snap</code></td>
+<td>engine snapshot at that index, its term and chain MAC, payload SHA-384, MAC</td>
+<td>temp, fsync, rename, directory fsync</td>
 </tr>
 <tr>
-<td>Transport</td>
-<td>Fragment push peaks at <strong>577 MB/s</strong> node to node; client fetch 143.7 MB/s</td>
-</tr>
-<tr>
-<td>Isolation</td>
-<td>Control-plane RPC p99 <strong>0.72 ms</strong> while a 444 MB/s fragment flood runs</td>
-</tr>
-<tr>
-<td>Storm</td>
-<td><strong>40 of 240 sites</strong> lost at once → 85 objects repaired in <strong>27.2 s</strong>; 7 objects beyond the code's tolerance reported, not hidden; control p99 0.5 ms during the storm</td>
-</tr>
-<tr>
-<td>Multi-region</td>
-<td>72 sites across 8 bridged regions</td>
+<td><code>imported-index.marker</code></td>
+<td>the one-time legacy import, MAC'd</td>
+<td>once</td>
 </tr>
 </tbody>
 </table>
-<h2 id="codec-with-no-fabric">Codec, with no fabric<a class="headerlink" href="#codec-with-no-fabric" title="Permanent link">&para;</a></h2>
+<p>A record is <code>magic | fmt | len | term | index | batch | hmac16 | payload | mac</code>, with
+<code>mac_i = HMAC-SHA-384(k_log, fmt|term|index|mac_(i-1)|payload)</code>. The 16-byte header MAC covers the
+header fields and <code>mac_(i-1)</code>, so a length is authenticated before it is used. <code>batch</code> is the first
+index of the record's group commit (one write and one <code>force</code>); everything before it was forced
+before the record was written. It is local to the peer and outside the chain, so peers' chain values
+stay equal.
+<code>k_log = HKDF-SHA-384(master, "gfs/core/log-mac/v1")</code>. Equal chain values at an index mean equal
+logs up to that index, on any peer.</p>
+<h2 id="recovery-fails-closed">Recovery fails closed<a class="headerlink" href="#recovery-fails-closed" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The directory's fsync barrier is probed with the storage nodes' own probe (<code>FsBinding.commission</code>,
+  five unanimous rounds). If it is not proven, the core refuses to start unless
+  <code>core_log_durability_attested=true</code>.</li>
+<li>A wrong master key is refused by the key-check value before anything is read.</li>
+<li>Every record's framing, MAC, chain and index continuity is verified. An incomplete or
+  unverifiable record in the last segment is a torn tail unless a verifiable record of a <strong>later</strong>
+  group commit follows it. A group commit that was never forced may reach the disk in any order
+  (later pages written, an earlier one zero-filled), so records of the bad record's own group commit
+  after it prove nothing; a later group commit was written only after this one was forced, so it
+  proves corruption. A torn tail is truncated from the bad record, synced, logged and counted
+  (<code>core.status</code> → <code>log.torn_*</code>). A record counts as verifiable if its header MAC checks against the
+  bytes before it, against the chain value expected there, or against the value a damaged
+  predecessor's own bytes compute to.
+  A segment header is forced before any record is written, so a bad header with bytes after it is
+  corruption, never a torn creation.</li>
+<li>Anything else refuses to start with the file, offset and index: mid-log corruption, a bad MAC
+  followed by valid records, a gap, a chain break, a snapshot that fails its MAC or disagrees with
+  the log, an unknown format number.</li>
+<li>Installing a leader's snapshot that replaces the log deletes the replaced segments newest first,
+  syncing the directory after each, so a crash leaves a prefix of the old log that recovery
+  recognises (it disagrees with the snapshot) and finishes discarding. A gap after a snapshot is
+  therefore always lost data, and refuses.</li>
+<li>An entry the engine cannot apply (an unknown delta from a newer release) halts the core, naming
+  segment, offset and index. A halted core serves nothing.</li>
+</ul>
+<h2 id="master-key-rotation-out-25">Master-key rotation (OUT-25)<a class="headerlink" href="#master-key-rotation-out-25" title="Permanent link">&para;</a></h2>
+<p><code>k_log</code> and <code>k_raft</code> are HKDF-SHA-384 from one master key, so each pair is bound to that key's id
+(<code>kid</code>). A peer holds the log keys of every master kid it holds (<code>core_master_key_file</code> plus
+<code>core_master_key_previous_files</code>).</p>
+<ul>
+<li><strong>The header names the kid.</strong> <code>core-log.header</code> carries the kid the log is keyed under, that kid's
+  key-check value, and <code>rekeyedAt</code>, the last index written under an earlier kid. A header naming a
+  kid the peer does not hold refuses to start and names it.</li>
+<li><strong>Every file is MAC'd under one kid</strong> and verified under the held kid that authenticates it. A
+  segment's records are under its header's kid. Recovery refuses an earlier kid where only the
+  header's may be: a segment starting after <code>rekeyedAt</code>, any segment after one under the header's
+  kid, a snapshot past <code>rekeyedAt</code>. A file under a retired kid that is put back, or forged by someone
+  holding the retired key, is refused rather than replayed.</li>
+<li><strong>Re-key in place.</strong> When a peer starts with a current kid its log is not keyed under,
+  <code>CoreLog.rekey</code> rewrites the header (new kid, <code>rekeyedAt</code> = the last index), rolls a new segment that
+  continues the MAC chain under the new kid, and rewrites the raft state and marker. Each step is
+  crash-safe; an interrupted re-key finishes on the next start. History is not rewritten: the chain
+  value at <code>rekeyedAt</code> is the same, and later records chain from it under the new kid.</li>
+<li><strong>The next snapshot retires the old kid.</strong> While <code>kids_in_use</code> (core.status <code>log</code>) lists a kid
+  other than the header's, the snapshot pass takes a snapshot every 10 s; once one lies past
+  <code>rekeyedAt</code>, compaction deletes the old kid's segments and snapshot. <code>core.rotatemaster</code> reports
+  <code>log_kids_in_use</code> and a <code>retirable_kids</code> that accounts for the log as well as the roots.</li>
+<li><strong>Raft messages</strong> are MAC'd under the sender's current kid and verified under any held kid, so the
+  rotation rolls through the peers one restart at a time, provided every peer holds the new kid
+  (as a previous key) before any peer makes it current. A peer that does not hold it cannot follow;
+  its raft status shows "MAC fails under every held master kid".</li>
+<li><strong>Different peers may be keyed under different kids</strong> during the rotation. Chain values then differ
+  between peers for the same entries, so a snapshot install to such a follower replaces its log
+  instead of keeping the matching suffix: slower, never wrong.</li>
+</ul>
+<p>Tested: CoreLogTest (re-key in place, reopen, old kid retired after the snapshot, a forged old-kid
+snapshot refused, an interrupted re-key finished) and CoreServiceClusterTest (three peers restart
+after a rotation, rotatemaster, snapshots, restart with the old key retired; a peer without the new
+kid is refused with the reason).</p>
+<h2 id="replication-raft">Replication (Raft)<a class="headerlink" href="#replication-raft" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Peers: <code>core_peers</code>, the <code>region:agent:plugin</code> of every core peer including this one. Absent, the
+  index primary is a cluster of one (quorum 1), which is how existing single-index deployments keep
+  working. An index replica (<code>index_primary=false</code>) without <code>core_peers</code> refuses to run a core: as a
+  cluster of one it would elect itself and serve an empty core, and later join the primary's cluster
+  with a different history. Storage nodes accept <code>x.*</code> from every address in <code>core_peers</code> and
+  <code>core_index_addrs</code>.</li>
+<li>Every message carries a digest of the sender's <code>core_peers</code> (order-free). Peers configured with
+  different peer lists refuse each other's messages rather than count different quorums; changing
+  <code>core_peers</code> means restarting every peer with the new list (there is no joint consensus).</li>
+<li><strong>Divergent histories halt.</strong> Every append carries the leader's chain values at <code>prevIndex</code> and at
+  its last entry. A follower whose term matches at an index but whose chain value differs holds a
+  history written by another cluster (a peer that once ran alone, a log copied from elsewhere): it
+  halts, naming segment, offset and index, instead of accepting entries on top of it.</li>
+<li>Pre-vote, randomized election timeout in <code>[core_election_timeout_ms, 2x)</code>, heartbeat
+  <code>core_heartbeat_ms</code>. A peer that has heard from a leader within the timeout ignores vote requests.</li>
+<li>The leader writes a proposal to its log and sends it at once, and syncs its log on a thread of its own: the
+  raft monitor is never held while the medium syncs, so heartbeats, acknowledgements and status go on during a
+  slow fsync (an ingest's writes on the same disk made one take ~3 s on the DGX, 2026-10-01, and the leader, its
+  monitor held, sent no heartbeat, counted no acknowledgement and stepped down). Its own copy counts toward a
+  commit only once synced (<code>durable_index</code> in status). A follower still syncs before it answers; a follower's
+  stall shorter than <code>core_election_timeout_ms</code> is ridden out.
+  A leader that cannot reach a majority within the timeout steps down.</li>
+<li>Commit counts only entries of the current term, from a majority's fsync. A new leader serves only
+  after its term's no-op is committed and applied.</li>
+<li><strong>Non-voters (N18).</strong> A peer whose log is empty, or whose directory has no <code>raft-state</code> of its own
+  (a wiped or replaced disk), starts as a non-voter (<code>raft.voter: False</code>, persisted). It grants no
+  vote, and it says so in every answer, so the leader does not count its copy toward commit: it may
+  have acknowledged entries its lost disk held, and an empty log would grant any candidate. It
+  becomes a voter (persisted, <code>raft.promotions</code>) once an append leaves its log equal to the leader's
+  through the leader's last index, or through a commit point of the leader's own term, and only if
+  that append names the peer's own process incarnation (R1, raft message format 3: a peer refuses
+  another format's messages, so every core peer is upgraded together). The leader names
+  the incarnation it last heard from, and only while it holds its lease: an append sent to the
+  process before a restart or a wipe (a delayed or duplicated copy that the new process's empty
+  replay window cannot recognise) promotes nothing, and neither does a deposed leader. Until it can
+  vouch for a non-voter, the leader sends it heartbeats but no entries: an empty peer stays empty (it
+  may still consent) rather than hold entries it was not promoted by, which in a cluster just formed by
+  consent would leave no peer able to elect a leader once the first one falls. An empty
+  non-voter only consents: a consent counts toward an election that every peer joins (or the bootstrap
+  majority above), never toward a majority. <code>core_raft_voter_override=&lt;its raft.state_id&gt;</code> makes a
+  non-voter vote when an operator has established that nothing committed depends on what it lost.</li>
+<li>A follower whose log is behind the leader's snapshot (empty, new, wiped) is sent the snapshot.
+  A follower that restarted (a new process incarnation) or rejects entries it had acknowledged
+  (a truncated tail, a wiped directory) stops counting toward the quorum until it confirms them again.</li>
+<li><strong>Lease.</strong> The leader serves (reads and writes) only while a majority answered a request it sent
+  less than ¾ of an election timeout ago. A follower refuses votes for a full election timeout after
+  hearing from a leader, and for one timeout after it starts, so a leader cut off by a partition or a
+  long pause stops serving before another can be elected. Timers, heartbeats and the lease run on
+  each host's monotonic clock (<code>System.nanoTime</code>), so a stepped wall clock cannot stretch a lease;
+  clock rates are assumed within 25 %. Only message freshness reads the wall clock. Only answers
+  from peers that kept their term count toward the lease (R1): voters, and a non-voter process that
+  granted or consented to this leadership. A wiped peer restarts at term 0 and follows any leader
+  that reaches it, even one a newer term deposed, so its answers cannot show that no newer leader
+  exists: a leader paused through an election and answered only by a wiped peer holds no lease.</li>
+<li><strong>Destructive maintenance asks the lease.</strong> The live leader's engine checks, before each copy it
+  destroys (gc, withdrawal, trim, scrub, intent cleanup), that it still holds its lease; otherwise
+  the operation stops. A withdrawal is committed before the copies it frees are destroyed. The
+  residual window (one reclaim already in flight when the lease lapses) is closed by the storage
+  nodes: every <code>x.*</code> carries the term its signer was elected leader in (<code>RaftNode.leaderTerm</code>, not
+  the newer term a deposed leader may have heard of), and a node refuses a term below the highest it
+  has seen, kept in its <code>x-term</code> file across restarts (N17).</li>
+<li><strong>Read barrier.</strong> A read verb (<code>core.head</code>, <code>core.get</code>, <code>core.list</code>, <code>core.benchread</code>) first waits
+  until every change applied before it is committed, and fails if one is not: a read never shows
+  a change that may yet be lost.</li>
+<li>The leader's engine applies deltas to memory before journaling (unchanged); the journal append
+  blocks until the batch commits, <code>core_commit_timeout_ms</code>, or lost leadership. A failure fences
+  the engine, the peer steps down, and the engine is rebuilt from snapshot plus committed log.
+  The rebuild (a full replay) runs off the raft lock, so the peer keeps voting and acknowledging;
+  entries committed meanwhile are replayed into the new engine before it is swapped in, the peer
+  serves nothing until then, and sites that joined meanwhile are added to it.</li>
+<li>Messages (<code>core.raft.msg</code>) carry HMAC-SHA-384 under <code>k_raft = HKDF(master, "gfs/core/raft-auth/v1")</code>,
+  the cluster id, sender and recipient, a wall-clock send time checked against a freshness window
+  (<code>core_raft_freshness_ms</code>, 120 s), and a per-sender sequence number: forged, altered, misaddressed
+  and replayed messages are refused. Hosts whose clocks differ by more than the window cannot talk;
+  <code>core.status</code> → <code>raft.stale_refusals</code> and <code>raft.last_clock_skew_ms</code> show it.</li>
+<li>Entry payloads over 64 KiB and every snapshot chunk travel on the dataplane as FrameBus bodies,
+  with their SHA-384 inside the MAC'd header. An append carries at most <code>core_raft_batch_bytes</code> of
+  entries (at least one, at most 8192; a larger single entry is split across frames); snapshots
+  move in chunks of that size. Values above the codec's 64 MiB chunk limit are clamped, with a warning.</li>
+<li><strong>One bulk message per follower.</strong> The leader keeps at most one append-with-entries or snapshot
+  chunk per follower in the transport and resends nothing to it until the transport reports that
+  message sent or dropped; the resend timer starts then. A message the transport has held for
+  20 election timeouts is presumed lost (<code>raft.bulk_stuck</code>). The transport's bulk lane is also
+  bounded by bytes (<code>max(16 MiB, 2 x core_raft_batch_bytes + 1 MiB)</code> per peer;
+  <code>raft.transport_bulk_dropped</code>), and header-only messages (votes, heartbeats, answers) use their
+  own lane, so a slow body transfer never delays a heartbeat. While a transfer is slow the leader
+  sends plain heartbeats, which keep the follower following and the lease alive.</li>
+<li>Only the leader serves <code>core.*</code>. Every peer answers <code>core.status</code> and <code>core.metahash</code> with role,
+  term, leader and commit index. A follower answers anything else with status <code>12</code> and <code>core_leader</code>.
+  <code>eval/gkt.py:call_leader</code> follows that redirect, one retry per redirect, bounded.</li>
+</ul>
+<h2 id="compaction">Compaction<a class="headerlink" href="#compaction" title="Permanent link">&para;</a></h2>
+<p>At a consistent cut the engine's snapshot deltas are written as a snapshot and the segments it
+covers are deleted. The cut holds the engine's lock and the policy and key-ring locks (their changes
+are made outside the engine's lock and journaled by hooks), and a cut is discarded if anything
+reached the log meanwhile (<code>log.cuts_discarded</code>). A follower does not snapshot its engine under the
+raft lock: it replays its snapshot and committed log into a scratch engine off the lock and
+snapshots that, so it keeps answering appends and votes while it compacts. Automatic after
+<code>core_log_snapshot_bytes</code> of entries (jittered up to +25 % per peer, so peers do not compact
+together), on demand with <code>core.snapshot</code> (any peer compacts its own log; the request is signed for
+that peer, <code>audience</code> = its <code>peer_audience</code>, so it cannot be replayed on another). <code>core.snapshot</code> goes
+through per-verb authorization (only <code>core.status</code> and <code>core.metahash</code> do not) and is rate-limited
+to one taken snapshot per <code>core_snapshot_min_interval_ms</code> (status <code>14</code>, TOO_SOON, otherwise), because a
+leader's cut stalls writers. Replay loads the newest snapshot, then the entries
+after it. Measured in <code>ReplicatedCoreTest.replayTimeOfALargeLog</code> (one Mac, JDK 21): 2,000 entries
+holding 200,000 block deltas, 36.5 MB of log, replay in 0.4-0.5 s; from a 36.3 MB snapshot,
+0.35-0.55 s.</p>
+<h2 id="migration-from-the-index-journal">Migration from the index journal<a class="headerlink" href="#migration-from-the-index-journal" title="Permanent link">&para;</a></h2>
+<p>When the core log is empty and this peer was the prototype index primary (<code>index_primary=true</code>),
+the <code>core.batch</code> lines in <code>gfs-index.jsonl</code> are replayed once into an engine and written as the
+log's base snapshot (index 1, term 1), and <code>imported-index.marker</code> records it. The import never
+repeats. The index keeps the old lines and applies nothing for them.</p>
+<p>The import refuses (and the core does not start) when the journal holds a <code>snapshot</code> line: the index
+writes one when a replica installs the primary's state, and the core state before it then lived only
+in that dump, so the journal holds a partial core. Import from the peer whose journal holds every
+<code>core.batch</code> line, or set <code>core_legacy_import=skip</code> to start without importing. It also refuses when
+the importing peer is not the first in <code>core_peers</code>.</p>
+<p><strong>Bootstrap rule.</strong> A peer whose log is empty never campaigns unless it is the first peer listed in
+<code>core_peers</code>, so an empty or wiped peer cannot win against peers that hold state. List the old
+index primary first when turning a single index into a replicated core. A brand-new cluster (every
+peer a non-voter, below) forms once every peer is up: empty peers consent to an election every peer
+joins. With <code>core_raft_bootstrap=true</code> on the first listed peer's first start it forms with a
+majority; remove the setting once the core has formed.</p>
+<h2 id="config-keys">Config keys<a class="headerlink" href="#config-keys" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Operation</th>
-<th>Rate</th>
+<th>Key</th>
+<th>Default</th>
+<th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Reed–Solomon (10,4), 14 threads</td>
-<td>3,872 MB/s encode</td>
+<td><code>core_log_dir</code></td>
+<td><code>&lt;plugin data&gt;/core-log</code></td>
+<td>put on node-local storage (OUT-40)</td>
 </tr>
 <tr>
-<td>Reed–Solomon (10,4), one thread</td>
-<td>423–425 MB/s</td>
+<td><code>core_log_durability_attested</code></td>
+<td><code>false</code></td>
+<td>skip the barrier probe; an operator attestation</td>
 </tr>
 <tr>
-<td>AES-256-GCM decrypt</td>
-<td>~3,400 MB/s per thread; 24,232 MB/s encrypt on 14 threads</td>
+<td><code>core_log_snapshot_bytes</code></td>
+<td>268435456 (256 MiB)</td>
+<td>entries between automatic snapshots</td>
 </tr>
 <tr>
-<td>SHA-256</td>
-<td>2,318.9 MB/s</td>
+<td><code>core_peers</code></td>
+<td>this peer only (index primary); refused on an index replica</td>
+<td>comma list of every core peer, this one included, identical on every peer</td>
 </tr>
 <tr>
-<td>Shamir split / combine (n=9, t=5)</td>
-<td>60 µs / 6 µs</td>
+<td><code>core_cluster_id</code></td>
+<td><code>gfs-core</code></td>
+<td>stored in the header and in every message</td>
+</tr>
+<tr>
+<td><code>core_commit_timeout_ms</code></td>
+<td>15000</td>
+<td>a batch not committed by then fences the leader</td>
+</tr>
+<tr>
+<td><code>core_election_timeout_ms</code></td>
+<td>6000</td>
+<td>randomized to up to twice this; the leader's check-quorum window; lease = 3/4 of it</td>
+</tr>
+<tr>
+<td><code>core_heartbeat_ms</code></td>
+<td>250</td>
+<td></td>
+</tr>
+<tr>
+<td><code>core_raft_batch_bytes</code></td>
+<td>4194304 (4 MiB)</td>
+<td>bound on one append and one snapshot chunk</td>
+</tr>
+<tr>
+<td><code>core_site_probe_ms</code></td>
+<td>3000</td>
+<td>the leader's own liveness probe of each storage node</td>
+</tr>
+<tr>
+<td><code>core_site_probe_timeout_ms</code></td>
+<td>5000</td>
+<td>a site that does not answer by then is quarantined</td>
+</tr>
+<tr>
+<td><code>core_legacy_import</code></td>
+<td><code>auto</code></td>
+<td><code>skip</code> starts without the one-time import (<code>auto</code> or <code>skip</code>)</td>
+</tr>
+<tr>
+<td><code>core_raft_freshness_ms</code></td>
+<td>120000</td>
+<td>largest tolerated clock skew between core hosts; older messages are refused</td>
+</tr>
+<tr>
+<td><code>core_raft_bootstrap</code></td>
+<td><code>false</code></td>
+<td>the first listed peer's first start forms a new core with a majority of empty peers (N18)</td>
+</tr>
+<tr>
+<td><code>core_raft_voter_override</code></td>
+<td>none</td>
+<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3)</td>
+</tr>
+<tr>
+<td><code>core_snapshot_min_interval_ms</code></td>
+<td>60000</td>
+<td>least time between two on-demand snapshots taken</td>
 </tr>
 </tbody>
 </table>
-<h2 id="durability-data-path-by-object-size">Durability data path by object size<a class="headerlink" href="#durability-data-path-by-object-size" title="Permanent link">&para;</a></h2>
-<p>Representative rows (full grid in the design record):</p>
-<table>
-<thead>
-<tr>
-<th>Object</th>
-<th>Code</th>
-<th style="text-align: right;">Encode MB/s</th>
-<th style="text-align: right;">Restore MB/s</th>
-<th style="text-align: right;">Detect + repair</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>64 MiB</td>
-<td>(10,4)</td>
-<td style="text-align: right;">245.2</td>
-<td style="text-align: right;">242.4</td>
-<td style="text-align: right;">1.07 s</td>
-</tr>
-<tr>
-<td>256 MiB</td>
-<td>(3,2)</td>
-<td style="text-align: right;">278.3</td>
-<td style="text-align: right;">392.6</td>
-<td style="text-align: right;">2.11 s</td>
-</tr>
-<tr>
-<td>1 GiB</td>
-<td>(10,4)</td>
-<td style="text-align: right;">270.8</td>
-<td style="text-align: right;">253.5</td>
-<td style="text-align: right;">7.99 s</td>
-</tr>
-</tbody>
-</table>
-<h2 id="index-scale">Index scale<a class="headerlink" href="#index-scale" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">Files</th>
-<th style="text-align: right;">Ingest files/s</th>
-<th style="text-align: right;">Heap MB</th>
-<th>Resolve p50 / p99 ms</th>
-<th>Replica equal</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">100,000</td>
-<td style="text-align: right;">123,736</td>
-<td style="text-align: right;">138</td>
-<td>0.4 / 0.8</td>
-<td>yes</td>
-</tr>
-<tr>
-<td style="text-align: right;">250,000</td>
-<td style="text-align: right;">142,501</td>
-<td style="text-align: right;">304</td>
-<td>0.2 / 0.4</td>
-<td>yes</td>
-</tr>
-<tr>
-<td style="text-align: right;">1,000,000</td>
-<td style="text-align: right;">143,444</td>
-<td style="text-align: right;">1,811</td>
-<td>0.4 p99</td>
-<td>yes</td>
-</tr>
-</tbody>
-</table>
-<p>The replica must be sized like the core: a 1 GB replica ran out of memory at 10⁶ files.</p>
+<h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
+<p>JUnit: <code>CoreLogTest</code> (torn tails, refusals, compaction, install), <code>RaftCodecTest</code> (forged,
+altered, replayed, stale, misaddressed, oversized, unknown format), <code>RaftSimTest</code> (deterministic
+simulation: elections, majority commit, failover, partitioned old leader, catch-up by entries and by
+chunked snapshot, and randomized faults over 300 and 200 rounds checking election safety, log
+matching, leader completeness, state machine safety and that every acknowledged entry reaches every
+peer, with power losses in the middle of writes that tear the unforced bytes of a group commit in any
+order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link),
+<code>CrescoRaftTransportTest</code> (lanes, byte bound, done reporting), <code>ReplicatedCoreTest</code> (real engines: failover byte-identical, rejoin, compaction across
+restarts, fencing, legacy import on one and three peers, apply refusal, policy and key-ring changes
+racing compaction, rebuild off the raft lock, lease and read barrier), <code>CoreServiceTest</code> (serving,
+redirects, refusals), <code>CoreServiceClusterTest</code> (three <code>CoreService</code> peers over the production
+transport's encoding on an in-process fabric: election, redirect, a 1.5 MB entry in frames, failover
+within the randomized election timeout, rejoin, a wiped peer caught up by snapshot frames, forged,
+replayed and malformed <code>core.raft.msg</code>). The live harness <code>eval/core_failover_check.py</code> (three
+peers, five storage nodes) is written and not yet run on the fabric.</p>
 
 
 
