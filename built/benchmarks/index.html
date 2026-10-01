@@ -1080,6 +1080,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Tape (simulated)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-back-after-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-back after writing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1532,8 +1549,6 @@
       
         
       
-        
-      
     
     
     
@@ -1687,34 +1702,6 @@
     
   
     Pack container format
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../design/TAPE-FORMAT/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tape format
   
 
     
@@ -2423,6 +2410,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Tape (simulated)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-back-after-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-back after writing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2855,10 +2859,75 @@ real Linux tape device path.</p>
 </tbody>
 </table>
 <ul>
-<li><strong>These archive rates use small 256 MiB test containers,</strong> where the full read-back verify
-  dominates. With 16 GiB production containers, the model gives about 190 MB/s per drive.</li>
+<li><strong>These archive rates use small 256 MiB test containers.</strong> Each container pays a fixed stop at its
+  synchronous filemark, which is several times the time spent streaming it. Larger containers raise the rate;
+  see the next table.</li>
 <li><strong>A writer that underfeeds the drive</strong> shoe-shines: in the simulator, 50 MB/s gave 3 stops per
   512 MiB.</li>
+</ul>
+<h3 id="read-back-after-writing">Read-back after writing<a class="headerlink" href="#read-back-after-writing" title="Permanent link">&para;</a></h3>
+<p>By default every container written to tape is read back and checked before its copies count. Since
+2026-10-01 this is a setting:
+- <strong>full</strong> reads back every container (the default);
+- <strong>sampled</strong> reads back the first container of each session, then 1 in 10;
+- <strong>none</strong> reads back no container.</p>
+<p>A container that is not read back is still checked when its data is read later, so a bad record is
+never returned to a reader; it is only found later. Its copies are reported as unverified.</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>Full</th>
+<th>Sampled</th>
+<th>None</th>
+<th>None vs full</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simulator, 256 MiB</td>
+<td>39.2 MB/s</td>
+<td>41.8 MB/s</td>
+<td>41.9 MB/s</td>
+<td>1.07x</td>
+</tr>
+<tr>
+<td>Simulator, 1 GiB</td>
+<td>87.6 MB/s</td>
+<td>123.6 MB/s</td>
+<td>129.0 MB/s</td>
+<td>1.47x</td>
+</tr>
+<tr>
+<td>Simulator, 16 GiB (fitted from the two sizes, not run)</td>
+<td>143.5 MB/s</td>
+<td>319.5 MB/s</td>
+<td>370.2 MB/s</td>
+<td>2.58x</td>
+</tr>
+<tr>
+<td>mhVTL, 256 MiB (measured)</td>
+<td>111.9 MB/s</td>
+<td>409.1 MB/s</td>
+<td>505.2 MB/s</td>
+<td>4.5x</td>
+</tr>
+<tr>
+<td>mhVTL, 1 GiB (measured)</td>
+<td>163.2 MB/s</td>
+<td>299.6 MB/s</td>
+<td>501.1 MB/s</td>
+<td>3.1x</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>On the simulator,</strong> read-back matters little at 256 MiB, because the fixed stop per container
+  dominates. At the 16 GiB production size it is most of a container's drive time.</li>
+<li><strong>mhVTL has no tape mechanics,</strong> so its gap is the cost of our own checking code. That code runs at
+  150–240 MB/s on the test VM, below an LTO-10 drive's 400 MB/s. A checker that verifies as it reads is the
+  next step.</li>
+<li><strong>In every run,</strong> each recalled byte matched, and nothing was written anywhere but the end of the data.</li>
 </ul>
 <h2 id="wide-area-links-emulated">Wide-area links (emulated)<a class="headerlink" href="#wide-area-links-emulated" title="Permanent link">&para;</a></h2>
 <p>These runs use 5 sites in one VM with netem latency and loss, a striped ingest, and comparison

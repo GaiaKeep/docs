@@ -1499,8 +1499,6 @@
       
         
       
-        
-      
     
     
     
@@ -1654,34 +1652,6 @@
     
   
     Pack container format
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../design/TAPE-FORMAT/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tape format
   
 
     
@@ -2522,7 +2492,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Tape software path: deferred reads with tickets, archive, stage, verify</td>
 <td><strong>Built</strong> and tested on simulated drives</td>
-<td>simulator and mhVTL virtual drives, end to end through the core</td>
+<td>simulator and mhVTL virtual drives, end to end through the core; read-back after writing is a setting (full, sampled or none), benchmarked</td>
 </tr>
 <tr>
 <td>Raw SCSI tape on a real drive</td>
@@ -2600,7 +2570,11 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <td><strong>Recommended</strong> (measured: 37 vs 0.5 MB/s at 1 % loss)</td>
 </tr>
 <tr>
-<td>LTO-10 media, per-site hosts</td>
+<td>LTO-10 media</td>
+<td><strong>Decided</strong> (owner, 2026-10-01: LTO-10 only, no older media)</td>
+</tr>
+<tr>
+<td>Per-site hosts</td>
 <td><strong>Proposed</strong></td>
 </tr>
 </tbody>

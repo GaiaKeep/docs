@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://gaiakeep.github.io/docs/design/TAPE-SIMULATION/">
       
       
-        <link rel="prev" href="../TAPE-FORMAT/">
+        <link rel="prev" href="../PACK-FORMAT/">
       
       
         <link rel="next" href="../FROM-SCRATCH-DECISION/">
@@ -1383,8 +1383,6 @@
       
         
       
-        
-      
     
     
     
@@ -1558,34 +1556,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../TAPE-FORMAT/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tape format
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -1709,6 +1679,17 @@
     <span class="md-ellipsis">
       
         4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; TapeBench --verify-sweep)
       
     </span>
   </a>
@@ -2388,6 +2369,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; TapeBench --verify-sweep)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2635,11 +2627,12 @@ held at 249 MB/s.)</p>
 </tr>
 </tbody>
 </table>
-<p>Reading the archive rows: at 256 MiB containers every container pays a LOCATE back for its FULL read-back
-verify (2 s settle and the distance) and its bytes cross the head twice, and a session pays one robot + mount
-(23 s): the steady state here is about 47 MB/s per drive. With the production 16 GiB containers the same
-model gives about 190 MB/s per drive (a write and a verify read at about 400 MB/s each, the locate amortised).
-Two sessions double the aggregate: the drives are independent.</p>
+<p>Reading the archive rows: a session pays one robot + mount (23 s), and at 256 MiB containers the fixed
+cost of each container (the synchronous filemark, and under FULL the LOCATE back for the read-back) is
+several times its 0.64 s of streaming: the steady state here is about 47 MB/s per drive. Two sessions double
+the aggregate: the drives are independent. For larger containers and the three <code>tape_write_verify</code> modes, see
+§4.3: the model's own fit gives 143.5 MB/s per drive with FULL at 16 GiB containers (an earlier hand estimate
+here said about 190), because the LOCATE back before each read-back grows with the container's length.</p>
 <h3 id="42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model">4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)<a class="headerlink" href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2681,6 +2674,84 @@ rows; mhVTL itself streams 190-310 MB/s with dd (eval/tape/mhvtl/README.md). A m
 than a cold one here because mhVTL has no load or robot time to save; the simulator carries that difference
 (3.1 s against 28.9 s).</p>
 <p>Every recalled extent in both runs matched byte for byte; no write went anywhere but the medium's EOD.</p>
+<h3 id="43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep">4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; <code>TapeBench --verify-sweep</code>)<a class="headerlink" href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" title="Permanent link">&para;</a></h3>
+<p><code>tape_write_verify</code> (owner decision 2026-10-01: an option, default FULL) chooses which containers are read
+back after they are written: FULL every one; SAMPLED the first of each session and then 1 in
+<code>tape_write_verify_sample_every</code> (10); NONE none. One write session on one drive, fresh media for every phase;
+afterwards extents from the first and last containers are recalled and compared byte for byte, SYNCED copies
+included. Every phase: bytes verified, no write anywhere but EOD.</p>
+<p>Simulator (eval/results/bench/tape-verify-sim-2026-10-01.json; SIMULATED, LTO-9-class model, clock 1x and 20x
+give the same figures: drive busy time is the model's):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>39.2 MB/s (steady 59.7)</td>
+<td>41.8 (66.0)</td>
+<td>41.9 (66.2)</td>
+<td>1.07x</td>
+</tr>
+<tr>
+<td>1 GiB x 10</td>
+<td>87.6 (108.0)</td>
+<td>123.6 (168.5)</td>
+<td>129.0 (178.6)</td>
+<td>1.47x</td>
+</tr>
+<tr>
+<td>16 GiB, fitted (not run)</td>
+<td>143.5</td>
+<td>319.5</td>
+<td>370.2</td>
+<td>2.58x</td>
+</tr>
+</tbody>
+</table>
+<p>The fit is a straight line through the two sizes' steady-state seconds per container (FULL: 2.6 s fixed and
+7.3 s per GiB; NONE: 3.3 s and 2.7 s per GiB). At 256 MiB the read-back barely matters: a container not
+read back pays a backhitch after its synchronous filemark instead (3 s), while under FULL the read and the
+LOCATE stop the tape anyway. At production sizes the read-back is most of a container's drive time.</p>
+<p>mhVTL (eval/results/bench/tape-verify-mhvtl-2026-10-01.json; MEASURED wall clock on the VM, no mechanical model):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>111.9 MB/s</td>
+<td>409.1</td>
+<td>505.2</td>
+<td>4.5x</td>
+</tr>
+<tr>
+<td>1 GiB x 6 (two cartridges: early warning at 4 GiB)</td>
+<td>163.2</td>
+<td>299.6 (2 read back: one per session)</td>
+<td>501.1</td>
+<td>3.1x</td>
+</tr>
+</tbody>
+</table>
+<p>mhVTL has no tape mechanics, so its gap is our own software: the read-back copies the container to a scratch
+file and reads that again for the pack check, about 150-240 MB/s on this 4-vCPU VM. That is slower than an
+LTO-10 drive streams (400 MB/s), so with FULL on real hardware the verify code, not the drive, would set the
+pace: a read-back that checks as it reads, with no scratch file, is the follow-up (OUT-16).</p>
 
 
 
