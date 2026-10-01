@@ -1,5 +1,5 @@
 !!! success "Status: Current"
-    The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25).
+    The decisions each component raises, with the measurements behind them. Superseded in part by the 1.3 ship (2026-10-01): see the newer pages.
 
 # Module-level decisions
 
@@ -20,18 +20,18 @@ approvals:** each one is reversible, and each one stays open until the owner con
 
 | Decision | Running default | Where it lives | Reversible by |
 |---|---|---|---|
-| D-C1-1 default chunker | `cdc:65536:8192:131072` | `ChunkerSpec.DEFAULT_CDC` | per-domain `chunker` at creation (existing domains keep theirs) |
+| D-C1-1 default chunker | `fmt:dicom@1,nifti@1,tiff@1+cdc:1048576:262144:4194304` (reviewed format adapters around 1 MiB CDC; plain 1 MiB CDC earlier on 2026-09-26, 64 KiB before) | `ChunkerSpec.DEFAULT_CDC`, config `core_default_chunker` | per-domain `chunker` at creation; config key for new domains (existing domains keep the spec they recorded) |
 | D-C1-2 16 KiB CDC per collection | offered, not default | any `cdc:` spec is accepted per domain | policy |
 | D-C1-3 reject 256 KiB CDC | not a default; still accepted if asked | policy | policy |
 | D-C2-1 default hash | SHA-384 (CNSA) | `BlockHash.DEFAULT` | per-domain `hash` at creation |
 | D-C5-1 keyed ids | HMAC-SHA-384, 96 hex | `BlockCodec` | new domains only (ids are permanent) |
-| D-C6-1 reference storage at scale | holder sets, in memory, journaled | `RefIndex` + journal | open: needs a decision before petabyte scale |
+| D-C6-1 reference storage at scale | counted compact table (primitive arrays, ~75 B/block) + per-collection run holds; incremental multiset metaHash; copy-on-write snapshot cut | `BlockTable` / `CompactBlockTable`, `RefIndex`, `RefHolds` | another `BlockTable` (on-disk / LSM, STORAGE-DIRECTION D3); owner may override |
 | D-C8-1 site weighting | `log10(measured write rate)` | `ReplicaPlacer` | code constant |
 | D-C10-1 trim | surplus kept through a grace period, never below R | `StorageEngine.trim` | `grace_ms` per call |
 | D-C10-2 sync at seal | one barrier per write per site | `FsBinding.seal` | built |
-| D-C10-3 batched streaming reads | window of 64 blocks per site | `StorageEngine.readWindow` | field |
+| D-C10-3 batched streaming reads | window of at most 256 blocks and 64 MiB, one window prefetched; 32 blocks per site request | `StorageEngine.readWindow`, `readWindowBytes`, `fetchSlice` | fields |
 | D-C11-1 minimum replication | R ≥ 1 enforced; R=3 used everywhere tested | `PolicyEngine` | open: R ≥ 2 for durable collections is not yet enforced |
-| D-C11-2 supported configurations | all tested combinations (now 180 cells incl. remote) | `IntegrationMatrixTest` | — |
+| D-C11-2 supported configurations | all tested combinations (180 cells at 64 KiB + 40 at 1 MiB, incl. remote) | `IntegrationMatrixTest` | — |
 
 ## Summary of verdicts
 
@@ -78,7 +78,8 @@ approvals:** each one is reversible, and each one stays open until the owner con
 In the integration matrix's version-2 workload, content-defined chunking reused **73 %** of blocks
 against **54 %** for fixed blocks.
 
-- **D-C1-1: default chunker.** **Rec: `cdc:65536:8192:131072`.** After a single insertion, fixed
+- **D-C1-1: default chunker.** *Superseded 2026-09-26 by 1 MiB CDC; see the update at the end.*
+  The original recommendation was `cdc:65536:8192:131072`. After a single insertion, fixed
   blocks have to store 100× more new data than content-defined ones, and after several small
   insertions about 50× more. It runs at 878 MB/s on one thread, which is 2.2× an LTO-10 drive.
 - **D-C1-2: offer 16 KiB content-defined chunking per collection** for text-heavy collections with
@@ -129,6 +130,26 @@ deduplication and is well above media rates.
   reference, in memory. **Rec: keep the set semantics, store them as a counted table plus an
   append-only holder log in the federation index,** and design this before the index integration
   stage. This is `TENANCY-AND-DEDUP.md` §12 item 3, now blocking the next stage.
+  **Adopted default (builder, 2026-09-26; owner may override):** a counted table behind the
+  `BlockTable` interface. Per block: id bytes, domain ordinal, length, reference count, required
+  copies, up to four site ordinals and flags, in paged primitive arrays (no per-block object or
+  string). Holders are counts; which run positions are counted is kept per collection and run
+  (`RefHolds`), with the positions derived from the run in the version log, so adoption and drops
+  stay idempotent. This also closes a data-loss case of holder names, which carried no collection:
+  two collections holding the same run shared its references, and withdrawing one reclaimed the
+  other's blocks. `metaHash` is an incremental multiset hash, O(1) while the policy is unchanged (the
+  policy digest is cached against the policy's and key ring's generations). A snapshot cuts the table
+  copy-on-write, opens with a `snaphead` (format, delta count) and ends with a `snapcheck`; install
+  refuses anything torn, padded, spliced or downgraded, and a pre-D-C6-1 snapshot installs only
+  through the explicit `installLegacy`. The index cuts the core inside its consistent point and
+  writes it after, and installs a snapshot only once the rebuilt core has verified. A snapshot is
+  authenticated (HMAC-SHA-384 under a key derived from the master key, checked before anything is
+  applied) and bound to the index position it was cut at; its holds are checked against the version
+  log it carries (every live collection holds exactly the runs it adopted, versions name only
+  adopted runs, a position is uncounted only when its block is gone or a withdrawal dropped it), and
+  its counts against its holds. A version and its references, and a withdrawal's drop and its mark,
+  reach the journal in one batch; a trimmed copy's release carries an intent, so a crash before the
+  copy leaves its site is recovered, not leaked. Measurements: `eval/results/scale/`.
 
 ## C8: placement
 
@@ -423,3 +444,218 @@ Next:
 
 State: 324/324 unit tests; live fabric 61/61
 (`eval/results/core_fabric_20260923-222652.json`, index heap 2 GB, hub 4 GB).
+
+## Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)
+
+Dedup and edit amplification were measured with the production chunkers and SHA-384 on real data on
+the UK DGX (SLURM array 223030, 32 tasks; lists 223029; merge 223031). A rerun on the same sample
+(array 223196, merge 223197) reproduced every figure exactly and added exact size quantiles and read
+amplification. Data was read in place. The de-identification edits were made in memory and never
+written. Only aggregate numbers left the cluster: `eval/results/dedup/` (`*_r1.json`, `*_r2.json`).
+The tool is `io.cresco.gfs.core.tools.DedupMeasure` and the drivers are in `eval/dedup/`.
+
+- **DICOM.** Every instance of the five TCIA renal collections: 410,546 instances, 194 GiB, median
+  528 KB, mostly CT slices. De-identification is PS3.15-style: names and IDs pseudonymised, birth
+  date and accession blanked, dates shifted, UIDs remapped (lengths change). All 410,546 instances
+  parsed.
+- **WSI.** 837 GDC TCGA kidney SVS slides, 377 GiB, median 259 MB. The sample is stratified by
+  project and by diagnostic or tissue slide. The edit blanks the Aperio identifying keys (Filename,
+  Title, Date, Time, User, ScanScope ID, Barcode) in place (`desc`), or moves a longer description
+  to the end of the file (`grow`). None of the 837 slides has a label or macro image: GDC strips them.
+
+| Chunker | DICOM dedup saving | DICOM de-id: new bytes per instance | DICOM refs per TiB | WSI dedup saving | WSI `desc` edit: new bytes per slide | WSI refs per TiB |
+|---|---:|---:|---:|---:|---:|---:|
+| `fixed:65536` | 2.0 % | 499 KB (98 %) | 18.7 M | 0.34 % | 130 KB | 16.8 M |
+| `fixed:1048576` | 0.8 % | 504 KB (99 %) | 2.2 M | 0.07 % | 1.7 MB | 1.05 M |
+| `cdc:65536:8192:131072` | 1.4 % | **99 KB (20 %)** | 17.2 M | 0.30 % | 186 KB | 17.1 M |
+| `cdc:262144:65536:1048576` | 0.9 % | 278 KB (55 %) | 4.8 M | 0.07 % | 1.0 MB | 3.3 M |
+| **`cdc:1048576:262144:4194304`** | 0.4 % | **470 KB (93 %)** | **2.6 M** | 0.03 % | **2.9 MB (0.6 %)** | **0.84 M** |
+| `cdc:4194304:1048576:16777216` | 0.0 % | 506 KB (99.6 %) | 2.2 M | 0.01 % | 9.3 MB | 0.21 M |
+
+Journal metadata at 130 bytes per reference: DICOM 2.2 GB per TiB at 64 KiB CDC against 0.33 GB at
+1 MiB. WSI 2.2 GB per TiB against 0.11 GB.
+
+What the data says:
+- **Real imaging does not deduplicate at any block size.** DICOM saves at most 2.0 %, and WSI at
+  most 0.34 %, because the pixel data is already compressed or noisy. Smaller blocks buy almost no dedup.
+- **WSI favours 1 MiB clearly.** Metadata is 20× smaller. A description edit stores 2.9 MB per
+  slide, 0.6 % of slide bytes, against 186 KB at 64 KiB.
+- **DICOM instances are about one block at 1 MiB.** A median instance is 528 KB, so a 1 MiB block
+  holds the whole instance. A de-identified copy kept in the same dedup domain re-stores 93 % of each
+  instance at 1 MiB, against 20 % at 64 KiB CDC. Keeping original plus copy costs 1.93× at 1 MiB and
+  1.20× at 64 KiB. Metadata is 6.7× smaller, not 16×. This cost applies only where the edited copy
+  shares a domain with the original (a version in the same collection), or is a derived publish
+  through a grant from a 1 MiB base. A derived publish cuts its changed files at the base's
+  boundaries where that is safe (see the follow-up below), so a derivative of a 64 KiB base still
+  costs about 20 %. A copy in another domain with no grant is stored whole at any block size.
+- **Adopted:** `cdc:1048576:262144:4194304` for new domains (sealed tenants use the keyed form;
+  NONE uses `fixed:1048576`). The data does not argue for 64 KiB as the global default. It does
+  support a per-domain 64 KiB CDC for DICOM collections that will hold de-identified versions of the
+  same instances in-domain. **Flag for the owner:** that per-domain choice is available today
+  (`chunker=cdc:65536:8192:131072` on `core.domain`); no automatic per-modality default is built.
+- Config `core_default_chunker` sets the default for new domains. It must be a canonical, unkeyed
+  `cdc:` spec. An invalid value refuses the plugin start. The value belongs to the plugin instance's
+  own storage core (`CoreService.defaultChunker`, held by its `PolicyEngine`), never to the JVM, so
+  two gfs instances in one agent cannot change each other's default; the core logs it at start. A
+  domain records its spec at creation, and replay uses that record, so the change never re-cuts
+  existing data (`DefaultChunkerTest`, `ExecutorConfigTest`). No chunker size in a new domain may
+  exceed 16 MiB; a spec an earlier build recorded is honoured on replay (see the second follow-up).
+- The cost stated plainly: scattered small edits. On the synthetic C1 workloads (32 MiB of random
+  bytes, `eval/results/modules/chunkers.json`), twenty 4 KiB overwrites re-store 18.4 MB at 1 MiB
+  against 2.0 MB at 64 KiB, and ten 300-byte insertions 21.0 MB against 0.6 MB. Imaging edits are
+  header-local, which is what the real-data run measured; a collection edited in scattered places
+  should choose a smaller chunker per domain.
+- Matrix: 40 new cells at 1 MiB on 8–48 MB files, with a 700-byte insertion in the middle of 48 MB.
+  1 MiB CDC re-stores at most two maximum blocks; fixed 1 MiB re-stores everything after the edit.
+  The 180 64 KiB cells stay, for domains created before this change. The tier adds about 95 s to the
+  suite on a laptop.
+
+### Follow-up 2026-09-26: reads and derived publishes at 1 MiB (OUT-10 review)
+
+An adversarial review of the change found three costs of larger blocks that the first pass had not
+measured or handled. All three are fixed or measured; the default stays 1 MiB.
+
+- **Derived publishes across specs.** A grant bundle is keyed by the hash of the base's blocks, so a
+  derived publish finds unchanged bytes only if it cuts them at the base's boundaries. Before the
+  fix it always cut with the target domain's spec: a 16 MiB file derived from a 64 KiB base into a
+  new 1 MiB domain, with a 500-byte insertion, stored the whole file (50.3 MB at R=3) instead of
+  0.3 MB. `StorageEngine.derivedChunkers` now cuts changed files with the chunker of the base domain
+  that holds most of the inherited bytes, when that reveals nothing the target's own chunker would
+  not: fixed boundaries, both specs unkeyed, or a keyed base owned by the target's owner. A keyed or
+  NONE target never takes public content-defined boundaries, and one tenant's boundary key never
+  cuts another tenant's data. Those publishes use the target's chunker, reuse only whole identical
+  blocks, and are counted in `Stats.derivedUnaligned` (`DefaultChunkerTest`).
+- **Streaming read memory.** The read window was 256 blocks, so a stream held about three windows of
+  1–4 MiB blocks: 1–3 GiB. It is now bounded by `readWindowBytes` as well (64 MiB, at least one
+  block), about 200 MB per stream whatever the block size (`ReadWindowTest`).
+- **Pieced downloads.** `core.get` serves a download as 8 MiB range reads, and a piece boundary inside
+  a block fetched and opened that block twice: about one block in eight at 1 MiB. A download now
+  reads through one `StorageEngine.RangeCursor`, which keeps the last block of each range for the
+  next. Grants and broken references are still checked for the kept block (`ReadWindowTest`).
+
+**Random range reads** (rerun r2). A range read fetches every block it touches, whole. For a read of
+R bytes at a random offset, bytes fetched per byte asked are (size-biased mean block + R − 1) / R.
+For WSI, the tile rows replay every tile of every tiled image read alone and uncached, as a slide
+viewer without a cache would read them (45.4 M tiles, mean 8.9 KB).
+
+| Chunker | DICOM 32 KiB read | WSI 32 KiB read | WSI tile read: fetched per tile | WSI tile amplification |
+|---|---:|---:|---:|---:|
+| `fixed:65536` | 3.0× | 3.0× | 74 KB | 8.4× |
+| `fixed:1048576` | 17.8× | 33× | 1.06 MB | 119× |
+| `fixed:4194304` | 20× | 129× | 4.2 MB | 473× |
+| `cdc:65536:8192:131072` | 3.8× | 3.8× | 104 KB | 11.7× |
+| `cdc:262144:65536:1048576` | 11.2× | 16.6× | 552 KB | 62× |
+| **`cdc:1048576:262144:4194304`** | **18.2×** | **63×** | **2.13 MB** | **240×** |
+| `cdc:4194304:1048576:16777216` | 24× | 249× | 8.4 MB | 949× |
+
+At 1 MiB CDC the size-biased mean WSI block is 2.0 MB (DICOM 0.56 MB): JPEG tile data yields more
+long blocks than random bytes do. Sequential reads are unaffected (a whole-file read fetches each
+block once).
+
+**Flag for the owner: slide viewing.** Serving viewer tiles straight from 1 MiB blocks, uncached,
+moves about 240× the tile bytes from the storage sites, against 12× at 64 KiB. Dedup and metadata
+still favour 1 MiB, and the owner accepted 1 MiB blocks, so the default stays. A deployment that
+serves tiles from GFS should put a block cache in front of reads (tiles of one viewport sit in a few
+blocks) or give viewer-facing pathology collections a smaller chunker per domain
+(`cdc:262144:65536:1048576` fetches a quarter as much; `cdc:65536:8192:131072` a twentieth).
+
+### Follow-up 2026-09-26: second review
+
+- **The default is per instance.** It was a JVM-wide static that every `ExecutorImpl` constructor
+  reset, so a storage instance built after the index silently changed the index's default for new
+  domains. `ExecutorImpl` now only validates the key, and hands it to its own `CoreService`, which
+  carries it into every engine it builds, including after a snapshot install.
+- **Recorded specs replay.** The 16 MiB bound and exact field count applied on replay too, so a
+  domain an earlier build had accepted (for example `cdc:4194304:1048576:33554432`, or a trailing
+  field the old parser ignored) fenced the whole core on restart. Replay now goes through
+  `PolicyEngine.restoreDomain`, which checks the spec against what any earlier build could record
+  (`ChunkerSpec.checkRecorded`); live creation stays strict. Writes cut with the recorded spec exactly
+  as before, up to `ChunkerSpec.MAX_RECORDED_BLOCK` (64 MiB); past it, that domain alone refuses
+  writes and says why, and its data stays readable. A spec no build could record still fails replay
+  and fences the engine.
+- **Derived publishes choose the chunker per file.** A changed path the base holds is cut with the
+  chunker of the domain holding most of that file's bytes, under the same leak rules; a new path has
+  nothing to match in the base and gets the target's own chunker. Before, a new 40 GB file derived
+  into a 1 MiB domain from a 64 KiB base took 16× the block references for no dedup.
+- **The matrix record is opt-in.** `IntegrationMatrixTest` writes to `target/results/modules/` by
+  default; `-Dgfs.results.dir=eval/results/modules` refreshes the tracked record deliberately.
+- **Measurement hygiene.** `DedupMeasure` block keys are HMAC-SHA-384 under a per-run secret, not
+  plain SHA-384 prefixes, so a leftover key file cannot confirm a guessed header block. The shard
+  work files are owner-only, and the merge deletes the block keys and sizes once its JSON is written
+  (the driver deletes the run key). The r1 and r2 work files on the DGX were deleted.
+
+**Label edits.** The 837 GDC slides carry no label or macro image (GDC strips them). A first
+read-only search (job 223130) for scanner-native slides elsewhere timed out; a second, narrower one
+(job 223618) found seven Philips iSyntax slides on the DGX with label and macro images. Label edits
+were measured on those (job 223712, `eval/dedup/isyntax_label.sbatch`, run on node-local scratch)
+and on the six public OpenSlide Aperio test slides (CC0 or freely distributable, no patient data;
+`eval/dedup/openslide_label.sh`). The edit zeroes the label and macro images and blanks identifying
+metadata, same length, in place.
+
+| Chunker | iSyntax label: new bytes per slide (p95) | iSyntax metadata only | Aperio label: new bytes per slide (p95) | Aperio description only |
+|---|---:|---:|---:|---:|
+| `fixed:65536` | 309 KB (371 KB) | 66 KB | 362 KB (441 KB) | 131 KB |
+| `cdc:65536:8192:131072` | 273 KB (371 KB) | 67 KB | 601 KB (741 KB) | 178 KB |
+| `cdc:262144:65536:1048576` | 1.97 MB (4.19 MB) | 257 KB | 1.69 MB (2.10 MB) | 1.01 MB |
+| **`cdc:1048576:262144:4194304`** | **4.54 MB (7.05 MB)** | **1.22 MB** | **4.32 MB (7.05 MB)** | **3.09 MB** |
+| `cdc:4194304:1048576:16777216` | 18.4 MB (23.7 MB) | 3.78 MB | 9.80 MB (14.1 MB) | 7.96 MB |
+
+- iSyntax: 7 slides, 9.93 GiB, median 1.56 GB; the label and macro images are base64 in the XML
+  header (174 KB per slide). At 1 MiB a label edit stores 0.3 % of slide bytes; at 64 KiB, 0.02 %.
+  Block references per TiB: 17.0 M at 64 KiB CDC against 0.83 M at 1 MiB. Dedup saving at most 1.0 %.
+- Aperio: 6 slides, 1.22 GiB, median 178 MB (441 KB edited per slide). At 1 MiB a label edit stores
+  2.0 % of slide bytes; at 64 KiB, 0.3 %. The description edit alone costs 3.09 MB at 1 MiB, in line
+  with the 2.9 MB measured on the GDC slides.
+- A label edit costs 4-5 MB per slide at 1 MiB, about 16× (iSyntax) and 7× (Aperio) the 64 KiB cost.
+  Against slides of 0.2-2 GB that is 0.3-2 % of slide bytes. It does not change the verdict.
+- Not measured: other vendors' layouts (NDPI, MRXS, DICOM-WSI) and a larger iSyntax sample.
+
+## Update 2026-09-26 (evening): format adapters (D-C1-1)
+
+A de-identified DICOM copy re-stored 93 % of each instance at 1 MiB CDC, because a median instance
+is one block. Format adapters remove that cost. An adapter recognises one audited format and names
+the offsets where a block must begin; the inner chunker cuts each region between them as a whole
+file. So a metadata edit, even one that changes lengths, leaves the bulk blocks unchanged at any
+block size. The framework, the contract, the audit checklist, version pinning and the measurements
+are in [FORMAT-ADAPTERS.md](FORMAT-ADAPTERS.md). The code is `core/chunk/format/`.
+
+- **Adapters.** `dicom@1` cuts at the top-level pixel data element. `tiff@1` cuts at IFD and
+  ImageDescription regions, and at image data that lies after its IFD. `nifti@1` cuts at
+  `vox_offset`. A spec pins exact versions (`fmt:dicom@1,nifti@1,tiff@1+<inner>`). An adapter or
+  version not on the allowlist refuses domain creation. The engine's segmented, parallel path cuts
+  each region on its own, so no format needs the sequential path.
+- **Measured on the DGX** (array 223418, merge 223419, bench 223420; plain-CDC figures equal r1):
+
+| Corpus and edit | `cdc` 1 MiB | with the adapter | Block refs per TiB, without → with |
+|---|---:|---:|---:|
+| DICOM, 410,546 instances: de-id copy | 470 KB (92.6 %) | **4.0 KB (0.8 %)** | 2.57 M → 4.73 M (64 KiB CDC: 17.2 M, with 99 KB per copy) |
+| WSI, 837 SVS: description edit | 2.87 MB | **1.1 KB** | 0.84 M → 0.88 M |
+| WSI: longer description appended | 4.32 MB | 1.08 MB | |
+| WSI: associated image removed | 2.97 MB | 2.02 MB | |
+| NIfTI, 123 KiTS23, decompressed: descrip edit | 2.10 MB | **352 B** | 0.80 M → 0.80 M |
+| NIfTI as stored (`.nii.gz`): descrip edit re-compressed | 67.5 MB (80 %) | 67.5 MB (80 %) | |
+
+  Files no adapter matches are cut exactly as before: every SVS block is identical under
+  `fmt:dicom@1`. Throughput is unchanged within the ±10 % noise of a shared node (DICOM engine path
+  830 → 855 MB/s, WSI 848 → 820 MB/s, NIfTI 836 → 858 MB/s).
+- **Adopted:** `fmt:dicom@1,nifti@1,tiff@1+cdc:1048576:262144:4194304` for new unkeyed domains
+  (`ChunkerSpec.DEFAULT_CDC`). The numbers support it clearly: every format's edits get far cheaper,
+  nothing else changes, and throughput holds. DICOM pays one block more per instance and still has
+  3.6× fewer references than 64 KiB CDC. **Sealed tenants keep plain `keyed-cdc`**: a format cut
+  sits at a public, content-determined offset (a header's length), which keyed boundaries exist to
+  hide. NONE keeps `fixed:1048576`. Existing domains keep what they recorded.
+- **Not adopted:** `dicom-frag@1` (cuts at encapsulated fragments) and `tiff-tiles@1` (cuts at every
+  tile) stay measurement-only. The renal corpus has no encapsulated pixel data, so fragment cuts
+  could not be tested on real data. Every GDC tile lies before its IFD, so a streaming chunker cannot
+  cut there.
+- **Flags for the owner.**
+  - (1) NIfTI dedups only if stored uncompressed: KiTS23 on the DGX is `.nii.gz` only, and an edit
+    to a gzip stream re-stores 80 % of it at any block size.
+  - (2) Pixel data can itself identify: burned-in text, or a face reconstructed from head CT/MR.
+    Bulk blocks therefore follow the domain's dedup policy like any other block.
+  - (3) Which adapter cut a file is not yet recorded per file. `FileEntry.canonical()` feeds the
+    root hash, so the field waits for the wave-2 `FileEntry` change; a proposal is in
+    FORMAT-ADAPTERS.md.
+  - (4) Label edits on real slides were measured at plain CDC (iSyntax and Aperio, "Label edits"
+    above). With the adapters, label removal was measured only on the GDC thumbnail, which stood in for
+    a label image; it remains to be measured on the iSyntax and Aperio slides.

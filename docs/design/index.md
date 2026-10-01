@@ -4,8 +4,14 @@ The engineering documents behind this site, copied from `GaiaKeep/gfs` `docs/` w
 
 | Document | Status | What it is |
 |---|---|---|
+| [Format-aware dedup adapters](FORMAT-ADAPTERS.md) | Current | Audited DICOM, NIfTI and TIFF cut adapters: metadata edits do not rewrite bulk data (shipped in 1.3, 2026-10-01). |
+| [Jobs and the API](JOBS-AND-API.md) | Current | Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01). |
+| [The replicated core log](CORE-LOG.md) | Current | The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01). |
+| [Pack container format](PACK-FORMAT.md) | Current | The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01). |
+| [Tape format](TAPE-FORMAT.md) | Current (software path) | How containers map to tape; items marked [HW] still need a real drive. |
+| [Tape simulation](TAPE-SIMULATION.md) | Current | The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks. |
 | [From-scratch decision](FROM-SCRATCH-DECISION.md) | Current | The statement of purpose and the decision to remove Bareos (2026-09-20) |
-| [Module decisions (measured)](MODULE-DECISIONS.md) | Current | The decisions each component raises, with the measurements behind them (324 tests, CI green at e3d7b46, 2026-09-25). |
+| [Module decisions (measured)](MODULE-DECISIONS.md) | Current | The decisions each component raises, with the measurements behind them |
 | [Component definitions](COMPONENTS.md) | Current | Every component of the durable storage core: interface, what its tests must establish, the decision it feeds. |
 | [Tenancy and deduplication](TENANCY-AND-DEDUP.md) | Current | Design of record for tenants, collections, dedup domains (NONE, COLLECTION, GROUP, GLOBAL), grants and per-block hashing (2026-09-23) |
 | [Block fabric specification](SPECIFICATION.md) | Partly superseded | The write-once block fabric specification, written tape-first |

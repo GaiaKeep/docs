@@ -48,7 +48,7 @@ tape sites is survivable (it is if the DGX copy stays) and whether tape is prima
 filesystem?** Primary means GFS must serve training-rate reads; tier means it only needs to
 materialise into the DGX.
 
-**P5 — Are humans ever consumers?** You've said no. Confirm that means: no browsing UI, no FUSE
+**P5 — Are humans ever consumers?** **ANSWERED IN PART 2026-09-19:** not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
 mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
 tab) is still wanted for operators.
 
@@ -102,7 +102,7 @@ size the first order.
 
 ## 3. Hardware and procurement
 
-**H1 [NOW] — Stack or Cube for the first purchase?** You said you may start with a Stack.
+**H1 [NOW] — Stack or Cube for the first purchase?** **ANSWERED 2026-09-20:** start with a Spectra Stack (decision log). You said you may start with a Stack.
 **Rec:** Stack, used as the instrument that measures the mount cycle, rewind, load/thread
 distribution and shoe-shine floor that every capacity figure depends on.
 
@@ -110,7 +110,7 @@ distribution and shoe-shine floor that every capacity figure depends on.
 maximum modules, and **whether one accessor serves the whole stack**. The accessor turned out to be
 the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.
 
-**H3 — How many sites for phase one: 2 or 3?** **Rec:** 3. Two cannot form a quorum for index
+**H3 — How many sites for phase one: 2 or 3?** **ANSWERED 2026-09-20:** three (decision log: 3-way replication across three sites). **Rec:** 3. Two cannot form a quorum for index
 commits. Two is survivable only if the DGX copy is retained (P3) and a witness is added (R4).
 
 **H4 — Which physical locations?** UK campus buildings, partner institutions, colocation? Each
@@ -216,7 +216,7 @@ placement for every registered node.
 
 ## 5. Redundancy and distribution
 
-**R1 — Replication factor: 3?** **Rec:** 3, equal to site count, so every site holds a complete
+**R1 — Replication factor: 3?** **ANSWERED 2026-09-20:** 3, across three sites; erasure coding later via repack (decision log). **Rec:** 3, equal to site count, so every site holds a complete
 copy and can serve any object disconnected.
 
 **R2 — Must every site hold every object (N = R), or may sites hold subsets?** N = R keeps sites
@@ -385,7 +385,7 @@ there other panAtlas artifacts you want measured and registered before they go i
 
 ## 10. The tape binding
 
-**B1 [NOW] — Confirm Bareos is out.** Decided on licence grounds: AGPL forbids the streaming
+**B1 [NOW] — Confirm Bareos is out.** **ANSWERED 2026-09-20:** yes, Bareos is removed (decision log: AGPL forbids the streaming integration; raw SCSI over `st`/`sg` instead). Decided on licence grounds: AGPL forbids the streaming
 integration, forcing every byte through staging. The real cost is losing a catalogue-free reader
 written by someone else.
 
@@ -410,7 +410,23 @@ repair? **Rec:** retry only on native sense data; otherwise stop and repair from
 fencing needs SCSI Persistent Reservation (H17) or a lease.
 
 **B8 — Test rig:** use mhvtl (GPL kernel module, test host only, never shipped) for CI? Needs a
-Linux box — which one?
+Linux box — which one? **ANSWERED 2026-09-30 (owner direction):** yes, as test infrastructure only: mhVTL
+in a dedicated Lima VM `gfs-tape` (eval/tape/mhvtl: two emulated IBM LTO-9 drives, an STK L700, real
+/dev/nst, sg and changer nodes), plus the in-JVM simulator with LTO-9-class timing
+(docs/TAPE-SIMULATION.md). mhVTL never enters the code or its dependencies.
+
+**Adopted defaults of the tape software path (OUT-16), each configurable and logged as ADOPTED DEFAULT
+at start; the owner may override:** D1 `tape_worm_classes=""`; D2 `tape_volume_group_by=none` and
+`tape_container_domain_pure=true`; D4 no re-encryption; S1 counter-IV tape metadata; S2 leader-local,
+term-fenced idempotency leases on NONE writes (refuse rather than share); B3 the reference reader is a
+blocking gate (reader not yet written); B4 docs/TAPE-FORMAT.md private; B5 R = 1 MiB = pack block,
+quarter checkpoints; B6 retry only on native sense; B7 single host, advisory MAM epoch fencing; M1/M2
+MODELLED figures; P3/P4 tape copies additional to R and never counted (`core_place_on_deferred` off;
+the eviction of the last disk copies to tape is therefore not offered); `core_codec_verify_ids=false` in
+production; `tape_write_verify=FULL`; `tape_pool_barcodes` matches nothing until set;
+`tape_write_sessions=1` (one drive writes, the others serve recalls); `tape_sim_profile=lto9` (owner
+2026-09-30); `x_defer_orphan_ms=300000` (a node cancels a READ ticket its core stopped asking about);
+S4/S5 K_media per tape node, escrowed and attested outside dev mode.
 
 **B9 — Retire the Bareos documents** or keep `BAREOS-RECOMMENDATION.md` as history?
 
@@ -464,7 +480,7 @@ decides priority?** At 100 TB/day scattered the plant is oversubscribed 2.75×.
 
 ## 13. filerepo
 
-**F1 — Confirm filerepo's role:** it materialises local versions (as a cache) and can publish new
+**F1 — Confirm filerepo's role:** **ANSWERED 2026-09-23:** filerepo = local copies, cache, and publishing new versions; the advanced caching tier comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
 versions, but is no longer primary storage.
 
 **F2 — Should filerepo's `phase0-crypto-baseline` branch (`repostate`, `clearRepo(force)`) merge to
@@ -513,7 +529,13 @@ query and a pathology system query?
 logs)?
 
 **M6 — Power-loss test on the candidate site hosts** — the only way to prove a barrier reaches
-power-safe media rather than just costs time. Worth doing?
+power-safe media rather than just costs time. Worth doing? **IN PART 2026-09-26 (OUT-01):** the
+code's side is tested: a page-cache power-cut model in JUnit on every CI push (CrashFs,
+src/test/java/io/cresco/gfs/power), LazyFS rounds and whole-VM hard power-offs in a Linux VM
+(eval/power/, eval/results/power/). None of these can lose a drive's volatile write cache, and
+none ran on NFS/Lustre. What still needs a candidate site host: a real power cut (or a
+dm-log-writes replay) on the NVMe/RAID controller the store will use, with its write cache in its
+production setting.
 
 **M7 — Recompute cost of the derived panAtlas artifacts** (X5).
 
@@ -524,7 +546,7 @@ power-safe media rather than just costs time. Worth doing?
 
 ## 16. Licensing and legal
 
-**L1 — Confirm "permissive commercial licences only"** covers everything that ships, and that
+**L1 — Confirm "permissive commercial licences only"** **ANSWERED IN PART 2026-09-20:** build from scratch or with permissively licensed libraries only (decision log). Still open: whether GPL is acceptable in test infrastructure that never ships. covers everything that ships, and that
 GPL is acceptable only in test infrastructure that never ships (mhvtl).
 
 **L2 — Do you want counsel to review** the licence position, the DUA implications of partner sites

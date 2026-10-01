@@ -45,7 +45,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 | E1.9 | capability inventory | `getcapabilities` | document returned | RUN |
 | E1.10 | fail-closed start | deploy without `gfs_secret` / without `index_addr` | plugin refuses to start, logged | PLAN |
 | E1.11 | OSGi reload | remove + re-add gfs instance 20× | no leaked threads/listeners (metrics) | PLAN |
-| E1.12 | region-per-site topology | 7 regional controllers federated to a global | E2–E11 pass unchanged | PLAN (multi-host) |
+| E1.12 | region-per-site topology | 7 regional controllers federated to a global | E2–E11 pass unchanged | PLAN (multi-host); in process: `MultiRegionChainTest` (3 regions: the writer's WAN bytes are exactly the blocks with no copy in its region); DGX: `eval/dgx/offload.sh mesh` |
 
 ## E2 — Node registry, liveness, probing, scoring
 | id | check | method | pass | status |
@@ -169,7 +169,9 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 | E7.12 | restore with a dead holder | raced multi-round fetch completes and verifies (5/5) | RUN (SCALE tolerance) |
 | E7.13 | index restart mid-repair | in-flight repair re-planned after replay | PLAN |
 | E7.14 | repairer loss mid-repair | repair re-dispatched to another node; idempotent fragment ids | PLAN |
-| E7.15 | network partition (bridge down) | SUSPECT not LOST until lost_ms; no repair storm; heals on reconnect | PLAN (multi-host) |
+| E7.15 | network partition (bridge down) | SUSPECT not LOST until lost_ms; no repair storm; heals on reconnect | PLAN (multi-host); in process: `MultiRegionChainTest` (a region cut mid-publish loses nothing, records nothing there, heals and chains through it again), `FollowerReadTest` (a cut-off follower refuses reads, never serves stale); DGX silent-region form: `eval/dgx/offload.sh silent` |
+| E-BR | broker sizing | every class saturated at the heap `eval/broker_sizing.py` gives; negative control at 1 GB | no OOM, no temp spooling, flow-control stalls < 1 s | PLAN (DGX); formulas and worked numbers UNIT (`test_broker_sizing.py`) |
+| E-TP-CH | chain against star, R=3 | core_throughput C with `core_replication=star` then `chain` (`eval/dgx/offload.sh chain`, `mesh`) | chain R=3 >= 1.5x star R=3 and >= 0.7x R=1 | in process `ChainThroughputTest` (docs/OFFLOAD.md §5); DGX PLAN |
 | E7.16 | repair storm | 40 of 240 sites lost at once: 83–88 objects repaired in 15–79 s, control p99 < 1 ms | RUN (SCALE storm) |
 | E7.17 | orphan cleanup | fragments left on a returned site after re-placement are garbage-collected | PLAN |
 
@@ -265,7 +267,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 | E13.6 | delta throughput | 100k changed files | < 60 s to converge | PLAN |
 | E13.7 | concurrent promotes | 8 × 64 MiB; 100 × 16 MiB | 250–330 MB/s aggregate; 100 objects DURABLE in 5 s | RUN (SCALE) |
 | E13.8 | 64-node DGX mesh | E1–E11 | pass | PLAN |
-| E13.9 | WAN emulation | 30 ms/50 ms/1 % loss per site | throughput model; repair completes | PLAN |
+| E13.9 | WAN emulation | 30 ms/80 ms RTT, 0-1 % loss per site (Lima VM netem) | §1a ingest and read-back goodput >= 0.5 of the run's LAN reference; commit RPC <= 20 s | RUN 2026-09-30: stock 1/7 cells pass; with the node-leg drain fix (c71fbf1), BBR on the hosts and dataplane_shards=5, 6/7 and 4/7 on a repeat (30 ms passes in every run, 0.74-1.15 at 0-1 % loss; at 80 ms ingest 0.55-0.67 but range reads 0.25-0.57, the open item); commit RPC <= 18 s throughout; repair and 150 ms profiles not rerun (eval/results/campaign/2026093*-2*; docs/OPERATIONS.md §2.1; OUT-24) |
 | E13.10 | control-plane isolation under bulk | RPC p99 during a 32-way 512 KiB flood | 1.1 ms at 539 MB/s (single broker); 4.2 ms across bridges at 377 MB/s | RUN (SCALE transport) |
 
 ## E14 — Operations
@@ -276,21 +278,37 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 | E14.7 | live storage monitoring: mesh dashboard Storage tab fed by `storagesummary` + the pushed `gfs_state` beacon | RUN (D1) |
 | E14.3 | capability inventory lists gfs actions with params | RUN (E1.9) |
 | E14.4 | ToS nag pipeline: downtime → notification → escalation → re-encode | PLAN (Phase 4) |
-| E14.5 | operator runbooks: add site, retire site, rotate key, promote replica | PLAN |
+| E14.5 | operator runbooks: bootstrap, add site, drain/decommission/lost site, rotate key, replace a core peer, fence recovery, audit verify, DR drill, procure a site | WRITTEN (storage core, 2026-09-26); PLAN (drilled end to end) |
 | E14.6 | ledger statements per site per month | PLAN |
 
 ## E15 — Compliance traceability (NIST 800-53 rev5 / CMMC L2)
-| control | GFS evidence | status |
-|---|---|---|
-| AC-3, AC-6 | project ACLs, owner/delegate checks, origin grant verification (E4, E5) | RUN |
-| AC-4 | site admission + inter-tenant flow policy (E12.1–E12.3) | PLAN |
-| AU-2/3/10/12 | audit journal of privileged actions (E9.14), signed events (D4) | RUN / PLAN |
-| IA-2/3 | ORCID/InCommon identities, cert-bound nodes | PLAN |
-| SC-8 | mTLS hops + dataplane frames hashed | RUN (hash) / PLAN (mTLS on) |
-| SC-12/13 | AES-256-GCM, SHA-256/384, DRBG, Shamir custody (U1–U5, E6, E9) | RUN |
-| SC-28 | fragments ciphertext at rest (E6.8); index/journal at rest | RUN / PLAN |
-| SI-7 | scrub + hash verification on every fetch (E8) | RUN |
-| CP-9/10 | restore drills incl. site loss and key loss (E7, E9) | RUN |
+
+*Repointed 2026-09-26 from the prototype to the storage core (OUT-12). Evidence is JUnit test
+classes and committed results files. **UNIT (wave 1)** = passed on the wave-1 package branches;
+the merged suite and the live fabric checks have not run yet, so no row is RUN. The prototype's own
+evidence stays in E4-E9.*
+
+| control | storage-core mechanism | evidence | status |
+|---|---|---|---|
+| AC-3, AC-6 | every `core.*` request signed by a principal (ECDSA P-384) and authorized against its role bindings for the resolved tenant, collection or version | `CoreServiceAuthTest`, `PrincipalRegistryTest`, `RequestVerifierTest`, `PolicyEngineTest` | UNIT (wave 1); live F11 PLAN |
+| AC-4 | tenant isolation in policy and at the service; grants with scope and issuer; keyless GLOBAL domains only for signed public data | `CoreServiceAuthTest`, `GrantLifecycleTest`, `PolicyEngineTest`, `StorageEngineTest` | UNIT (wave 1); tenant-namespaced fabric (E12.2) PLAN |
+| AC-5 | system administration grants no data access; no principal binds a role to itself; unscoped roles bind only to system principals | `CoreServiceAuthTest`, `PrincipalRegistryTest` | UNIT (wave 1) |
+| AU-2, AU-3, AU-12 | every signed request and every refusal recorded before it runs (principal, action, target, decision, digest, result) | `AuditLogTest`, `CoreServiceAuthTest` | UNIT (wave 1) |
+| AU-9, AU-10 | HMAC-SHA-384 chained audit log, chain head anchored in the replicated metadata log; per-request signatures bind each action to a key | `AuditLogTest`, `RequestVerifierTest` | UNIT (wave 1) |
+| AU-11 | audit retention and archiving | - | PLAN (owner question S9) |
+| IA-2, IA-3, IA-5 | principals authenticate per request; each storage node has its own P-384 key, pinned by the core; core-to-node requests and replies signed both ways; key records checked for strength and custody | `RequestVerifierTest`, `XAuthTest`, `NodeProtocolTest`, `SecretQualityTest`, `KeyFilesTest` | UNIT (wave 1); federated user identity PLAN |
+| SC-5 | bounded frames, nonce caches, staging and download budgets, admission refusals instead of queues | `FrameBusTest`, `DownloadBudgetTest`, `StreamServiceTest`, `RequestVerifierTest` | UNIT (wave 1) |
+| SC-8 | client transfers keyed per transfer (ECDH P-384, HKDF-SHA-384, AES-256-GCM, HMAC acknowledgements, signed key exchange); node bodies bound to signed digests; replication messages MAC'd | `GktTest`, `GktConformanceTest` (Java/Python golden vectors), `CoreTransferTest`, `RaftCodecTest` | UNIT (wave 1); mTLS on fabric hops PLAN |
+| SC-12, SC-13 | master key from 0600 key records or a PKCS#11 envelope, Shamir escrow, kid-aware rotation; one crypto facade with an SP 800-90A DRBG; CNSA suite (AES-256, SHA-384, HMAC-SHA-384, P-384) | `KeyRecordTest`, `KeySourcesTest`, `Pkcs11KekTest`, `KeySplitTest`, `MasterKeyRotationTest`, `RotateMasterVerbTest`, `GfsCryptoTest` | UNIT (wave 1); FIPS 140-3 validated module PLAN (S7) |
+| SC-28 | blocks encrypted before they leave the core; upload staging sealed at rest; metadata log integrity-protected | `BlockCodecTest`, `StreamServiceTest`, `CoreLogTest`; cost: `eval/results/staging_cost_dgx_20260926.json` | UNIT (wave 1); metadata confidentiality PLAN (S11) |
+| SI-7 | content-derived block ids verified on every read; scheduled scrub; MAC-chained logs replayed fail-closed | `StorageEngineTest`, `MaintenanceSchedulerTest`, `CoreLogTest`, `IndexJournalTest` | UNIT (wave 1) |
+| CP-9, CP-10 | metadata committed by a majority of three core peers before acknowledgement, leader failover, snapshot catch-up; durable collections need two or more replicas; automatic repair after a grace; drain, lost and decommission of sites | `RaftSimTest`, `ReplicatedCoreTest`, `CoreServiceClusterTest`, `SiteLifecycleTest`, `MaintenanceSchedulerTest` | UNIT (wave 1); live failover and DR drill PLAN; power-loss campaign in progress |
+| MP-6 | discarding an upload erases its staging cryptographically; tenant key destruction | `StreamServiceTest` | UNIT (staging); key destruction PLAN |
+| CM-6 | plain secrets refused in plugin config; an unproven fsync barrier refuses start; test hooks off by default | `NodeSecretsTest`, `CoreLogTest`, `CoreTransferTest` | UNIT (wave 1) |
+
+Scale and cost evidence behind these rows: `eval/results/scale/summary.json` (metadata heap, replay,
+snapshot and install at 10^7-10^8 blocks), `eval/results/dedup/` (block size on real imaging),
+`eval/results/modules/dgx/index_resolve_durable-local-223123.json` (durable audit cost).
 
 ## E16 — Pilot readiness (BTSA, nine sites)
 | id | check | status |
