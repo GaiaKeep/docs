@@ -8,7 +8,6 @@ The engineering documents behind this site, copied from `GaiaKeep/gfs` `docs/` w
 | [Jobs and the API](JOBS-AND-API.md) | Current | Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01). |
 | [The replicated core log](CORE-LOG.md) | Current | The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01). |
 | [Pack container format](PACK-FORMAT.md) | Current | The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01). |
-| [Tape format](TAPE-FORMAT.md) | Current (software path) | How containers map to tape; items marked [HW] still need a real drive. |
 | [Tape simulation](TAPE-SIMULATION.md) | Current | The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks. |
 | [From-scratch decision](FROM-SCRATCH-DECISION.md) | Current | The statement of purpose and the decision to remove Bareos (2026-09-20) |
 | [Module decisions (measured)](MODULE-DECISIONS.md) | Current | The decisions each component raises, with the measurements behind them |

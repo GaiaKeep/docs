@@ -34,8 +34,7 @@ DOCS = [
      "The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01)."),
     ("PACK-FORMAT.md", "Pack container format", "Current",
      "The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01)."),
-    ("TAPE-FORMAT.md", "Tape format", "Current (software path)",
-     "How containers map to tape; items marked [HW] still need a real drive."),
+    # TAPE-FORMAT.md is not published: it is private until the owner decides B4 (the document says so)
     ("TAPE-SIMULATION.md", "Tape simulation", "Current",
      "The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks."),
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",

@@ -79,7 +79,6 @@ nav:
       - "Jobs and the API": design/JOBS-AND-API.md
       - "The replicated core log": design/CORE-LOG.md
       - "Pack container format": design/PACK-FORMAT.md
-      - "Tape format": design/TAPE-FORMAT.md
       - "Tape simulation": design/TAPE-SIMULATION.md
       - "From-scratch decision": design/FROM-SCRATCH-DECISION.md
       - "Module decisions (measured)": design/MODULE-DECISIONS.md

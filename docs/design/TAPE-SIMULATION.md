@@ -120,11 +120,12 @@ The campaign's tier T6 runs all of it: `T6.junit.tape`, `T6.bench.sim` (env juni
 | Shoe-shining, the binding (spool-fed, 2 GiB) | 0 underruns, streaming 394.9 MB/s | model |
 | Shoe-shining, a synthetic writer at 600 / 250 / 150 / 50 / 20 MB/s (512 MiB) | 0 / 0 / 1 / 3 / 8 underruns; tape streaming 399 / 250 / 89 / 45 / 20 MB/s | model |
 
-Reading the archive rows: at 256 MiB containers every container pays a LOCATE back for its FULL read-back
-verify (2 s settle and the distance) and its bytes cross the head twice, and a session pays one robot + mount
-(23 s): the steady state here is about 47 MB/s per drive. With the production 16 GiB containers the same
-model gives about 190 MB/s per drive (a write and a verify read at about 400 MB/s each, the locate amortised).
-Two sessions double the aggregate: the drives are independent.
+Reading the archive rows: a session pays one robot + mount (23 s), and at 256 MiB containers the fixed
+cost of each container (the synchronous filemark, and under FULL the LOCATE back for the read-back) is
+several times its 0.64 s of streaming: the steady state here is about 47 MB/s per drive. Two sessions double
+the aggregate: the drives are independent. For larger containers and the three `tape_write_verify` modes, see
+§4.3: the model's own fit gives 143.5 MB/s per drive with FULL at 16 GiB containers (an earlier hand estimate
+here said about 190), because the LOCATE back before each read-back grows with the container's length.
 
 ### 4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
 
@@ -144,3 +145,37 @@ than a cold one here because mhVTL has no load or robot time to save; the simula
 (3.1 s against 28.9 s).
 
 Every recalled extent in both runs matched byte for byte; no write went anywhere but the medium's EOD.
+
+### 4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; `TapeBench --verify-sweep`)
+
+`tape_write_verify` (owner decision 2026-10-01: an option, default FULL) chooses which containers are read
+back after they are written: FULL every one; SAMPLED the first of each session and then 1 in
+`tape_write_verify_sample_every` (10); NONE none. One write session on one drive, fresh media for every phase;
+afterwards extents from the first and last containers are recalled and compared byte for byte, SYNCED copies
+included. Every phase: bytes verified, no write anywhere but EOD.
+
+Simulator (eval/results/bench/tape-verify-sim-2026-10-01.json; SIMULATED, LTO-9-class model, clock 1x and 20x
+give the same figures: drive busy time is the model's):
+
+| Containers | FULL | SAMPLED | NONE | NONE / FULL |
+|---|---|---|---|---|
+| 256 MiB x 10 | 39.2 MB/s (steady 59.7) | 41.8 (66.0) | 41.9 (66.2) | 1.07x |
+| 1 GiB x 10 | 87.6 (108.0) | 123.6 (168.5) | 129.0 (178.6) | 1.47x |
+| 16 GiB, fitted (not run) | 143.5 | 319.5 | 370.2 | 2.58x |
+
+The fit is a straight line through the two sizes' steady-state seconds per container (FULL: 2.6 s fixed and
+7.3 s per GiB; NONE: 3.3 s and 2.7 s per GiB). At 256 MiB the read-back barely matters: a container not
+read back pays a backhitch after its synchronous filemark instead (3 s), while under FULL the read and the
+LOCATE stop the tape anyway. At production sizes the read-back is most of a container's drive time.
+
+mhVTL (eval/results/bench/tape-verify-mhvtl-2026-10-01.json; MEASURED wall clock on the VM, no mechanical model):
+
+| Containers | FULL | SAMPLED | NONE | NONE / FULL |
+|---|---|---|---|---|
+| 256 MiB x 10 | 111.9 MB/s | 409.1 | 505.2 | 4.5x |
+| 1 GiB x 6 (two cartridges: early warning at 4 GiB) | 163.2 | 299.6 (2 read back: one per session) | 501.1 | 3.1x |
+
+mhVTL has no tape mechanics, so its gap is our own software: the read-back copies the container to a scratch
+file and reads that again for the pack check, about 150-240 MB/s on this 4-vCPU VM. That is slower than an
+LTO-10 drive streams (400 MB/s), so with FULL on real hardware the verify code, not the drive, would set the
+pace: a read-back that checks as it reads, with no scratch file, is the follow-up (OUT-16).

@@ -141,10 +141,37 @@ real Linux tape device path.
 | Speed-up from batching recalls | 3.2× | 1.5× |
 | Shoe-shining on our spool-fed writes | none: streaming at 395 MB/s | not modelled |
 
-- **These archive rates use small 256 MiB test containers,** where the full read-back verify
-  dominates. With 16 GiB production containers, the model gives about 190 MB/s per drive.
+- **These archive rates use small 256 MiB test containers.** Each container pays a fixed stop at its
+  synchronous filemark, which is several times the time spent streaming it. Larger containers raise the rate;
+  see the next table.
 - **A writer that underfeeds the drive** shoe-shines: in the simulator, 50 MB/s gave 3 stops per
   512 MiB.
+
+### Read-back after writing
+
+By default every container written to tape is read back and checked before its copies count. Since
+2026-10-01 this is a setting:
+- **full** reads back every container (the default);
+- **sampled** reads back the first container of each session, then 1 in 10;
+- **none** reads back no container.
+
+A container that is not read back is still checked when its data is read later, so a bad record is
+never returned to a reader; it is only found later. Its copies are reported as unverified.
+
+| Containers | Full | Sampled | None | None vs full |
+|---|---|---|---|---|
+| Simulator, 256 MiB | 39.2 MB/s | 41.8 MB/s | 41.9 MB/s | 1.07x |
+| Simulator, 1 GiB | 87.6 MB/s | 123.6 MB/s | 129.0 MB/s | 1.47x |
+| Simulator, 16 GiB (fitted from the two sizes, not run) | 143.5 MB/s | 319.5 MB/s | 370.2 MB/s | 2.58x |
+| mhVTL, 256 MiB (measured) | 111.9 MB/s | 409.1 MB/s | 505.2 MB/s | 4.5x |
+| mhVTL, 1 GiB (measured) | 163.2 MB/s | 299.6 MB/s | 501.1 MB/s | 3.1x |
+
+- **On the simulator,** read-back matters little at 256 MiB, because the fixed stop per container
+  dominates. At the 16 GiB production size it is most of a container's drive time.
+- **mhVTL has no tape mechanics,** so its gap is the cost of our own checking code. That code runs at
+  150–240 MB/s on the test VM, below an LTO-10 drive's 400 MB/s. A checker that verifies as it reads is the
+  next step.
+- **In every run,** each recalled byte matched, and nothing was written anywhere but the end of the data.
 
 ## Wide-area links (emulated)
 
