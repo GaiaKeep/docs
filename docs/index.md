@@ -20,18 +20,24 @@ The system is required to be five things:
 
 ## Where things stand
 
-This work began as the *Cresco Global File System* prototype (September 2026), and it has moved
-further since. The site keeps three things apart that are easy to blur:
+**Release 1.3 shipped on 2026-10-01.** The durable storage core is built, tested and validated on
+the DGX cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/tests.md) and
+[Benchmarks](built/benchmarks.md).
 
-- **What is proven.** The prototype, proven on a single host: 99/99 functional checks, 59/59
-  documented claims, a 240-site federation and a million-file index. See
-  [The prototype](built/prototype.md) and [Scale results](built/scale.md).
-- **What has been designed and measured since.** Tape economics, a measured placement engine, a
-  fail-closed durability check and the encryption counter discipline. See
-  [Since the prototype](built/since-prototype.md) and [Measurements](built/measurements.md).
-- **What is still to be decided and built.** The tenant, collection and deduplication model; the
-  durable storage core; raw tape I/O; the caching tier. See [Remaining work](roadmap/remaining.md)
-  and [Open questions](roadmap/open-questions.md).
+- **What is proven.**
+    - **The 1.3 core:** 2,188 automated tests, green in CI. The secured live fabric check passes
+      88/88 on the DGX.
+    - **Ingest:** 8–16 GB at three copies runs at about 150 MB/s and reads back at about 290 MB/s,
+      with no request over 20 s.
+    - **Transport:** 0.7 GB/s per flow and over 2 GB/s across 4–8 flows.
+    - **Format-aware dedup:** a de-identified DICOM re-upload sends under 1 % of its bytes.
+    - **The prototype before it:** 99/99 functional checks, a 240-site federation and a million-file
+      index. See [The prototype](built/prototype.md) and [Scale results](built/scale.md).
+- **What is built and tested on simulated hardware.** The tape software path, on a simulator and on
+  virtual drives. Pack containers on storage nodes. See [Status at a glance](built/status.md).
+- **What is still to be decided and built.** Raw tape I/O on a real drive. Faster reads over links of
+  80 ms and more. Erasure coding. The caching tier. See [Remaining work](roadmap/remaining.md) and
+  [Open questions](roadmap/open-questions.md).
 
 Every status claim on this site uses one of five labels:
 

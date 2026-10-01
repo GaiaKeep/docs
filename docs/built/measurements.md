@@ -1,5 +1,9 @@
 # Measurements
 
+!!! info "Release 1.3 benchmarks"
+    The transport, ingest, replication, dedup, pack, tape and WAN measurements for release 1.3 are on
+    [Benchmarks](benchmarks.md). This page keeps the earlier design-phase measurements.
+
 Each result is labelled **Measured** (from a run, with its artifact) or **Modelled** (derived by
 simulation or arithmetic). Artifacts are in `GaiaKeep/gfs` under `eval/results/`.
 
