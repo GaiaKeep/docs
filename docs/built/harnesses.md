@@ -80,3 +80,16 @@ is given.
 Every push to `GaiaKeep/gfs` runs `.github/workflows/test.yml`: the full suite (324 tests at `e3d7b46`,
 including the 180-cell integration matrix, of which 60 cells run over the remote protocol, and both smoke runs), the wire-contract lint, the
 command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.
+
+## Added in release 1.3
+
+| Harness | What it does | How to run |
+|---|---|---|
+| Crash matrix | Crashes the core at every registered fault point, in 4 loss modes, and checks recovery against an oracle | `CrashMatrixTest`; live on a fabric with `eval/crash_matrix.py` |
+| Model-based engine tests | Random operation sequences checked against a reference model, shrinking any failure to a minimal case | `EngineModelTest`; `-Dgfs.model.seeds=N`, replay with `-Dgfs.model.replay=<file>`; long run under the `long` tag |
+| Power-cut harness | A page-cache model of the file system, cut at every file call in three modes (lose all, prefix, reorder) | `*PowerLossTest`; the 600-history runs are under the `long` tag |
+| Chain chaos and partition tests | Kills, partitions and delays during chain replication, checked by a durability and linearizability oracle | `ChainChaosTest`, partition tests |
+| WAN grid | 5 sites in a Linux VM with netem round-trip time and loss; striped ingest compared with a LAN reference | the campaign WAN cells |
+| Simulated tape | An LTO-class drive and library simulator; mhVTL virtual drives driven through the real Linux tape device path | tape tests; `eval/tape/mhvtl/` |
+| DGX live harness | The secured multi-host fabric: sealed keys per node, strict node-key pinning, signed requests | `eval/dgx/live.sh <label> <jar> [check\|bench\|all]` |
+| Benchmark gate | Fails CI when a benchmark result falls below 0.4× its baseline, or dedup regresses | `eval/bench_gate.py` |
