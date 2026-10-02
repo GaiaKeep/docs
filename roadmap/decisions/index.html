@@ -2426,6 +2426,30 @@ what changed and why.</p>
 <td>Owner</td>
 <td>In force</td>
 </tr>
+<tr>
+<td>2026-10-02</td>
+<td>Erasure coding uses one dedup block per stripe (keeps block-level dedup and keeps repack, forget and scrub within a site); a fixed stripe width with placement groups so it scales to more sites; the default stripe shape is confirmed by simulation before any hardware</td>
+<td>Owner</td>
+<td>In force; to build</td>
+</tr>
+<tr>
+<td>2026-10-02</td>
+<td>A durable dataset's ingest is committed only when its copies are verified on tape; the disk staging area never counts as a durable copy; the client submits and then awaits the commit job</td>
+<td>Owner</td>
+<td>In force; to build</td>
+</tr>
+<tr>
+<td>2026-10-02</td>
+<td>Phase one is done when, on three simulated sites with many drives and tapes, any dataset is recreated byte-identically from the durable tier alone after a site is destroyed and rebuilt from tape, with the durable-tier suite passing exhaustively</td>
+<td>Owner</td>
+<td>The finish line for the prototype</td>
+</tr>
+<tr>
+<td>2026-10-02</td>
+<td>The large-imaging profiles (radiology, pathology) default to erasure coding once the engine lands; full replicas remain selectable per dataset</td>
+<td>Owner</td>
+<td>In force; to build</td>
+</tr>
 </tbody>
 </table>
 
