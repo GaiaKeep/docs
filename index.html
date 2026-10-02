@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -354,7 +356,9 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -2227,7 +2231,9 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -2292,9 +2298,13 @@
               <article class="md-content__inner md-typeset">
                 
                   
+  
 
 
 
+
+<p><a href="assets/gaiakeep-architecture.svg"><img alt="GaiaKeep GFS architecture: external AI agents connect through the Cresco mesh to the replicated GaiaKeep core, which seals every block at the origin and erasure codes it across three sites whose durable tier is tape" class="gk-hero" src="assets/gaiakeep-architecture.svg" /></a>
+<span class="gk-hero-caption">The target architecture. Erasure coding, tape as the counted primary tier and the caching tier are still being built: see <a href="built/status/">Status at a glance</a> for what runs today.</span></p>
 <h1 id="gaiakeep-gfs">GaiaKeep GFS<a class="headerlink" href="#gaiakeep-gfs" title="Permanent link">&para;</a></h1>
 <p><strong>A global file system built for agents, not people.</strong> Its job is to keep versioned datasets
 durable and to stream any version wherever it is needed: to a GPU node, a partner site, or an
@@ -2408,8 +2418,13 @@ the DGX cluster. See <a href="built/release-1-3/">Release 1.3</a>, <a href="buil
 
 
 
+  
+  
 
 
+
+
+  
 
 
 

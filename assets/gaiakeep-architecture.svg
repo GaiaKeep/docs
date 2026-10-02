@@ -1,0 +1,335 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">GaiaKeep GFS: how the distributed system fits together</title>
+<desc id="d">External AI agents send signed requests through the Cresco mesh to the replicated GaiaKeep core, which chunks, hashes, deduplicates and encrypts every block at the origin and erasure codes it across three sites whose durable tier is a tape library. Versions stream back out to agents, GPU pipelines and partners.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#051019"/><stop offset="0.55" stop-color="#0a1f2e"/><stop offset="1" stop-color="#071824"/>
+  </linearGradient>
+  <radialGradient id="halo" cx="0.5" cy="0.48" r="0.5">
+    <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.22"/><stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="core" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0f3a44"/><stop offset="1" stop-color="#0a2530"/>
+  </linearGradient>
+  <linearGradient id="fA" x1="0" x2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#5eead4"/></linearGradient>
+  <linearGradient id="fB" x1="0" x2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
+  <linearGradient id="fC" x1="0" x2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+  <linearGradient id="out" x1="1" x2="0"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+  <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r="1" fill="#6fb9c6" fill-opacity="0.10"/>
+  </pattern>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="10"/>
+  </filter>
+  <clipPath id="frame"><rect width="1600" height="900" rx="22"/></clipPath>
+</defs>
+<style>
+  .flow { stroke-dasharray: 6 10; animation: run 1.6s linear infinite; }
+  .flow.slow { animation-duration: 2.8s; }
+  .flow.back { animation-direction: reverse; }
+  .pulse { animation: pulse 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes run { to { stroke-dashoffset: -32; } }
+  @keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .flow, .pulse { animation: none; }
+    .motion { display: none; }
+  }
+</style>
+<g clip-path="url(#frame)">
+<rect width="1600" height="900" fill="url(#bg)"/>
+<rect width="1600" height="900" fill="url(#dots)"/>
+<ellipse cx="770" cy="440" rx="430" ry="330" fill="url(#halo)"/>
+<text x="48" y="66" font-size="34" fill="#e8f4f6" font-weight="700" text-anchor="start">GaiaKeep GFS</text>
+<text x="48" y="98" font-size="17" fill="#93b6c1" font-weight="400" text-anchor="start">A global file system for AI agents: versioned datasets, durable on tape, streamed anywhere over the Cresco mesh</text>
+<rect x="1168" y="26" width="392" height="80" rx="12" fill="#ffffff" fill-opacity="0.03" stroke="#8fd3dc" stroke-opacity="0.15"/>
+<path d="M1186 52h46" stroke="#5eead4" stroke-width="1.6" class="flow slow"/>
+<text x="1244" y="57" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">control plane: signed requests and events</text>
+<path d="M1186 82h46" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+<text x="1244" y="87" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">dataplane: encrypted blocks on many flows</text>
+<text x="48" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">EXTERNAL AI AGENTS</text>
+<text x="492" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">CRESCO MESH</text>
+<text x="1110" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">DURABLE TIER · THREE SITES</text>
+<rect x="470" y="128" width="606" height="642" rx="26" fill="#0b2a36" fill-opacity="0.35" stroke="#5eead4" stroke-opacity="0.18" stroke-dasharray="2 6"/>
+<path d="M566 232L858 200" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M700 196L1004 252" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M858 200L1040 390" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M1040 390L936 676" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M1026 548L772 706" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M936 676L612 680" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M772 706L536 566" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M536 566L566 232" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M520 430L700 196" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M520 430L612 680" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M1004 252L1026 548" stroke="#5eead4" stroke-opacity="0.13" stroke-width="1.2"/>
+<path d="M520 430L566 232" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M520 430L566 232" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M566 232L700 196" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M566 232L700 196" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M700 196L858 200" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M700 196L858 200" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M858 200L1004 252" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M858 200L1004 252" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M1004 252L1040 390" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M1004 252L1040 390" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M1040 390L1026 548" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M1040 390L1026 548" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M1026 548L936 676" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M1026 548L936 676" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M936 676L772 706" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M936 676L772 706" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M772 706L612 680" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M772 706L612 680" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M612 680L536 566" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M612 680L536 566" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M536 566L520 430" stroke="#5eead4" stroke-opacity="0.32" stroke-width="1.5"/>
+<path d="M536 566L520 430" stroke="#5eead4" stroke-opacity="0.75" stroke-width="1.5" class="flow slow"/>
+<path d="M520 430L635 430" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M700 196L700 310" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M858 200L858 310" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M1040 390L905 390" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M772 706L772 552" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M536 566L635 552" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.3" class="flow"/>
+<path d="M338 214C410 214 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
+<path d="M338 214C410 214 430 430 506 430" stroke="#a78bfa" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
+<rect x="48" y="172" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#a78bfa" stroke-opacity="0.35"/>
+<circle cx="88" cy="214" r="22" fill="#a78bfa" fill-opacity="0.14" stroke="#a78bfa" stroke-opacity="0.55"/>
+<path d="M88 202 C90 211 91 212 100 214 C91 216 90 217 88 226 C86 217 85 216 76 214 C85 212 86 211 88 202Z" fill="#a78bfa" fill-opacity="0.9"/>
+<text x="124" y="209" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Language-model agents</text>
+<text x="124" y="231" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">call the core's verbs as tools</text>
+<path d="M338 312C410 312 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
+<path d="M338 312C410 312 430 430 506 430" stroke="#38bdf8" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
+<rect x="48" y="270" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#38bdf8" stroke-opacity="0.35"/>
+<circle cx="88" cy="312" r="22" fill="#38bdf8" fill-opacity="0.14" stroke="#38bdf8" stroke-opacity="0.55"/>
+<rect x="80" y="304" width="16" height="16" rx="3" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M84 304v-4M84 320v4M80 308h-4M96 308h4" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M88 304v-4M88 320v4M80 312h-4M96 312h4" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M92 304v-4M92 320v4M80 316h-4M96 316h4" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="124" y="307" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Training and inference</text>
+<text x="124" y="329" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">stream any version to GPUs</text>
+<path d="M338 410C410 410 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
+<path d="M338 410C410 410 430 430 506 430" stroke="#f472b6" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
+<rect x="48" y="368" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#f472b6" stroke-opacity="0.35"/>
+<circle cx="88" cy="410" r="22" fill="#f472b6" fill-opacity="0.14" stroke="#f472b6" stroke-opacity="0.55"/>
+<circle cx="88" cy="410" r="11" stroke="#f472b6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="88" cy="410" r="5" stroke="#f472b6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M77 410h4M95 410h4" stroke="#f472b6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="124" y="405" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Clinical imaging pipelines</text>
+<text x="124" y="427" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">DICOM · whole-slide · NIfTI</text>
+<path d="M338 508C410 508 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
+<path d="M338 508C410 508 430 430 506 430" stroke="#4ade80" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
+<rect x="48" y="466" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#4ade80" stroke-opacity="0.35"/>
+<circle cx="88" cy="508" r="22" fill="#4ade80" fill-opacity="0.14" stroke="#4ade80" stroke-opacity="0.55"/>
+<path d="M76 505L88 497L100 505Z M79 507v9M85 507v9M91 507v9M97 507v9M76 519h24" stroke="#4ade80" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="124" y="503" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Partner institutions</text>
+<text x="124" y="525" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">federated tenants and grants</text>
+<path d="M338 606C410 606 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
+<path d="M338 606C410 606 430 430 506 430" stroke="#fbbf24" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
+<rect x="48" y="564" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#fbbf24" stroke-opacity="0.35"/>
+<circle cx="88" cy="606" r="22" fill="#fbbf24" fill-opacity="0.14" stroke="#fbbf24" stroke-opacity="0.55"/>
+<path d="M88 594L98 598V606C98 613 93 617 88 619C83 617 78 613 78 606V598Z M84 606l3 3l6 -6" stroke="#fbbf24" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="124" y="601" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Compliance agents</text>
+<text x="124" y="623" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">retention · legal orders · audit</text>
+<path d="M506 438C440 438 420 322 340 322" stroke="url(#out)" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+<path d="M506 438C440 438 420 322 340 322" stroke="#ffffff" stroke-opacity="0.65" stroke-width="2" fill="none" class="flow"/>
+<rect x="48" y="668" width="290" height="44" rx="22" fill="#2dd4bf" fill-opacity="0.12" stroke="#5eead4" stroke-opacity="0.5"/>
+<text x="193" y="696" font-size="15" fill="#e8f4f6" font-weight="650" text-anchor="middle">prospect  →  realise  →  publish</text>
+<text x="193" y="738" font-size="12.5" fill="#5f8794" font-weight="400" text-anchor="middle">Agents ask what a move costs, then ask for it</text>
+<circle cx="520" cy="430" r="17" fill="none" stroke="#5eead4" stroke-opacity="0.35" class="pulse"/>
+<circle cx="520" cy="430" r="10" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="520" cy="430" r="6" fill="#5eead4"/>
+<circle cx="566" cy="232" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="566" cy="232" r="3" fill="#5eead4"/>
+<circle cx="700" cy="196" r="17" fill="none" stroke="#5eead4" stroke-opacity="0.35" class="pulse"/>
+<circle cx="700" cy="196" r="10" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="700" cy="196" r="6" fill="#5eead4"/>
+<circle cx="858" cy="200" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="858" cy="200" r="3" fill="#5eead4"/>
+<circle cx="1004" cy="252" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="1004" cy="252" r="3" fill="#5eead4"/>
+<circle cx="1040" cy="390" r="17" fill="none" stroke="#5eead4" stroke-opacity="0.35" class="pulse"/>
+<circle cx="1040" cy="390" r="10" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="1040" cy="390" r="6" fill="#5eead4"/>
+<circle cx="1026" cy="548" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="1026" cy="548" r="3" fill="#5eead4"/>
+<circle cx="936" cy="676" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="936" cy="676" r="3" fill="#5eead4"/>
+<circle cx="772" cy="706" r="17" fill="none" stroke="#5eead4" stroke-opacity="0.35" class="pulse"/>
+<circle cx="772" cy="706" r="10" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="772" cy="706" r="6" fill="#5eead4"/>
+<circle cx="612" cy="680" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="612" cy="680" r="3" fill="#5eead4"/>
+<circle cx="536" cy="566" r="7" fill="#0b2a36" stroke="#5eead4" stroke-width="2.2" filter="url(#glow)"/>
+<circle cx="536" cy="566" r="3" fill="#5eead4"/>
+<text x="520" y="406" font-size="12" fill="#93b6c1" font-weight="600" text-anchor="middle">agent gateway</text>
+<text x="700" y="174" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">global controller</text>
+<text x="790" y="710" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="start">regional controller</text>
+<rect x="492" y="728" width="153" height="26" rx="13" fill="#5eead4" fill-opacity="0.08" stroke="#5eead4" stroke-opacity="0.3"/>
+<text x="568.55" y="745.5" font-size="12" fill="#5eead4" font-weight="500" text-anchor="middle">zero-trust identity</text>
+<rect x="653.1" y="728" width="132" height="26" rx="13" fill="#5eead4" fill-opacity="0.08" stroke="#5eead4" stroke-opacity="0.3"/>
+<text x="719.3000000000001" y="745.5" font-size="12" fill="#5eead4" font-weight="500" text-anchor="middle">tenant isolation</text>
+<rect x="793.5" y="728" width="84" height="26" rx="13" fill="#5eead4" fill-opacity="0.08" stroke="#5eead4" stroke-opacity="0.3"/>
+<text x="835.55" y="745.5" font-size="12" fill="#5eead4" font-weight="500" text-anchor="middle">QoS tiers</text>
+<rect x="885.6" y="728" width="160" height="26" rx="13" fill="#5eead4" fill-opacity="0.08" stroke="#5eead4" stroke-opacity="0.3"/>
+<text x="965.6" y="745.5" font-size="12" fill="#5eead4" font-weight="500" text-anchor="middle">multi-flow dataplane</text>
+<rect x="605" y="280" width="330" height="302" rx="28" fill="#2dd4bf" opacity="0.18" filter="url(#soft)"/>
+<rect x="615" y="290" width="310" height="282" rx="20" fill="url(#core)" stroke="#5eead4" stroke-width="1.8"/>
+<text x="770.0" y="324" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="middle" letter-spacing="2.4">GAIAKEEP GFS CORE</text>
+<text x="770.0" y="352" font-size="21" fill="#e8f4f6" font-weight="700" text-anchor="middle">Replicated storage core</text>
+<circle cx="645" cy="381" r="3.5" fill="#5eead4"/>
+<text x="659" y="386" font-size="14" fill="#cfe9ee" font-weight="400" text-anchor="start">Raft-replicated journal and audit</text>
+<circle cx="645" cy="408" r="3.5" fill="#5eead4"/>
+<text x="659" y="413" font-size="14" fill="#cfe9ee" font-weight="400" text-anchor="start">Versions, extracts and citations</text>
+<circle cx="645" cy="435" r="3.5" fill="#5eead4"/>
+<text x="659" y="440" font-size="14" fill="#cfe9ee" font-weight="400" text-anchor="start">Placement, repair and lifecycle</text>
+<rect x="633" y="480" width="60" height="30" rx="8" fill="#ffffff" fill-opacity="0.06" stroke="#5eead4" stroke-opacity="0.6"/>
+<text x="663" y="500" font-size="12.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">chunk</text>
+<path d="M695 495h6" stroke="#5eead4" stroke-width="1.6"/>
+<rect x="703" y="480" width="60" height="30" rx="8" fill="#ffffff" fill-opacity="0.06" stroke="#5eead4" stroke-opacity="0.6"/>
+<text x="733" y="500" font-size="12.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">hash</text>
+<path d="M765 495h6" stroke="#5eead4" stroke-width="1.6"/>
+<rect x="773" y="480" width="60" height="30" rx="8" fill="#ffffff" fill-opacity="0.06" stroke="#5eead4" stroke-opacity="0.6"/>
+<text x="803" y="500" font-size="12.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">dedup</text>
+<path d="M835 495h6" stroke="#5eead4" stroke-width="1.6"/>
+<rect x="843" y="480" width="60" height="30" rx="8" fill="#ffffff" fill-opacity="0.06" stroke="#5eead4" stroke-opacity="0.6"/>
+<text x="873" y="500" font-size="12.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">encrypt</text>
+<text x="770.0" y="536" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="middle">every block sealed at the origin</text>
+<path d="M921.0 401.0C964 252 1004 252 1004 252C1044 252 1060 256.0 1110 256.0" stroke="url(#fA)" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.85"/>
+<path d="M921.0 401.0C964 252 1004 252 1004 252C1044 252 1060 256.0 1110 256.0" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.8" fill="none" class="flow"/>
+<rect x="1110" y="172" width="450" height="168" rx="16" fill="#ffffff" fill-opacity="0.045" stroke="#5eead4" stroke-opacity="0.45"/>
+<text x="1132" y="204" font-size="14" fill="#e8f4f6" font-weight="700" text-anchor="start" letter-spacing="2">SITE A</text>
+<rect x="1422" y="187" width="118" height="24" rx="12" fill="#5eead4" fill-opacity="0.16" stroke="#5eead4" stroke-opacity="0.7"/>
+<rect x="1431" y="194" width="10" height="10" rx="2" fill="#5eead4"/>
+<text x="1488" y="203.5" font-size="11.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">data share 1</text>
+<rect x="1130" y="224" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<rect x="1158.0" y="242" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.85"/>
+<rect x="1158.0" y="251" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.6499999999999999"/>
+<rect x="1158.0" y="260" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.44999999999999996"/>
+<text x="1176.0" y="294" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">NVMe</text>
+<text x="1176.0" y="311" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">hot</text>
+<rect x="1232" y="224" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<ellipse cx="1278.0" cy="244" rx="17" ry="6" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 244v20a17 6 0 0 0 34 0v-20" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 254a17 6 0 0 0 34 0" fill="none" stroke="#60a5fa" stroke-opacity="0.6" stroke-width="1.5"/>
+<text x="1278.0" y="294" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">Disk</text>
+<text x="1278.0" y="311" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">warm</text>
+<rect x="1334" y="224" width="206" height="98" rx="12" fill="#ffffff" fill-opacity="0.07" stroke="#5eead4" stroke-opacity="0.6"/>
+<rect x="1350" y="236" width="58" height="74" rx="5" fill="none" stroke="#5eead4" stroke-width="1.8"/>
+<rect x="1357" y="243" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.35"/>
+<rect x="1381" y="243" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1357" y="256" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1381" y="256" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1357" y="269" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1381" y="269" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.35"/>
+<rect x="1357" y="282" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.35"/>
+<rect x="1381" y="282" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1357" y="295" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<rect x="1381" y="295" width="20" height="9" rx="2" fill="#5eead4" fill-opacity="0.9"/>
+<text x="1422" y="254" font-size="14" fill="#e8f4f6" font-weight="650" text-anchor="start">Tape library</text>
+<text x="1422" y="274" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">LTO-10 · primary</text>
+<text x="1422" y="292" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">verified before</text>
+<text x="1422" y="308" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">commit</text>
+<path d="M921.0 431.0C1000 390 1040 390 1040 390C1080 390 1060 442.0 1110 442.0" stroke="url(#fB)" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.85"/>
+<path d="M921.0 431.0C1000 390 1040 390 1040 390C1080 390 1060 442.0 1110 442.0" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.8" fill="none" class="flow"/>
+<rect x="1110" y="358" width="450" height="168" rx="16" fill="#ffffff" fill-opacity="0.045" stroke="#60a5fa" stroke-opacity="0.45"/>
+<text x="1132" y="390" font-size="14" fill="#e8f4f6" font-weight="700" text-anchor="start" letter-spacing="2">SITE B</text>
+<rect x="1422" y="373" width="118" height="24" rx="12" fill="#60a5fa" fill-opacity="0.16" stroke="#60a5fa" stroke-opacity="0.7"/>
+<rect x="1431" y="380" width="10" height="10" rx="2" fill="#60a5fa"/>
+<text x="1488" y="389.5" font-size="11.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">data share 2</text>
+<rect x="1130" y="410" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<rect x="1158.0" y="428" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.85"/>
+<rect x="1158.0" y="437" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.6499999999999999"/>
+<rect x="1158.0" y="446" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.44999999999999996"/>
+<text x="1176.0" y="480" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">NVMe</text>
+<text x="1176.0" y="497" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">hot</text>
+<rect x="1232" y="410" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<ellipse cx="1278.0" cy="430" rx="17" ry="6" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 430v20a17 6 0 0 0 34 0v-20" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 440a17 6 0 0 0 34 0" fill="none" stroke="#60a5fa" stroke-opacity="0.6" stroke-width="1.5"/>
+<text x="1278.0" y="480" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">Disk</text>
+<text x="1278.0" y="497" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">warm</text>
+<rect x="1334" y="410" width="206" height="98" rx="12" fill="#ffffff" fill-opacity="0.07" stroke="#60a5fa" stroke-opacity="0.6"/>
+<rect x="1350" y="422" width="58" height="74" rx="5" fill="none" stroke="#60a5fa" stroke-width="1.8"/>
+<rect x="1357" y="429" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1381" y="429" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1357" y="442" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1381" y="442" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.35"/>
+<rect x="1357" y="455" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.35"/>
+<rect x="1381" y="455" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1357" y="468" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1381" y="468" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1357" y="481" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.9"/>
+<rect x="1381" y="481" width="20" height="9" rx="2" fill="#60a5fa" fill-opacity="0.35"/>
+<text x="1422" y="440" font-size="14" fill="#e8f4f6" font-weight="650" text-anchor="start">Tape library</text>
+<text x="1422" y="460" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">LTO-10 · primary</text>
+<text x="1422" y="478" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">verified before</text>
+<text x="1422" y="494" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">commit</text>
+<path d="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" stroke="url(#fC)" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.85"/>
+<path d="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.8" fill="none" class="flow"/>
+<rect x="1110" y="544" width="450" height="168" rx="16" fill="#ffffff" fill-opacity="0.045" stroke="#fbbf24" stroke-opacity="0.45"/>
+<text x="1132" y="576" font-size="14" fill="#e8f4f6" font-weight="700" text-anchor="start" letter-spacing="2">SITE C</text>
+<rect x="1422" y="559" width="118" height="24" rx="12" fill="#fbbf24" fill-opacity="0.16" stroke="#fbbf24" stroke-opacity="0.7"/>
+<rect x="1431" y="566" width="10" height="10" rx="2" fill="#fbbf24"/>
+<text x="1488" y="575.5" font-size="11.5" fill="#e8f4f6" font-weight="600" text-anchor="middle">parity share</text>
+<rect x="1130" y="596" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<rect x="1158.0" y="614" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.85"/>
+<rect x="1158.0" y="623" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.6499999999999999"/>
+<rect x="1158.0" y="632" width="36" height="6" rx="2" fill="#38bdf8" fill-opacity="0.44999999999999996"/>
+<text x="1176.0" y="666" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">NVMe</text>
+<text x="1176.0" y="683" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">hot</text>
+<rect x="1232" y="596" width="92" height="98" rx="12" fill="#ffffff" fill-opacity="0.035" stroke="#8fd3dc" stroke-opacity="0.18"/>
+<ellipse cx="1278.0" cy="616" rx="17" ry="6" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 616v20a17 6 0 0 0 34 0v-20" fill="none" stroke="#60a5fa" stroke-width="2"/>
+<path d="M1261.0 626a17 6 0 0 0 34 0" fill="none" stroke="#60a5fa" stroke-opacity="0.6" stroke-width="1.5"/>
+<text x="1278.0" y="666" font-size="13" fill="#e8f4f6" font-weight="600" text-anchor="middle">Disk</text>
+<text x="1278.0" y="683" font-size="11.5" fill="#5f8794" font-weight="400" text-anchor="middle">warm</text>
+<rect x="1334" y="596" width="206" height="98" rx="12" fill="#ffffff" fill-opacity="0.07" stroke="#fbbf24" stroke-opacity="0.6"/>
+<rect x="1350" y="608" width="58" height="74" rx="5" fill="none" stroke="#fbbf24" stroke-width="1.8"/>
+<rect x="1357" y="615" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<rect x="1381" y="615" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.35"/>
+<rect x="1357" y="628" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.35"/>
+<rect x="1381" y="628" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<rect x="1357" y="641" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<rect x="1381" y="641" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<rect x="1357" y="654" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<rect x="1381" y="654" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.35"/>
+<rect x="1357" y="667" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.35"/>
+<rect x="1381" y="667" width="20" height="9" rx="2" fill="#fbbf24" fill-opacity="0.9"/>
+<text x="1422" y="626" font-size="14" fill="#e8f4f6" font-weight="650" text-anchor="start">Tape library</text>
+<text x="1422" y="646" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">LTO-10 · primary</text>
+<text x="1422" y="664" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">verified before</text>
+<text x="1422" y="680" font-size="12" fill="#93b6c1" font-weight="400" text-anchor="start">commit</text>
+<text x="1335" y="742" font-size="13.5" fill="#93b6c1" font-weight="500" text-anchor="middle">Erasure coded 2 + 1: any one site can be lost</text>
+<g class="motion">
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#5eead4" filter="url(#glow)"><animateMotion dur="3.4s" begin="0.00s" repeatCount="indefinite" path="M921.0 401.0C964 252 1004 252 1004 252C1044 252 1060 256.0 1110 256.0" rotate="0"/></rect>
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#5eead4" filter="url(#glow)"><animateMotion dur="3.4s" begin="1.70s" repeatCount="indefinite" path="M921.0 401.0C964 252 1004 252 1004 252C1044 252 1060 256.0 1110 256.0" rotate="0"/></rect>
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#60a5fa" filter="url(#glow)"><animateMotion dur="3.4s" begin="0.45s" repeatCount="indefinite" path="M921.0 431.0C1000 390 1040 390 1040 390C1080 390 1060 442.0 1110 442.0" rotate="0"/></rect>
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#60a5fa" filter="url(#glow)"><animateMotion dur="3.4s" begin="2.15s" repeatCount="indefinite" path="M921.0 431.0C1000 390 1040 390 1040 390C1080 390 1060 442.0 1110 442.0" rotate="0"/></rect>
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#fbbf24" filter="url(#glow)"><animateMotion dur="3.4s" begin="0.90s" repeatCount="indefinite" path="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" rotate="0"/></rect>
+<rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#fbbf24" filter="url(#glow)"><animateMotion dur="3.4s" begin="2.60s" repeatCount="indefinite" path="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" rotate="0"/></rect>
+</g>
+<rect x="48" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#a78bfa" stroke-opacity="0.4"/>
+<rect x="48" y="806" width="4" height="46" rx="2" fill="#a78bfa"/>
+<text x="70" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Programmatic</text>
+<text x="70" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">no filesystem: agents call tools</text>
+<rect x="352" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#38bdf8" stroke-opacity="0.4"/>
+<rect x="352" y="806" width="4" height="46" rx="2" fill="#38bdf8"/>
+<text x="374" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Versioned</text>
+<text x="374" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">every read names a version</text>
+<rect x="656" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#5eead4" stroke-opacity="0.4"/>
+<rect x="656" y="806" width="4" height="46" rx="2" fill="#5eead4"/>
+<text x="678" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Resilient</text>
+<text x="678" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">erasure coded, tape primary</text>
+<rect x="960" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#fbbf24" stroke-opacity="0.4"/>
+<rect x="960" y="806" width="4" height="46" rx="2" fill="#fbbf24"/>
+<text x="982" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Secure</text>
+<text x="982" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">encrypted at origin, zero trust</text>
+<rect x="1264" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#4ade80" stroke-opacity="0.4"/>
+<rect x="1264" y="806" width="4" height="46" rx="2" fill="#4ade80"/>
+<text x="1286" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Distributed</text>
+<text x="1286" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">federated over the Cresco mesh</text>
+</g>
+<rect x="0.75" y="0.75" width="1598.5" height="898.5" rx="22" fill="none" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.5"/>
+</svg>
