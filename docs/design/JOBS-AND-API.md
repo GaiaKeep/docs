@@ -279,8 +279,10 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   reusing the written blocks on the new head is not built. While an §1a upload is written, the
   leader's in-memory block registrations differ from its replicas' until the commit (the engine's
   existing behaviour for any in-flight write, now as long as an upload).
-- Open (integration, 2026-09-30): verbs that start long work outside the job table. core.archive and
-  core.archiveverify (tape) run as in-memory runs polled with core.archivestatus; they should become
-  journaled, idempotent jobs (C3). A core.compact operator verb for packed sites (packint: compaction
+- Done (2026-10-01): core.archive and core.archiveverify (tape) are journaled, idempotent C3 jobs, polled
+  with core.job: the archive follows the engine's run in container batches (a cancel aborts it at the next
+  batch; a retry with the same request_id after a leader change skips what was archived), the read-back
+  is one tape ticket (a cancel cancels it). core.archivestatus still answers an archive or read-back run
+  by its id (the job's result names it: archive_id, verify_id). Open: a core.compact operator verb for packed sites (packint: compaction
   runs today only as the COMPACT maintenance pass and each node's own catalogue pass) should be built
   as an async job, not a synchronous RPC.

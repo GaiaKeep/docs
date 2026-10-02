@@ -175,7 +175,16 @@ mhVTL (eval/results/bench/tape-verify-mhvtl-2026-10-01.json; MEASURED wall clock
 | 256 MiB x 10 | 111.9 MB/s | 409.1 | 505.2 | 4.5x |
 | 1 GiB x 6 (two cartridges: early warning at 4 GiB) | 163.2 | 299.6 (2 read back: one per session) | 501.1 | 3.1x |
 
-mhVTL has no tape mechanics, so its gap is our own software: the read-back copies the container to a scratch
-file and reads that again for the pack check, about 150-240 MB/s on this 4-vCPU VM. That is slower than an
-LTO-10 drive streams (400 MB/s), so with FULL on real hardware the verify code, not the drive, would set the
-pace: a read-back that checks as it reads, with no scratch file, is the follow-up (OUT-16).
+mhVTL has no tape mechanics, so its gap was our own software: the read-back copied the container to a scratch
+file and read that again for the pack check, about 150-240 MB/s on this 4-vCPU VM, slower than an LTO-10 drive
+streams (400 MB/s). Fixed the same day: the records stream into SHA-384 as they are read, and the pack check
+runs on the spool (proved byte-identical by that digest) while the medium is read
+(eval/results/bench/tape-verify-mhvtl-2026-10-01-overlap.json):
+
+| Containers | FULL before | FULL now | SAMPLED | NONE | NONE / FULL now |
+|---|---|---|---|---|---|
+| 256 MiB x 10 | 111.9 MB/s | 286.5 | 512.3 | 565.2 | 2.0x |
+| 1 GiB x 6 | 163.2 | 281.7 | 440.0 | 508.8 | 1.8x |
+
+The read-back now checks at about 630 MB/s on the VM (1 GiB: 6.4 GB in 10 s more than NONE), above what the
+drive streams: on real hardware the drive, not the verify code, sets FULL's pace.
