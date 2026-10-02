@@ -28,10 +28,11 @@ Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or
 | Ingest: striped parts, then a short idempotent commit; resumable uploads | **Proven** | DGX 2–16 GB ingest, every request ≤ 18 s |
 | Async jobs with signed events on the dataplane | **Built** and tested | job failover and idempotency tests |
 | Chain replication with signed per-hop receipts | **Proven** | DGX: chain ≥ star on hub and mesh; chaos test 1,118 publishes clean |
-| Follower reads with read-your-writes | **Built** and tested | follower-read and partition tests |
+| Follower reads with read-your-writes | **Built** and tested | follower-read and partition tests; both clients (Python and Java) |
 | Blocks of at least 1 MiB; chunker and policy per dataset; named profiles | **Proven** | |
 | Format-aware dedup (DICOM, NIfTI, TIFF) with client-side have-check | **Proven** | real data on the DGX: 0.79 % of bytes sent on re-upload |
 | Pack containers on storage nodes | **Built** and measured | 8× publish, sub-second start-up at 10⁶ extents; 1,500-round power-cut campaign |
+| Scrub by container: each sealed container verified whole in one sequential read, rate-limited and resumable; the core's content check answered from a fresh pass | **Built** and tested | a damaged container is named, and its bad copies are still found and repaired one by one |
 | Lifecycle: forget, prune, destroy, retention, legal hold | **Built** and tested | 70 lifecycle tests |
 | Erasure coding reached by repack | **Designed** | |
 
@@ -41,6 +42,8 @@ Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or
 |---|---|---|
 | Placement from measured write rate; fail-closed durability barrier | **Built**, on the live path | |
 | Tape software path: deferred reads with tickets, archive, stage, verify | **Built** and tested on simulated drives | simulator and mhVTL virtual drives, end to end through the core; read-back after writing is a setting (full, sampled or none), benchmarked |
+| Tape operations: cartridges disabled, exported, imported; a stuck cartridge's hold released; TapeAlert and encryption checked at every mount | **Built** and tested on simulated drives | lessons from CERN's tape archive (CTA) |
+| Recall order from an LTO locate-cost model (CERN's measured model) | **Built**; measured on the simulator only | 31 % less simulated drive time for a recall across wraps; real drives need the end-of-wrap query, so they keep ascending order until tested on hardware |
 | Raw SCSI tape on a real drive | **Designed** | needs hardware |
 | Mount cycle measured on a real drive | **Open**, blocking before media | |
 
