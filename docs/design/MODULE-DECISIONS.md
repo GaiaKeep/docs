@@ -30,7 +30,7 @@ approvals:** each one is reversible, and each one stays open until the owner con
 | D-C10-1 trim | surplus kept through a grace period, never below R | `StorageEngine.trim` | `grace_ms` per call |
 | D-C10-2 sync at seal | one barrier per write per site | `FsBinding.seal` | built |
 | D-C10-3 batched streaming reads | window of at most 256 blocks and 64 MiB, one window prefetched; 32 blocks per site request | `StorageEngine.readWindow`, `readWindowBytes`, `fetchSlice` | fields |
-| D-C11-1 minimum replication | R ≥ 1 enforced; R=3 used everywhere tested | `PolicyEngine` | open: R ≥ 2 for durable collections is not yet enforced |
+| D-C11-1 minimum replication | R ≥ 2 for durable collections (OUT-41); one copy only for a cache in the `scratch` or `cache` retention class, at creation, profile creation and class change (N-DC11, owner 2026-10-02); R=3 used everywhere tested | `PolicyEngine`, `Profile.of`, `LifecycleEngine.assignClass` | decided (N-DC11); the EC/replica/single modes are designed in DURABILITY-MODES.md |
 | D-C11-2 supported configurations | all tested combinations (180 cells at 64 KiB + 40 at 1 MiB, incl. remote) | `IntegrationMatrixTest` | — |
 
 ## Summary of verdicts
