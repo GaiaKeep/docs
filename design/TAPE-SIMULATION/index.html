@@ -2748,10 +2748,43 @@ LOCATE stop the tape anyway. At production sizes the read-back is most of a cont
 </tr>
 </tbody>
 </table>
-<p>mhVTL has no tape mechanics, so its gap is our own software: the read-back copies the container to a scratch
-file and reads that again for the pack check, about 150-240 MB/s on this 4-vCPU VM. That is slower than an
-LTO-10 drive streams (400 MB/s), so with FULL on real hardware the verify code, not the drive, would set the
-pace: a read-back that checks as it reads, with no scratch file, is the follow-up (OUT-16).</p>
+<p>mhVTL has no tape mechanics, so its gap was our own software: the read-back copied the container to a scratch
+file and read that again for the pack check, about 150-240 MB/s on this 4-vCPU VM, slower than an LTO-10 drive
+streams (400 MB/s). Fixed the same day: the records stream into SHA-384 as they are read, and the pack check
+runs on the spool (proved byte-identical by that digest) while the medium is read
+(eval/results/bench/tape-verify-mhvtl-2026-10-01-overlap.json):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL before</th>
+<th>FULL now</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>111.9 MB/s</td>
+<td>286.5</td>
+<td>512.3</td>
+<td>565.2</td>
+<td>2.0x</td>
+</tr>
+<tr>
+<td>1 GiB x 6</td>
+<td>163.2</td>
+<td>281.7</td>
+<td>440.0</td>
+<td>508.8</td>
+<td>1.8x</td>
+</tr>
+</tbody>
+</table>
+<p>The read-back now checks at about 630 MB/s on the VM (1 GiB: 6.4 GB in 10 s more than NONE), above what the
+drive streams: on real hardware the drive, not the verify code, sets FULL's pace.</p>
 
 
 
