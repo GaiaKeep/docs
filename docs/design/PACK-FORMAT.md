@@ -708,6 +708,14 @@ departs from the plan below); §15.5 and §15.6 (tape) are not. Each item names 
   container, then `ERASED` — the honest two-step that STORAGE-BINDINGS-DECISION §4 asks for.
 - **`verify(CONTENT)`.** `read(Location)`; scrub becomes `ContainerReader.verify()` per container,
   rate-limited and resumable by container (OUT-36), replacing NodeAgent's 60 s re-hash of every file.
+  **Built (OUT-80, 2026-10-01):** `ContainerScrub` on every packed node (thread `gfs-pack-scrub`) verifies
+  each sealed container whole with `PackStore.verifySealed` (`ContainerReader.verify()` plus the footer its
+  seal recorded), least recently verified first, at `core_pack_scrub_bytes_per_s` (default 64 MiB/s, 0 off),
+  and keeps each container's last clean pass in `pack-scrub.state`, so a restart resumes. A container is due
+  again at three quarters of `core_pack_scrub_fresh_ms` (default 24 h). `FsBinding.verify(CONTENT)` answers
+  for a copy whose container's clean pass is within that window without reading it; any other copy, and
+  every copy in a container whose pass failed, is read and checked record by record. A read of a packed
+  record that fails verification withdraws its container's pass at once and queues it first.
 
 ### 15.2 Startup no longer stats every file
 
