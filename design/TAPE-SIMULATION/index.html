@@ -2513,6 +2513,19 @@ kinds exist, and they answer different questions:</p>
 </tr>
 </tbody>
 </table>
+<p><strong>Serpentine locates (<code>tape_sim_locate=serpentine</code>, CTA-REVIEW §2.3).</strong> By default a locate costs the settle
+time plus the full pass times the distance travelled, as if the tape were one long track. With
+<code>tape_sim_locate=serpentine</code> it is timed by the cost model CERN measured on LTO drives instead: the data runs
+along <code>tape_sim_wraps</code> wraps (default 280, a modelled figure) in 4 bands, even wraps forward and odd ones back,
+and a locate costs 4.29 s + 6.69 s for a wrap change + 3.2 s for a band change - 6.04 s for a landing-zone
+change + 5.22 s for a direction change + 11.32 s for a step back + 0.0006192 s per LPOS unit, with the LPOS
+range scaled so a whole-wrap traverse takes the full pass (<code>io.cresco.gfs.tape.SeekModel</code>). The drive then
+reports that geometry, and a recall batch is put in the recommended access order (<code>tape_read_order=auto</code>, the
+default): greedy shortest locate first under the model, kept only when the model says it beats ascending
+order. On the simulator (64 MiB cartridge, 8 wraps, INSTANT clock), 15 extents near both ends of six wraps took
+298 s of drive time against 430 s ascending, 31 % less (TapeRecallOrderTest; SIMULATED). A real drive reports
+no geometry yet: the end-of-wrap query (MAINTENANCE IN A3h/1Fh/45h) and the drive's own RAO (A3h/A4h service
+action 1Dh) are not on the command allowlist, so recalls stay ascending there <strong>[HW]</strong>.</p>
 <p><code>tape_sim_profile=simplant</code> restores the tape spec's M1 figures (robot 15 s, load 90 s, a 172 s full pass at
 0.6, rewind 50-90 s, unload 25 s, reposition 40 s: first byte about 157 s, cycle about 265 s). A simulated
 node's descriptor figures (first byte p50/p95, cycle, stream rate, reposition) follow its profile unless

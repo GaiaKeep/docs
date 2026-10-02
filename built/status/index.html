@@ -2445,7 +2445,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Follower reads with read-your-writes</td>
 <td><strong>Built</strong> and tested</td>
-<td>follower-read and partition tests</td>
+<td>follower-read and partition tests; both clients (Python and Java)</td>
 </tr>
 <tr>
 <td>Blocks of at least 1 MiB; chunker and policy per dataset; named profiles</td>
@@ -2461,6 +2461,11 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <td>Pack containers on storage nodes</td>
 <td><strong>Built</strong> and measured</td>
 <td>8× publish, sub-second start-up at 10⁶ extents; 1,500-round power-cut campaign</td>
+</tr>
+<tr>
+<td>Scrub by container: each sealed container verified whole in one sequential read, rate-limited and resumable; the core's content check answered from a fresh pass</td>
+<td><strong>Built</strong> and tested</td>
+<td>a damaged container is named, and its bad copies are still found and repaired one by one</td>
 </tr>
 <tr>
 <td>Lifecycle: forget, prune, destroy, retention, legal hold</td>
@@ -2493,6 +2498,16 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <td>Tape software path: deferred reads with tickets, archive, stage, verify</td>
 <td><strong>Built</strong> and tested on simulated drives</td>
 <td>simulator and mhVTL virtual drives, end to end through the core; read-back after writing is a setting (full, sampled or none), benchmarked</td>
+</tr>
+<tr>
+<td>Tape operations: cartridges disabled, exported, imported; a stuck cartridge's hold released; TapeAlert and encryption checked at every mount</td>
+<td><strong>Built</strong> and tested on simulated drives</td>
+<td>lessons from CERN's tape archive (CTA)</td>
+</tr>
+<tr>
+<td>Recall order from an LTO locate-cost model (CERN's measured model)</td>
+<td><strong>Built</strong>; measured on the simulator only</td>
+<td>31 % less simulated drive time for a recall across wraps; real drives need the end-of-wrap query, so they keep ascending order until tested on hardware</td>
 </tr>
 <tr>
 <td>Raw SCSI tape on a real drive</td>
