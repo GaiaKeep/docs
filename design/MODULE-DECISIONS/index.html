@@ -3300,7 +3300,7 @@ after every restart.</p>
 <li><code>eval/gfs-core.sh bench [...]</code> measures primitives, publish and read, versioning, repair and scrub,
   and writes JSON to <code>eval/results/bench/</code>.</li>
 <li>Both are classes in the bundle (<code>io.cresco.gfs.core.tools</code>), so they run on any deployment host.</li>
-<li>CI (<code>.github/workflows/test.yml</code>) runs the suite, the wire-contract lint, the smoke test and a
+<li>CI (then <code>.github/workflows/test.yml</code>; on the DGX since 2026-10-02, docs/CI.md) runs the suite, the wire-contract lint, the smoke test and a
   small benchmark on every push, and uploads the results. The first run passed.</li>
 </ul>
 <h2 id="update-2026-09-23-evening-on-dgx-servers">Update 2026-09-23 (evening): on DGX servers<a class="headerlink" href="#update-2026-09-23-evening-on-dgx-servers" title="Permanent link">&para;</a></h2>
