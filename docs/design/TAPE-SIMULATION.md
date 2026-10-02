@@ -29,6 +29,7 @@ Every figure is configurable (`tape_sim_*`, below) and none is a measurement.
 | Speed matching floor | 177 MB/s | `tape_sim_min_stream_bytes_per_sec` |
 | Drive buffer | 1 GiB | `tape_sim_buffer_bytes` |
 | Backhitch (one buffer underrun, or a restart after a synchronous filemark) | 3 s | `tape_sim_backhitch_ms` |
+| First-load calibration of a new cartridge (N-FIRSTLOAD), once per cartridge, on top of its first load | 2 h (provisional: LTO-9's documented worst case; LTO-10's to come from its spec sheet) | `tape_sim_first_load_ms` |
 | First byte at mid-tape (robot + load + locate) | about 75 s | derived |
 | Whole mount cycle at mid-tape | about 148 s | derived |
 
@@ -61,18 +62,43 @@ as a sync stop, not a shoe-shine). Arrival times are the host's wall clock by de
 a synthetic timeline (`SimDrive.arrivals`) to model a host of any rate deterministically.
 
 **The library.** N drives (`tape_sim_drives`, 2), M slots (`tape_sim_slots`, 16) and cartridges
-(`tape_sim_cartridges`, 8; `tape_sim_worm_cartridges`; `tape_sim_capacity_bytes`, 64 GiB), one robot whose
-moves are charged to the drive they serve. Time runs `SCALED` (sleeps the modelled time divided by
+(`tape_sim_cartridges`, 8; `tape_sim_worm_cartridges`, the last ones, which the binding keeps for the
+`tape_worm_classes` only; `tape_sim_capacity_bytes`, 64 GiB), one robot whose moves are charged to the drive they
+serve. Time runs `SCALED` (sleeps the modelled time divided by
 `tape_sim_time_scale`, paced by debt so sub-millisecond operations are not rounded up) or `INSTANT` (no sleep;
 the modelled time is only accounted). Cartridges are directories, so a simulated host restart keeps them.
 
-**Faults** (`SimFaults`, each consumed as it fires): medium error at (cartridge, lbn); deferred write error at
+**First-load calibration and media intake (N-FIRSTLOAD, owner 2026-10-02).** A new simulated cartridge arrives
+uncalibrated (`SimLibrary.Options.calibrated`, false by default); its first load spends `tape_sim_first_load_ms`
+(2 h by default) on top of the load, once, and the cartridge remembers it (in its directory). The binding journals
+the calibration (`tcal`) after a cartridge's first mount and before it is ever labelled or written. Media intake
+keeps `tape_intake_spares` (2, provisional) calibrated, unlabelled pool cartridges ready, calibrating new ones one at
+a time on a drive nothing else wants, and only with two or more drives in service; with none ready a write session
+calibrates one itself before labelling it (and waits for it). A dev tape-sim node at `tape_sim_time_scale=1` spends
+the modelled 2 h of real time on each new cartridge: set `tape_sim_first_load_ms` lower, or a faster scale, where
+that does not matter. The unit tests' rigs leave intake off (TapeIntakeTest has it), the engine tests and the
+benchmark start from calibrated cartridges: they measure archive and recall, not intake.
+
+**Logical block protection.** A simulated drive does LBP (CRC32C, N-LBP) unless `SimDrive.lbpCapable` is false
+(mhVTL-like). Its mode is set by MODE SELECT of the control data protection page, built and allowlisted exactly
+as the SCSI path sends it, and stays set across loads until changed. In LBP mode a written record carries its 4
+CRC bytes, which the drive checks (a mismatch: ABORTED COMMAND 0B/10/01, nothing written) and drops; a read record
+comes back with the CRC of the record as stored. The simulator keeps no protection information of its own, so
+damage on the medium (`corruptStored`) still reads back wrong past LBP and is caught by the footer's SHA-384, as
+damage a drive's check misses would be; damage on the wire is what LBP catches. `FakeScsiTarget` models the same
+for the SCSI skeleton (TapeDriveContractTest holds both to it).
+
+**Faults** (`SimFaults`, each consumed as it fires): a record damaged between host and drive on write
+(`corruptInTransitOnWrite`: refused under LBP, stored damaged without) or between drive and host on read
+(`corruptInTransitOnRead`, at a chosen offset: found by the host under LBP, read as a bad copy without); medium error at (cartridge, lbn); deferred write error at
 the next synchronous filemark; short write; silent corruption on write (any byte of a record); silent
 corruption of a stored record; unit attention and position lost; drive fault and cleaning required (next
 command); **a drive that dies after N records** (its buffer is lost, every command then fails with HARDWARE
 ERROR, the cartridge stays in it until the robot pulls it); early warning at a chosen byte count; end of
 medium; WORM overwrite; a foreign cartridge; a MAM epoch bumped by "another host"; power cut (every drive
-buffer dropped).
+buffer dropped). A write anywhere but EOD is counted as a violation (the tests assert none), except a write at
+BOT over a written read-write cartridge: that is how a recycled cartridge is labelled again, counted apart
+(`SimLibrary.overwrites()`); a WORM cartridge refuses it.
 
 ## 2. mhVTL (the real device path)
 
@@ -89,7 +115,10 @@ to come back incomplete.
 The binding reaches mhVTL through `core_store_binding=tape-st` (dev mode only; test infrastructure):
 `StTapeDrive` (records on the no-rewind st node, mt for positioning, and this node's own SCSI command set
 over `sg_raw` for READ POSITION, LOG SENSE 31h, MAM and SECURITY PROTOCOL IN) and `MtxChanger`. What st
-imposes and how it is absorbed is in docs/TAPE-FORMAT.md §6.
+imposes and how it is absorbed is in docs/TAPE-FORMAT.md §6. mhVTL does no logical block protection (CTA's
+`DriveMHVTL` turns it off too) and `StTapeDrive` reports none: a tape-st node refuses to start under the default
+`tape_lbp=crc32c`, so the rig runs `tape_lbp=off` (the bench sets it for its mhvtl backend). LBP is tested on the
+simulator and the fake SCSI target, and is to be confirmed on a real drive **[HW]**.
 
 ## 3. The benchmark (`TapeBench`, JSON into eval/results/bench/, gated by eval/bench_gate.py)
 

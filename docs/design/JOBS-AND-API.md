@@ -177,6 +177,17 @@ cut exactly as the core does, so these domains take the have-check:
   de-identified CT instances (16.8 MB) sends 26,720 B (0.16%, one header block per instance), against
   16.07 MB (95.6%) in a plain 1 MiB CDC domain.
 
+### Lifecycle verbs added by the owner decisions of 2026-10-02 (D10, D5, V7)
+
+The lifecycle's own verbs are in docs/LIFECYCLE.md; these follow the same operation model (C2: the reply is
+`lc_id` = `job_id` at once; completion by core.lcstatus, core.job, and the record's signed job events).
+
+| Verb | Class | Role | What it does |
+|---|---|---|---|
+| core.legalorder | C2 | tenant-admin@tenant_id or system-admin; approvers: `lifecycle_quorum_legal_order` (>= 2), a system-admin among them | A LEGAL_ORDER: `order_ref`, `authority`, `action=erase` (selectors as core.forget, `override_legal_hold`) or `action=shorten` (`collection_id`, `class`); `dry_run`, `request_id`, `wait_ms`, `events`. Time-locked by `lifecycle_legal_order_delay_ms`. |
+| core.retention op=get | C0 | any role (by `class`), tenant-admin or reader (by `collection_id`) | A retention class with its D10 `ceiling_ms`. |
+| core.forget / core.legalorder `deep=true` | C2 | as the verb | D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked; tape cartridges are listed for forced reclamation. core.lcstatus `deep` reports it. |
+
 ## 4. Journal deltas added
 
 All are applied through `StorageEngine.apply`, registered in the delta registry through
@@ -195,6 +206,7 @@ Unknown ops still throw.
 | xpin | extract_id, cert_json, signer_pub, sig, holds_json, ts |
 | xrelease | extract_id, reason, ts, by |
 | xextend | extract_id, pinned_until |
+| xwithdraw | extract_id, lc_id, ts, stubs_json, alternates_json (V7, 2026-10-02: docs/LIFECYCLE.md) |
 | cut | cut_id, record_json, holds_json, ts |
 | cutEnd | cut_id, reason, ts, by (through ExtractTable.end) |
 | cutSnap | a cut's full state, snapshots only |
@@ -224,7 +236,9 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   with core.job and core.putstatus as the authoritative poll fallback (opmodel §2 supersedes the
   api spec's poll-only default).
 - **V7, pins versus withdrawal:** an extract pinning a collection refuses that collection's
-  withdrawal (`core_withdraw_vs_pin=refuse`); `withdraw_wins` releases it first. Extracts reaching
+  withdrawal (`core_withdraw_vs_pin=refuse`); `withdraw_wins` releases it first. A forget of cited data is
+  decided by the owner's V7 (2026-10-02, docs/LIFECYCLE.md "V7"): any forget of it, legal or not, leaves a stub in
+  the cite extract and mints an alternate version. Extracts reaching
   the data through a derivation or a grant never block and end BROKEN. A PIN-grant dependent's
   extract that holds the base's runs is also ended BROKEN on the base's withdrawal (conservative:
   api §4.8 would keep it valid; carrying the hold over to the inherited references is not built).
