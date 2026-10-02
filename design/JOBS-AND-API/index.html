@@ -1607,6 +1607,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#lifecycle-verbs-added-by-the-owner-decisions-of-2026-10-02-d10-d5-v7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle verbs added by the owner decisions of 2026-10-02 (D10, D5, V7)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2414,6 +2425,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#lifecycle-verbs-added-by-the-owner-decisions-of-2026-10-02-d10-d5-v7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle verbs added by the owner decisions of 2026-10-02 (D10, D5, V7)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2772,6 +2794,39 @@ cut exactly as the core does, so these domains take the have-check:</p>
   de-identified CT instances (16.8 MB) sends 26,720 B (0.16%, one header block per instance), against
   16.07 MB (95.6%) in a plain 1 MiB CDC domain.</li>
 </ul>
+<h3 id="lifecycle-verbs-added-by-the-owner-decisions-of-2026-10-02-d10-d5-v7">Lifecycle verbs added by the owner decisions of 2026-10-02 (D10, D5, V7)<a class="headerlink" href="#lifecycle-verbs-added-by-the-owner-decisions-of-2026-10-02-d10-d5-v7" title="Permanent link">&para;</a></h3>
+<p>The lifecycle's own verbs are in docs/LIFECYCLE.md; these follow the same operation model (C2: the reply is
+<code>lc_id</code> = <code>job_id</code> at once; completion by core.lcstatus, core.job, and the record's signed job events).</p>
+<table>
+<thead>
+<tr>
+<th>Verb</th>
+<th>Class</th>
+<th>Role</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>core.legalorder</td>
+<td>C2</td>
+<td>tenant-admin@tenant_id or system-admin; approvers: <code>lifecycle_quorum_legal_order</code> (&gt;= 2), a system-admin among them</td>
+<td>A LEGAL_ORDER: <code>order_ref</code>, <code>authority</code>, <code>action=erase</code> (selectors as core.forget, <code>override_legal_hold</code>) or <code>action=shorten</code> (<code>collection_id</code>, <code>class</code>); <code>dry_run</code>, <code>request_id</code>, <code>wait_ms</code>, <code>events</code>. Time-locked by <code>lifecycle_legal_order_delay_ms</code>.</td>
+</tr>
+<tr>
+<td>core.retention op=get</td>
+<td>C0</td>
+<td>any role (by <code>class</code>), tenant-admin or reader (by <code>collection_id</code>)</td>
+<td>A retention class with its D10 <code>ceiling_ms</code>.</td>
+</tr>
+<tr>
+<td>core.forget / core.legalorder <code>deep=true</code></td>
+<td>C2</td>
+<td>as the verb</td>
+<td>D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked; tape cartridges are listed for forced reclamation. core.lcstatus <code>deep</code> reports it.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="4-journal-deltas-added">4. Journal deltas added<a class="headerlink" href="#4-journal-deltas-added" title="Permanent link">&para;</a></h2>
 <p>All are applied through <code>StorageEngine.apply</code>, registered in the delta registry through
 <code>EngineExtension</code> (<code>StorageEngine.knownOps()</code>), replayed, snapshotted and counted in the metaHash.
@@ -2825,6 +2880,10 @@ Unknown ops still throw.</p>
 <td>extract_id, pinned_until</td>
 </tr>
 <tr>
+<td>xwithdraw</td>
+<td>extract_id, lc_id, ts, stubs_json, alternates_json (V7, 2026-10-02: docs/LIFECYCLE.md)</td>
+</tr>
+<tr>
 <td>cut</td>
 <td>cut_id, record_json, holds_json, ts</td>
 </tr>
@@ -2873,7 +2932,9 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   with core.job and core.putstatus as the authoritative poll fallback (opmodel §2 supersedes the
   api spec's poll-only default).</li>
 <li><strong>V7, pins versus withdrawal:</strong> an extract pinning a collection refuses that collection's
-  withdrawal (<code>core_withdraw_vs_pin=refuse</code>); <code>withdraw_wins</code> releases it first. Extracts reaching
+  withdrawal (<code>core_withdraw_vs_pin=refuse</code>); <code>withdraw_wins</code> releases it first. A forget of cited data is
+  decided by the owner's V7 (2026-10-02, docs/LIFECYCLE.md "V7"): any forget of it, legal or not, leaves a stub in
+  the cite extract and mints an alternate version. Extracts reaching
   the data through a derivation or a grant never block and end BROKEN. A PIN-grant dependent's
   extract that holds the base's runs is also ended BROKEN on the base's withdrawal (conservative:
   api §4.8 would keep it valid; carrying the hold over to the inherited references is not built).</li>

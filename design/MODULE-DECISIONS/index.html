@@ -2844,9 +2844,9 @@ approvals:</strong> each one is reversible, and each one stays open until the ow
 </tr>
 <tr>
 <td>D-C11-1 minimum replication</td>
-<td>R ≥ 1 enforced; R=3 used everywhere tested</td>
-<td><code>PolicyEngine</code></td>
-<td>open: R ≥ 2 for durable collections is not yet enforced</td>
+<td>R ≥ 2 for durable collections (OUT-41); one copy only for a cache in the <code>scratch</code> or <code>cache</code> retention class, at creation, profile creation and class change (N-DC11, owner 2026-10-02); R=3 used everywhere tested</td>
+<td><code>PolicyEngine</code>, <code>Profile.of</code>, <code>LifecycleEngine.assignClass</code></td>
+<td>decided (N-DC11); the EC/replica/single modes are designed in DURABILITY-MODES.md</td>
 </tr>
 <tr>
 <td>D-C11-2 supported configurations</td>
