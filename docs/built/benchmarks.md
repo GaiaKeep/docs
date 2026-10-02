@@ -163,14 +163,15 @@ never returned to a reader; it is only found later. Its copies are reported as u
 | Simulator, 256 MiB | 39.2 MB/s | 41.8 MB/s | 41.9 MB/s | 1.07x |
 | Simulator, 1 GiB | 87.6 MB/s | 123.6 MB/s | 129.0 MB/s | 1.47x |
 | Simulator, 16 GiB (fitted from the two sizes, not run) | 143.5 MB/s | 319.5 MB/s | 370.2 MB/s | 2.58x |
-| mhVTL, 256 MiB (measured) | 111.9 MB/s | 409.1 MB/s | 505.2 MB/s | 4.5x |
-| mhVTL, 1 GiB (measured) | 163.2 MB/s | 299.6 MB/s | 501.1 MB/s | 3.1x |
+| mhVTL, 256 MiB (measured) | 286.5 MB/s | 512.3 MB/s | 565.2 MB/s | 2.0x |
+| mhVTL, 1 GiB (measured) | 281.7 MB/s | 440.0 MB/s | 508.8 MB/s | 1.8x |
 
 - **On the simulator,** read-back matters little at 256 MiB, because the fixed stop per container
   dominates. At the 16 GiB production size it is most of a container's drive time.
-- **mhVTL has no tape mechanics,** so its gap is the cost of our own checking code. That code runs at
-  150–240 MB/s on the test VM, below an LTO-10 drive's 400 MB/s. A checker that verifies as it reads is the
-  next step.
+- **mhVTL has no tape mechanics,** so its gap is the cost of our own checking code. That code first ran at
+  150–240 MB/s on the test VM (full: 111.9 and 163.2 MB/s), below an LTO-10 drive's 400 MB/s. It now checks
+  the data as it reads and checks the container structure in parallel, at about 630 MB/s: on real hardware
+  the drive, not our code, sets the pace.
 - **In every run,** each recalled byte matched, and nothing was written anywhere but the end of the data.
 
 ## Wide-area links (emulated)
