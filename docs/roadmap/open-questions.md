@@ -3,7 +3,7 @@
 
 # GFS — Open Questions for the Owner
 
-*Compiled 2026-09-23 from the design record (`SPECIFICATION.md`, `STORAGE-BINDINGS-DECISION.md`,
+*Answered by the owner in large part on 2026-10-02 (marked ANSWERED 2026-10-02). Compiled 2026-09-23 from the design record (`SPECIFICATION.md`, `STORAGE-BINDINGS-DECISION.md`,
 `STORAGE-DIRECTION.md`, `ENTAIL-AGENT-NATIVE-FS.md`, `FROM-SCRATCH-DECISION.md`) and the decisions
 made in conversation through commit `fc5d81b`.*
 
@@ -32,23 +32,23 @@ before Cube · permissive licences only.
 
 ## 1. Purpose and scope
 
-**P1 [NOW] — Who are the first real consumers, by name?** "Agents" covers the KOS training
+**P1 [NOW] — Who are the first real consumers, by name?** **ANSWERED 2026-10-02:** the owner's group internally, as the durable backend for panAtlas (versioned, append-based ingest: add datasets, append versions, retrieve); a version-aware cache layer on top in phase two. "Agents" covers the KOS training
 pipeline, panAtlas coverage/decontam jobs, the Astral agent skills, PRIMED-AI validation
 workloads, and future external agents. The first two or three decide which verb gets built first.
 
-**P2 [NOW] — What is the first dataset to go into it for real?** Candidates: the panAtlas index
+**P2 [NOW] — What is the first dataset to go into it for real?** **ANSWERED 2026-10-02:** no single hero dataset: several test fixtures of different sizes and shapes (very many small files; bulk); simulated tape first, tuned toward real-tape performance, across multiple sites. Candidates: the panAtlas index
 estate (198 GB, small, well-understood), heartlens-ct3d-native (25.94 TB, 6.9 M files), the KOS
 V4/V5 corpora, model checkpoints. **Rec:** panAtlas index first — small, its sizes are measured,
 and it exercises identity, versioning and the doc_uid rule without needing a tape.
 
-**P3 [NOW] — Is the DGX copy retained after archiving, or deleted?** This decides whether two
+**P3 [NOW] — Is the DGX copy retained after archiving, or deleted?** **ANSWERED 2026-10-02:** the DGX copy is uncontrolled cache, never trusted or counted; the durable tier alone must recreate any dataset and survive the loss of a whole site. Tape is primary, not backup. This decides whether two
 tape sites is survivable (it is if the DGX copy stays) and whether tape is primary or backup.
 
 **P4 — Is this system the primary store for these datasets, or a durable tier behind the DGX
-filesystem?** Primary means GFS must serve training-rate reads; tier means it only needs to
+filesystem?** **ANSWERED 2026-10-02:** see P3: tape is primary; the durable tier alone recreates any dataset. Primary means GFS must serve training-rate reads; tier means it only needs to
 materialise into the DGX.
 
-**P5 — Are humans ever consumers?** **ANSWERED IN PART 2026-09-19:** not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
+**P5 — Are humans ever consumers?** **ANSWERED 2026-10-02:** agents remain the primary consumers (no FUSE, userland mount or S3 console), but rich human dashboards are wanted: where data is and how it is working, down to the block, location and tape type, built on Cresco's mesh data. Multiple interfaces eventually. **ANSWERED IN PART 2026-09-19:** not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
 mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
 tab) is still wanted for operators.
 
@@ -76,7 +76,7 @@ this system: PRIMED-AI Validation Center (2026-10-02), PRIMED-AI Playbook (2026-
 capability)**, NSF AI Datasets and NSF AI Infrastructure Hubs (both 2026-11-04). Should GFS be
 demonstrable, or only describable, for any of these?
 
-**T2 [NOW] — When do you expect to place the hardware order?** It sets how long I have to get the
+**T2 [NOW] — When do you expect to place the hardware order?** **ANSWERED 2026-10-02:** demand-driven: the order is placed once the system is designed, built and tested, not on a date. It sets how long I have to get the
 vendor answers (section 3) and whether the mount-cycle measurement can happen on a loaner first.
 
 **T3 — When should the first site be live with real data?**
@@ -87,7 +87,7 @@ vendor answers (section 3) and whether the mount-cycle measurement can happen on
 weeks of background drive time at 3 PB, so it can be scheduled; it does not have to be a project.
 Is it tied to a capacity threshold, a cost threshold, or a date?
 
-**T6 — How do you want me to pace the work?** Options: (a) depth-first on one working end-to-end
+**T6 — How do you want me to pace the work?** **ANSWERED 2026-10-02:** depth-first, in two strict phases: phase one the durable tier alone (simulated three sites, several drives and tapes), exhaustively validated; phase two cache management. Options: (a) depth-first on one working end-to-end
 path, (b) breadth across all layers at design level, (c) whatever unblocks the grants first.
 **Rec:** (a) — nothing in the SPI is wired yet, and the bugs found this week were all in pieces
 that looked finished and had never run end to end.
@@ -102,11 +102,11 @@ size the first order.
 
 ## 3. Hardware and procurement
 
-**H1 [NOW] — Stack or Cube for the first purchase?** **ANSWERED 2026-09-20:** start with a Spectra Stack (decision log). You said you may start with a Stack.
+**H1 [NOW] — Stack or Cube for the first purchase?** **ANSWERED 2026-10-02:** Stack vs Cube and sizing are decided on cost against performance, from the simulation sweep across many configurations and vendor costs. **ANSWERED 2026-09-20:** start with a Spectra Stack (decision log). You said you may start with a Stack.
 **Rec:** Stack, used as the instrument that measures the mount cycle, rewind, load/thread
 distribution and shoe-shine floor that every capacity figure depends on.
 
-**H2 [NOW] — Can you get Stack specifications?** I need slots per module, drive bays per module,
+**H2 [NOW] — Can you get Stack specifications?** **ANSWERED 2026-10-02:** still needed: slots per module, drive bays per module, maximum modules, and whether one accessor serves the whole stack. I need slots per module, drive bays per module,
 maximum modules, and **whether one accessor serves the whole stack**. The accessor turned out to be
 the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.
 
@@ -161,19 +161,19 @@ Spectra?** (21 questions exist in draft from the sizing workflow.)
 
 ## 4. Architecture — the one placement engine
 
-**A1 [NOW] — Adopt `LocusProfile` with a `Basis` on every value?** Each property would record how
+**A1 [NOW] — Adopt `LocusProfile` with a `Basis` on every value?** **ANSWERED 2026-10-02:** yes. Each property would record how
 it was obtained: MEASURED, ATTESTED, MODELLED, DEFAULT, or UNMEASURED. This is "it does not matter"
 written into the code, and it will surface more unmeasured properties like the four fixed this
 week. **Rec:** yes.
 
-**A2 [NOW] — Make `bindingKind`, `mediaClass` and `node_class` illegal as placement inputs** (kept
+**A2 [NOW] — Make `bindingKind`, `mediaClass` and `node_class` illegal as placement inputs** **ANSWERED 2026-10-02:** yes; bindingKind, mediaClass and node_class are telemetry only (many back-end types beyond tape are expected). (kept
 as telemetry only)? **Rec:** yes; it is the only enforcement of "tape is just a block of data."
 
-**A3 — Replace latency buckets (MS/SECONDS/MINUTES/HOURS) with the measured number?** The MS bucket
+**A3 — Replace latency buckets (MS/SECONDS/MINUTES/HOURS) with the measured number?** **ANSWERED 2026-10-02:** yes: measured numbers, buckets for display only. The MS bucket
 currently spans RAM (~100 ns), NVMe (~100 µs) and spinning disk (~10 ms), five orders of magnitude.
 **Rec:** callers get the measured distribution plus comparison helpers; buckets become display only.
 
-**A4 — Can a volatile locus (RAM) hold a copy that counts toward the replication factor?**
+**A4 — Can a volatile locus (RAM) hold a copy that counts toward the replication factor?** **ANSWERED 2026-10-02:** no: RAM never counts toward durability; it is a distinct, vanishing residency.
 **Rec:** no. It may hold cache copies only, and the index must show them as a distinct residency
 state so `realise` knows the nearby copy may vanish.
 
@@ -188,7 +188,7 @@ missed that cartridges were wearing out first.
 **A7 — Placement policy form: hard constraints plus scoring, or scoring only?** **Rec:**
 constraints plus scoring, with a small fixed set of predicates rather than a general query language.
 
-**A8 — When a policy is unsatisfiable, what happens?** Options: refuse the write; write to what is
+**A8 — When a policy is unsatisfiable, what happens?** **ANSWERED 2026-10-02:** refuse by default; the synchronous plan must be accepted before bytes stream. Options: refuse the write; write to what is
 available and mark the object under-protected; queue until capacity appears. **Rec:** refuse by
 default, with an explicit caller opt-in to write under-protected and a visible debt the repair
 loop pays down.
@@ -216,10 +216,10 @@ placement for every registered node.
 
 ## 5. Redundancy and distribution
 
-**R1 — Replication factor: 3?** **ANSWERED 2026-09-20:** 3, across three sites; erasure coding later via repack (decision log). **Rec:** 3, equal to site count, so every site holds a complete
+**R1 — Replication factor: 3?** **ANSWERED 2026-10-02:** phase one is three identical sites; the default redundancy is erasure coding across them (RS(2,1)-style, 1.5x, survives the loss of any one site). Durability is a per-dataset policy, and all three modes must be supported and tested: erasure-coded (default), three full replicas, single copy (scratch or cache only). **ANSWERED 2026-09-20:** 3, across three sites; erasure coding later via repack (decision log). **Rec:** 3, equal to site count, so every site holds a complete
 copy and can serve any object disconnected.
 
-**R2 — Must every site hold every object (N = R), or may sites hold subsets?** N = R keeps sites
+**R2 — Must every site hold every object (N = R), or may sites hold subsets?** **ANSWERED 2026-10-02:** see R1. N = R keeps sites
 independently readable; more sites than copies makes each site smaller but not complete.
 
 **R3 — Does "blind holding site" still matter under replication?** Each site now holds a complete
@@ -228,16 +228,16 @@ all the ciphertext rather than a third. Acceptable?
 
 **R4 — If two sites: where does the quorum witness run?** A small VM at a third location.
 
-**R5 — Where can a lost site be rebuilt?** Under replication any copy target works: a new site,
+**R5 — Where can a lost site be rebuilt?** **ANSWERED 2026-10-02:** see R1. Under replication any copy target works: a new site,
 rented rack, disk, or cloud. Is cloud acceptable as a temporary rebuild target for clinical data?
 
-**R6 — Intra-volume RS(28,4) against media defects: keep it under replication?** **Rec:** keep;
+**R6 — Intra-volume RS(28,4) against media defects: keep it under replication?** **ANSWERED 2026-10-02:** see R1. **Rec:** keep;
 it guards cartridge defects, which replication alone repairs only with a cross-site copy.
 
 **R7 — Which erasure code when it comes back?** RS(2,1) at 3 sites, RS(3,1) at 4, or something
 else. Not needed now; confirm it can wait.
 
-**R8 — Do all datasets get the same protection, or is replication factor a per-dataset policy?**
+**R8 — Do all datasets get the same protection, or is replication factor a per-dataset policy?** **ANSWERED 2026-10-02:** confirmed as built: per-domain policy and profiles; R = 1 only for scratch or cache classes, R ≥ 2 enforced for anything durable.
 Derived artifacts (labels, embeddings, kNN) can be recomputed and may need fewer copies.
 
 **R9 — Maximum acceptable repair window after a site loss** (hours, days, weeks)?
@@ -246,24 +246,24 @@ Derived artifacts (labels, embeddings, kNN) can be recomputed and may need fewer
 
 ## 6. Data model and versioning
 
-**V1 — Confirm the model:** reads are always of a named version; writes are quorum-confirmed;
+**V1 — Confirm the model:** **ANSWERED 2026-10-02:** reads are always of a specific version (a named branch plus numbered versions); committing a version is deliberate and synchronously committed at every location; an extract is a specific existing version; any change mints a new version; DOIs for cited versions on commit. reads are always of a named version; writes are quorum-confirmed;
 an *extract* is a first-class, citable, pinnable point-in-time object.
 
-**V2 — What is a "dataset" for versioning purposes?** One panAtlas registry entry? One directory
+**V2 — What is a "dataset" for versioning purposes?** **ANSWERED 2026-10-02:** a dataset may be one file or a collection; any deviation from the last committed state mints a new version. One panAtlas registry entry? One directory
 tree? Something an agent declares?
 
-**V3 — Branches: do agents need them, or is linear versioning enough for phase one?**
+**V3 — Branches: do agents need them, or is linear versioning enough for phase one?** **ANSWERED 2026-10-02:** confirmed as built (named branches).
 
 **V4 — Who may create a version of a dataset?** The owner only, any agent in the project, or any
 agent holding a write token?
 
-**V5 — Version identifiers: opaque ids, or content-derived?** Content-derived ids fall under the
+**V5 — Version identifiers: opaque ids, or content-derived?** **ANSWERED 2026-10-02:** confirmed as built (opaque ids). Content-derived ids fall under the
 same "no plaintext-derived identifiers on media" rule as `doc_uid`.
 
-**V6 — How long do unpinned old versions live?** Forever, a retention window, or until capacity
+**V6 — How long do unpinned old versions live?** **ANSWERED 2026-10-02:** open policy, driven by recorded, deep-tested maintenance jobs (on demand, scheduled, or agent-triggered on a reclaimable-data threshold), run identically at every site or at one. Forever, a retention window, or until capacity
 pressure?
 
-**V7 — Does a pinned extract (cited in a paper or grant) block deletion of its data forever?** If a
+**V7 — Does a pinned extract (cited in a paper or grant) block deletion of its data forever?** **ANSWERED 2026-10-02:** legal withdrawal always wins over citation permanence: the cited version gets a stub where the withdrawn data was, plus an alternate version as close to the original as lawfully possible. If a
 subject then withdraws consent, which wins?
 
 **V8 — Where does `retention_class` come from at write time?** Repack efficiency swings 18× on
@@ -284,38 +284,38 @@ interruption?
 
 ## 7. Deletion, retention and repack
 
-**D1 [BEFORE MEDIA] — Which data must be on drive-enforced WORM?** Candidates: pinned/cited
+**D1 [BEFORE MEDIA] — Which data must be on drive-enforced WORM?** **ANSWERED 2026-10-02:** WORM classes must be markable: genuinely keep-forever, never-altered records (audit, regulatory, research-integrity snapshots). Anything carrying human-subject data stays off WORM so key destruction remains possible. WORM data never takes part in reclamation. The class list is pinned down later. Candidates: pinned/cited
 extracts, regulatory and audit records, research-integrity snapshots. Everything else rewritable.
 
-**D2 [BEFORE MEDIA] — Privacy interleaving versus reclamation grouping.** Interleaving consent
+**D2 [BEFORE MEDIA] — Privacy interleaving versus reclamation grouping.** **ANSWERED 2026-10-02:** group: data that dies together goes onto the same cartridge, so volumes die whole and tape is reclaimed. Privacy rests on encryption, keyed block ids and sealed metadata; interleaving only for a class whose regulation requires it. Interleaving consent
 units hides cohorts but means nothing ever dies whole; grouping lets volumes die whole but reveals
 the cohort. At 1 %/yr withdrawal, interleaved volumes reach the repack band only after 39–98
 years. Which do you prioritise, per data class?
 
-**D3 [BEFORE MEDIA] — Repack granularity: whole fragments only, or sub-fragment?** Sub-fragment
+**D3 [BEFORE MEDIA] — Repack granularity: whole fragments only, or sub-fragment?** **ANSWERED 2026-10-02:** the atomic repack unit is the dedup block, never finer. Sub-fragment
 repack renumbers positions and would break pinned citations unless engineered for. **Rec:**
 fragment-granular, with retention cohorting as the precondition that makes it yield anything.
 
-**D4 [BEFORE MEDIA] — Adopt the rewrite rule as normative:** a rewrite either preserves the
+**D4 [BEFORE MEDIA] — Adopt the rewrite rule as normative:** **ANSWERED 2026-10-02:** yes (normative): a rewrite is a bit-identical move or uses a fresh epoch key, never a mix. a rewrite either preserves the
 ordinals and copies ciphertext bit-identically, or mints a fresh epoch key — never one without the
 other. Otherwise a botched repack reads as a lawful redaction. **Rec:** yes.
 
-**D5 — What is the promised latency for "forget" on consent withdrawal?** Key destruction takes
+**D5 — What is the promised latency for "forget" on consent withdrawal?** **ANSWERED 2026-10-02:** two tiers: QUICK DELETE is key destruction (inaccessible); DEEP DELETE adds a random-data overwrite through forced reclamation, for when physical destruction must be proven. Key destruction takes
 ~75 s on any medium; physical erasure takes years on tape. Is key destruction legally sufficient
 for your DUAs and IRB?
 
-**D6 — Who is authorised to order a deletion or key destruction, and does it need two people?**
+**D6 — Who is authorised to order a deletion or key destruction, and does it need two people?** **ANSWERED 2026-10-02:** confirmed as built (an approver other than the requester).
 
 **D7 — Physical destruction of WORM cartridges:** at 10 %/yr removal this is a two-person attested
 ceremony roughly every 15 days. Who performs it, and is that acceptable operationally?
 
-**D8 — Default GC state: on, as a budgeted and refusable standing obligation?** **Rec:** yes, with
+**D8 — Default GC state: on, as a budgeted and refusable standing obligation?** **ANSWERED 2026-10-02:** yes: budgeted automatic GC; repack refused for a volume more than 50 % live; tunable, revisited on the test bed. **Rec:** yes, with
 admission per volume on predicted live fraction; refuse above 50 % live.
 
-**D9 — Should drives that can skip dead regions be assumed?** The repack cost model differs 3.77×
+**D9 — Should drives that can skip dead regions be assumed?** **ANSWERED 2026-10-02:** a test-bed parameter: plan for the worst case until measured. The repack cost model differs 3.77×
 depending on it, and the constant is unmeasured. Measure first, or plan on the worst case?
 
-**D10 — Retention floors: who sets them, and can they ever be shortened?** The binding enforces
+**D10 — Retention floors: who sets them, and can they ever be shortened?** **ANSWERED 2026-10-02:** floors cannot be shortened by ordinary means; a hard, multi-stage approved legal-override path can shorten retention or force deletion (a legal order to erase always wins); and maximum-retention ('must delete by') classes, not only minimum floors. The binding enforces
 them as monotone (never shortened).
 
 ---
@@ -323,40 +323,40 @@ them as monotone (never shortened).
 ## 8. Security and cryptography
 
 **S1 [BEFORE MEDIA] — Convert `K_meta` and the catalogue cnodes to the same counter discipline as
-`SegmentCipher`?** Recorded as the top open crypto item. **Rec:** yes, before any cartridge.
+`SegmentCipher`?** **ANSWERED 2026-10-02:** yes. Recorded as the top open crypto item. **Rec:** yes, before any cartridge.
 
-**S2 [BEFORE MEDIA] — Enforce idempotency keys with a lease?** Today two writers under one key
+**S2 [BEFORE MEDIA] — Enforce idempotency keys with a lease?** **ANSWERED 2026-10-02:** yes. Today two writers under one key
 would each think they own the counter space. **Rec:** yes; refuse rather than share.
 
 **S3 — Make direct calls to `CryptoBox.gcmEncryptWithIv` for object data a lint failure?**
 **Rec:** yes.
 
-**S4 [BEFORE PROD] — Key custody: software keys, an HSM, or both?** The design assumes shredding is
+**S4 [BEFORE PROD] — Key custody: software keys, an HSM, or both?** **ANSWERED 2026-10-02:** keys scoped per project and possibly per dataset (multi-tenant from day one); custody behind a swappable interface: software keys in phase one, an HSM later; FIPS-attainable from the start (approved algorithms only, one crypto chokepoint, swappable custody). The design assumes shredding is
 a hardware key destruction. Which HSM, and one per site?
 
-**S5 — Shamir t-of-n custody across sites: keep it, and what are t and n?**
+**S5 — Shamir t-of-n custody across sites: keep it, and what are t and n?** **ANSWERED 2026-10-02:** Shamir-style federated key custody across system-maintained nodes.
 
-**S6 — Drive-level hardware encryption (BlueScale): decline?** **Rec:** decline. We already write
+**S6 — Drive-level hardware encryption (BlueScale): decline?** **ANSWERED 2026-10-02:** the default stays: decline drive-level hardware encryption. It becomes a setting that can be switched on where a deployment's compliance rules require FIPS-validated hardware encryption. **Rec:** decline. We already write
 ciphertext; a second layer adds a key-custody dependency and buys nothing.
 
-**S7 — FIPS 140-3 validated crypto module required now, or at DoD fielding?**
+**S7 — FIPS 140-3 validated crypto module required now, or at DoD fielding?** **ANSWERED 2026-10-02:** see S4 and the crypto facade: one configurable facade across GaiaKeep and Cresco, so the whole stack can be set to the same FIPS level; SHA-384 for new formats.
 
 **S8 — Per-request credentialed tokens for agents:** you mentioned audited per-request tokens.
 Scoped to what — dataset, version, verb, byte range, time window? Who issues them?
 
 **S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?**
 
-**S10 — Tenant model:** reuse Cresco's shipped tenant namespacing and roles, or does GFS need
+**S10 — Tenant model:** **ANSWERED 2026-10-02:** confirmed as built; attribute and per-DUA rules stay deferred. reuse Cresco's shipped tenant namespacing and roles, or does GFS need
 finer, attribute-based rules (per dataset, per DUA)?
 
-**S11 — Is metadata confidentiality in scope?** The catalogue currently holds everything except
+**S11 — Is metadata confidentiality in scope?** **ANSWERED 2026-10-02:** confirmed as built; the rest of metadata encryption is still outstanding. The catalogue currently holds everything except
 content keys, including filenames. Must names and sizes be protected from site operators?
 
 ---
 
 ## 9. panAtlas integration
 
-**X1 [NOW] — Decide `doc_uid` blinding before the imaging element-level overlap job runs.** Today
+**X1 [NOW] — Decide `doc_uid` blinding before the imaging element-level overlap job runs.** **ANSWERED 2026-10-02:** the system mints its own collision-free identifiers and never relies on external keys; identity at the native-chunk level so dedup works across differently encrypted copies. Today
 `doc_uid` covers text that is mostly public literature. The imaging job will put the same unkeyed
 content hash on PHI. Keep it unkeyed in payload only, or switch to `HMAC(K_idx, doc_uid)` and
 accept breaking the cross-lineage crosswalk at every key rotation?
@@ -373,7 +373,7 @@ count of redaction domains; at 10⁶ domains shards would be ~11 KB each.
 (labels, edges, kNN)? Only if recompute is affordable; `knn_exact96` is an exhaustive search over
 the corpus and its cost is unmeasured.
 
-**X6 — Should panAtlas URNs (`panatlas:dataset:<slug>`) be the dataset names in GFS?**
+**X6 — Should panAtlas URNs (`panatlas:dataset:<slug>`) be the dataset names in GFS?** **ANSWERED 2026-10-02:** no: GaiaKeep mints its own namespace; panAtlas integration is a crosswalk service in panAtlas, not a storage-layer dependency.
 
 **X7 — `manifest_hash` currently hashes (path, size, mtime), not content. Should GFS versions
 replace it as the provenance primitive for PRIMED-AI?**
@@ -390,23 +390,23 @@ integration, forcing every byte through staging. The real cost is losing a catal
 written by someone else.
 
 **B2 [NOW] — Java toolchain: move to JDK 22+ for the Foreign Function & Memory API, or use JNA, or
-a small separate C helper process?** **Rec:** JDK 22+ if nothing else pins you to 21; it adds no
+a small separate C helper process?** **ANSWERED 2026-10-02:** measure and decide (FFM, JNA or a C helper) under the licence filter: everything shipped must be open and commercially permissible. **Rec:** JDK 22+ if nothing else pins you to 21; it adds no
 dependency.
 
 **B3 [BEFORE MEDIA] — The on-media format is now a one-way door with no vendor fallback. Do you
-want an independent reference reader** (works with no index, no catalogue, no running system) as
+want an independent reference reader** **ANSWERED 2026-10-02:** yes, a blocking gate before any media is written; written by the owner's group in phase one. (works with no index, no catalogue, no running system) as
 a blocking deliverable? **Rec:** yes.
 
-**B4 [BEFORE MEDIA] — Should the format specification be published openly** so a future reader can
+**B4 [BEFORE MEDIA] — Should the format specification be published openly** **ANSWERED 2026-10-02:** the format document stays private: documented thoroughly, kept disclosable, published only when a publication backs it. so a future reader can
 be written by anyone?
 
-**B5 — Block size on tape** (1–2 MiB?), filemark placement, partition use, and index checkpoint
+**B5 — Block size on tape** **ANSWERED 2026-10-02:** a test-bed parameter: 1 MiB records with a checkpoint at each quarter volume are the provisional starting point only. (1–2 MiB?), filemark placement, partition use, and index checkpoint
 placement. Want to review these, or delegate?
 
-**B6 — Error recovery policy on read/write failure:** retry, skip to local parity, or stop and
+**B6 — Error recovery policy on read/write failure:** **ANSWERED 2026-10-02:** a test-bed parameter (provisional: retry on the drive's native sense only, otherwise stop). retry, skip to local parity, or stop and
 repair? **Rec:** retry only on native sense data; otherwise stop and repair from another copy.
 
-**B7 — Multi-host access to one library:** will more than one host ever drive one library? If so,
+**B7 — Multi-host access to one library:** **ANSWERED 2026-10-02:** a test-bed parameter (provisional: one host per library, advisory MAM epoch fencing). will more than one host ever drive one library? If so,
 fencing needs SCSI Persistent Reservation (H17) or a lease.
 
 **B8 — Test rig:** use mhvtl (GPL kernel module, test host only, never shipped) for CI? Needs a
@@ -453,7 +453,7 @@ though it uses paths and sidecar files?
 
 ## 12. The agent interface
 
-**I1 [NOW] — Confirm the verbs:** `prospect` (what would it cost to get this version here, by which
+**I1 [NOW] — Confirm the verbs:** **ANSWERED 2026-10-02:** a cache-tier concern, deferred to phase two. `prospect` (what would it cost to get this version here, by which
 strategy) and `realise` (the only verb that moves bytes).
 
 **I2 — Should agents be able to move compute to data**, not just data to compute? That requires
@@ -465,7 +465,7 @@ the mesh?**
 **I4 — Which client languages must work at launch?** Python (pycrescolib) and Java are both
 required for Cresco generally. Anything else?
 
-**I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools** (like the 89
+**I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools** **ANSWERED 2026-10-02:** yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
 existing ones)?
 
 **I6 — Cost model returned by `prospect`:** drive-hours, wall time, dollars, carbon, egress? Which
@@ -492,7 +492,7 @@ versions, but is no longer primary storage.
 
 ## 14. Operations
 
-**O1 [NOW] — Fix the DGX mesh storage path?** Nodes under `~/cresco/nodes` are on a network
+**O1 [NOW] — Fix the DGX mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under `~/cresco/nodes` are on a network
 filesystem and are now refused durable copies. Point `store_dir` at node-local storage, or attest?
 **Rec:** node-local; it is also 40× faster.
 
@@ -513,11 +513,11 @@ barrier evidence?**
 
 ## 15. Measurements — who runs them and when
 
-**M1 [BEFORE MEDIA] — The mount cycle, as a distribution over a few thousand exchanges.** The
+**M1 [BEFORE MEDIA] — The mount cycle, as a distribution over a few thousand exchanges.** **ANSWERED 2026-10-02:** not blocked on hardware: ranges come from vendor spec sheets, the simulation sweeps them, and loaners refine them. The
 highest-leverage unmeasured constant in the design; a 45 % error moves throughput ~23 %. Needs a
 real drive. When, and where?
 
-**M2 [BEFORE MEDIA] — Shoe-shine floor / minimum speed-match rate for LTO-10.** Sets spool size.
+**M2 [BEFORE MEDIA] — Shoe-shine floor / minimum speed-match rate for LTO-10.** **ANSWERED 2026-10-02:** see M1. Sets spool size.
 
 **M3 — Count the imaging estate.** ~850 TB UK chest CT and ~700 TB KPDT pathology are 92.6 % of
 the sizing basis and come off slides, with five conflicting KPDT figures. Can someone run a PACS
@@ -552,7 +552,7 @@ GPL is acceptable only in test infrastructure that never ships (mhvtl).
 **L2 — Do you want counsel to review** the licence position, the DUA implications of partner sites
 holding ciphertext, and whether key destruction satisfies withdrawal obligations?
 
-**L3 — Copyright/licence for GFS itself:** Apache-2.0 as the pom declares?
+**L3 — Copyright/licence for GFS itself:** **ANSWERED 2026-10-02:** the code licence is still to settle; the public docs are CC BY 4.0. Apache-2.0 as the pom declares?
 
 ---
 
@@ -565,7 +565,7 @@ media-neutral terms. **Rec:** yes, before more design goes in.
 **Q2 — Commit policy:** **ANSWERED 2026-09-23:** commit and push every change; the repository is `GaiaKeep/gfs` (moved from CrescoEdge).
 Keep doing that? Push to origin, and when?
 
-**Q3 — Multi-agent workflows:** they produced most of this week's findings, including the wire
+**Q3 — Multi-agent workflows:** **ANSWERED 2026-10-02:** run multi-agent workflows freely on design and test questions (about six at once, token-frugal); exhaustive test suites, benchmark suites and error datasets at every layer are primary deliverables. they produced most of this week's findings, including the wire
 bug. Run them freely on design questions, or ask each time?
 
 **Q4 — Atlas capture:** file GFS decisions and measurements into myatlas as they happen, or batch?

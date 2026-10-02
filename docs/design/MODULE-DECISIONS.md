@@ -259,7 +259,7 @@ after every restart.
 - `eval/gfs-core.sh bench [...]` measures primitives, publish and read, versioning, repair and scrub,
   and writes JSON to `eval/results/bench/`.
 - Both are classes in the bundle (`io.cresco.gfs.core.tools`), so they run on any deployment host.
-- CI (`.github/workflows/test.yml`) runs the suite, the wire-contract lint, the smoke test and a
+- CI (then `.github/workflows/test.yml`; on the DGX since 2026-10-02, docs/CI.md) runs the suite, the wire-contract lint, the smoke test and a
   small benchmark on every push, and uploads the results. The first run passed.
 
 ## Update 2026-09-23 (evening): on DGX servers
