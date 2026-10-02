@@ -42,3 +42,7 @@ what changed and why.
 | 2026-10-02 | Expensive tunables (tape block size, error recovery, fencing) are decided by the simulation and the test bed, never by declaration; hardware is bought once simulation gives confidence | Owner | In force |
 | 2026-10-02 | Rich human dashboards: where data is and how it is working, down to the block, location and tape type | Owner | In force; to build |
 | 2026-10-02 | The documentation is licensed CC BY 4.0 | Owner | In force |
+| 2026-10-02 | Erasure coding uses one dedup block per stripe (keeps block-level dedup and keeps repack, forget and scrub within a site); a fixed stripe width with placement groups so it scales to more sites; the default stripe shape is confirmed by simulation before any hardware | Owner | In force; to build |
+| 2026-10-02 | A durable dataset's ingest is committed only when its copies are verified on tape; the disk staging area never counts as a durable copy; the client submits and then awaits the commit job | Owner | In force; to build |
+| 2026-10-02 | Phase one is done when, on three simulated sites with many drives and tapes, any dataset is recreated byte-identically from the durable tier alone after a site is destroyed and rebuilt from tape, with the durable-tier suite passing exhaustively | Owner | The finish line for the prototype |
+| 2026-10-02 | The large-imaging profiles (radiology, pathology) default to erasure coding once the engine lands; full replicas remain selectable per dataset | Owner | In force; to build |
