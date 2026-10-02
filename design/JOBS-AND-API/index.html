@@ -2932,9 +2932,8 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   with core.job: the archive follows the engine's run in container batches (a cancel aborts it at the next
   batch; a retry with the same request_id after a leader change skips what was archived), the read-back
   is one tape ticket (a cancel cancels it). core.archivestatus still answers an archive or read-back run
-  by its id (the job's result names it: archive_id, verify_id). Open: a core.compact operator verb for packed sites (packint: compaction
-  runs today only as the COMPACT maintenance pass and each node's own catalogue pass) should be built
-  as an async job, not a synchronous RPC.</li>
+  by its id (the job's result names it: archive_id, verify_id). Done the same day: core.compact, an operator verb for packed sites, runs every packed
+  site's compaction as a C3 job (one site a slice, as the COMPACT maintenance pass; system-admin only).</li>
 </ul>
 
 
