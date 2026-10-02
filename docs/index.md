@@ -1,3 +1,6 @@
+[![GaiaKeep GFS architecture: external AI agents connect through the Cresco mesh to the replicated GaiaKeep core, which seals every block at the origin and erasure codes it across three sites whose durable tier is tape](assets/gaiakeep-architecture.svg){ .gk-hero }](assets/gaiakeep-architecture.svg)
+<span class="gk-hero-caption">The target architecture. Erasure coding, tape as the counted primary tier and the caching tier are still being built: see [Status at a glance](built/status.md) for what runs today.</span>
+
 # GaiaKeep GFS
 
 **A global file system built for agents, not people.** Its job is to keep versioned datasets
