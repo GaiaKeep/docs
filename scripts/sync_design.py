@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from public_filter import scrub  # noqa: E402
+from public_filter import private, scrub  # noqa: E402
 
 SITE = Path(__file__).resolve().parent.parent
 GFS = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else (SITE.parent.parent / "cresco/code/gfs").resolve()
@@ -120,13 +120,20 @@ def main():
     out = SITE / "docs/design"
     out.mkdir(parents=True, exist_ok=True)
     names = {d[0] for d in DOCS}
-    rows = []
+    rows, refused = [], []
     for fname, title, status, note in DOCS:
         src = SRC / fname
         if not src.exists():
             print(f"missing: {src}")
             continue
-        body = scrub(rewrite_links(src.read_text(encoding="utf-8"), SRC, names))
+        text = src.read_text(encoding="utf-8")
+        if private(text):
+            # marked private at the source: never copied, and a copy published before it was marked is removed
+            refused.append(fname)
+            (out / fname).unlink(missing_ok=True)
+            print(f"REFUSED {fname}: marked private at the source; removed from the list and from the site")
+            continue
+        body = scrub(rewrite_links(text, SRC, names))
         (out / fname).write_text(banner(status, note) + body, encoding="utf-8")
         rows.append((fname, title, status, note.split(". ")[0].replace("**", "")))
         print(f"synced {fname}")
@@ -156,6 +163,9 @@ def main():
     y = re.sub(r"(  - Design record:\n      - design/index.md\n)(?:      - .*\n)*",
                lambda m: m.group(1) + nav + "\n", y)
     (SITE / "mkdocs.yml").write_text(y, encoding="utf-8")
+    if refused:
+        print(f"{len(refused)} document(s) refused as private: take them out of DOCS")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,9 @@ What may appear on the public site, in one place.
 
 scrub(text)  rewrites internal detail (workstation paths, cluster hosts, accounts and storage paths,
              private addresses) into neutral words. sync_design.py applies it to every copied document.
-check(root)  fails on anything that must never be published (credentials) and on internal detail that
-             survived; the deploy workflow runs it before building.
+private(text) says whether a document is marked private in its opening lines; sync_design.py refuses one.
+check(root)  fails on anything that must never be published (credentials, a document marked private) and on
+             internal detail that survived; the deploy workflow and the pre-push hook run it.
 
     python3 scripts/public_filter.py check [docs]
 """
@@ -35,8 +36,18 @@ FORBIDDEN = [
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "AWS key id"),
     (re.compile(r"servicekey-[A-Za-z0-9]{4,}"), "service key"),
     (re.compile(r"\]\(https://github\.com/GaiaKeep/gfs\b"), "link into the private gfs repository (a 404 for readers)"),
+    (re.compile(r"^\s*(?:>\s*)?\*\*(?:PRIVATE\b|Private\.\*\*)"), "a document marked private (OUTSTANDING.md, TAPE-FORMAT.md, ...)"),
+    (re.compile(r"never goes to the public docs site|not part of the public docs sync"), "a document marked private"),
     (re.compile(r"\b(core_master_key|gfs_secret|cresco_service_key)\s*[=:]\s*['\"]?[0-9A-Za-z+/_-]{16,}"), "secret value"),
 ]
+
+
+PRIVATE = re.compile(r"^\s*(?:>\s*)?\*\*(?:PRIVATE\b|Private\.\*\*)|never goes to the public docs site|not part of the public docs sync")
+
+
+def private(text: str) -> bool:
+    """A document whose opening lines mark it private: it is never copied to this site."""
+    return any(PRIVATE.search(line) for line in text.splitlines()[:15])
 
 
 def scrub(text: str) -> str:
