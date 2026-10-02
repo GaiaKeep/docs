@@ -5,6 +5,7 @@ repo_url: https://github.com/GaiaKeep/docs
 repo_name: GaiaKeep/docs
 edit_uri: ""
 
+copyright: Text licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The GaiaKeep software is not covered by this licence.
 theme:
   name: material
   features:

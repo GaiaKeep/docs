@@ -26,3 +26,5 @@ published before it was marked.
 
 **Writing rule:** every status claim uses one of five labels — Proven, Built, Designed, Proposed, Open —
 and every number says whether it was measured or modelled.
+
+**Licence.** The text of this site is licensed under [CC BY 4.0](LICENSE) (owner decision 2026-10-02). It covers the documentation only, not the GaiaKeep software.
