@@ -91,6 +91,9 @@ works with no index, no catalogue and no running system becomes a blocking deliv
 ## Other decisions
 
 - **No LTFS and no filesystem on tape**: the system manages its own blocks.
+- **The tape path is visible end to end in the dashboard**: cartridges, drives, slots, cohorts and the
+  recall queue per library — see [Storage media](../dashboard/media.md), and block-to-cartridge
+  placement in [Placements](../dashboard/placements.md).
 - **Write-once (WORM) media is per cohort**, not required everywhere. See
   [Deletion, retention and repack](deletion-and-repack.md).
 - **The Hugging Face Hub protocol cannot represent offline data.** Measured: a file that is sealed

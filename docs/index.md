@@ -44,6 +44,9 @@ the DGX cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/t
       index. See [The prototype](built/prototype.md) and [Scale results](built/scale.md).
 - **What is built and tested on simulated hardware.** The tape software path, on a simulator and on
   virtual drives. Pack containers on storage nodes. See [Status at a glance](built/status.md).
+- **What you can see running.** A read-only storage control dashboard serves against the standing
+  deployment, with screenshots and an exhaustive guide to everything it shows:
+  [The storage control dashboard](dashboard/index.md).
 - **What is still to be decided and built.** Raw tape I/O on a real drive. Faster reads over links of
   80 ms and more. Erasure coding. The caching tier. See [Remaining work](roadmap/remaining.md) and
   [Open questions](roadmap/open-questions.md).
