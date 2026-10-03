@@ -61,6 +61,17 @@ nav:
       - Media and tape: concepts/media-and-tape.md
       - Deletion, retention and repack: concepts/deletion-and-repack.md
       - panAtlas: concepts/panatlas.md
+  - Dashboard:
+      - dashboard/index.md
+      - Overview: dashboard/overview.md
+      - Accounts: dashboard/accounts.md
+      - Collections and versions: dashboard/collections.md
+      - Placements: dashboard/placements.md
+      - Storage media: dashboard/media.md
+      - Lifecycle and jobs: dashboard/lifecycle.md
+      - Audit: dashboard/audit.md
+      - Controls: dashboard/controls.md
+      - Cresco mesh tabs: dashboard/mesh.md
   - Built and tested:
       - Status at a glance: built/status.md
       - "Release 1.3": built/release-1-3.md

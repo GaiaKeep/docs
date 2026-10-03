@@ -68,3 +68,6 @@ shipped in the Cresco 1.3 agent release.
 [SYSTEM-REPORT.md](../design/SYSTEM-REPORT.md) (how it works and how we know),
 [RESULTS.md](../design/RESULTS.md), [EVALUATION-PLAN.md](../design/EVALUATION-PLAN.md),
 [PROTOTYPE.md](../design/PROTOTYPE.md) (how to run it).
+
+The standing deployment's storage control dashboard — screenshots and an exhaustive page-by-page
+guide — is documented under [Dashboard](../dashboard/index.md).
