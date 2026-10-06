@@ -2817,7 +2817,7 @@ run/gfs/launch_gfs_fabric.sh       up | down | status | restart &lt;agent&gt; | 
 run/gfs/gfs_client.py              SDK over pycrescolib (deploy, RPC, dataplane fetch, jobs)
 run/gfs/gfs_eval.py                evaluation harness (E1–E11), writes run/gfs/results/
 run/gfs/logs/                      per-node logs + eval logs
-run/gfs/data/uky-pathology/        generated test dataset (publisher root)
+run/gfs/data/site-a-pathology/        generated test dataset (publisher root)
 run/gfs/restore/                   restore targets
 </code></pre></div>
 <h2 id="topology">Topology<a class="headerlink" href="#topology" title="Permanent link">&para;</a></h2>
@@ -2840,23 +2840,23 @@ run/gfs/restore/                   restore targets
 <td>—</td>
 </tr>
 <tr>
-<td>uky-pub</td>
+<td>site-a-pub</td>
 <td>publisher + storage (filerepo watches the dataset)</td>
-<td>uky</td>
+<td>site-a</td>
 <td>server-raid</td>
 <td>24 MiB</td>
 </tr>
 <tr>
-<td>s-uofl</td>
+<td>s-site-b</td>
 <td>storage</td>
-<td>uofl</td>
+<td>site-b</td>
 <td>clustered-fs</td>
 <td>2 GiB</td>
 </tr>
 <tr>
-<td>s-wku</td>
+<td>s-site-c</td>
 <td>storage</td>
-<td>wku</td>
+<td>site-c</td>
 <td>server-raid</td>
 <td>2 GiB</td>
 </tr>

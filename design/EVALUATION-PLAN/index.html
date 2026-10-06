@@ -3038,9 +3038,9 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <h2 id="methodology">Methodology<a class="headerlink" href="#methodology" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Environment.</strong> Local: 1 global (index core) + 7 site agents on one host (<code>launch_gfs_fabric.sh</code>),
-  sites uky (publisher+storage, server-raid, 24 MiB pledge), uofl (clustered-fs), wku (server-raid),
+  sites site-a (publisher+storage, server-raid, 24 MiB pledge), site-b (clustered-fs), site-c (server-raid),
   murray (desktop-single), eku (usb-single), nku (server-raid, also index replica), morehead
-  (desktop-single), each 2 GiB pledge. Next: DGX 8-host mesh (region per site), then WAN emulation
+  (desktop-single), each 2 GiB pledge. Next: HPC 8-host mesh (region per site), then WAN emulation
   (<code>tc netem</code> latency/loss/bandwidth per site), then the BTSA nine-site pilot.</li>
 <li><strong>Harness.</strong> Python (<code>gfs_client.py</code> over pycrescolib) drives every action through the same public
   Cresco message API a real client uses; Java internals are exercised only through the fabric. Kills
@@ -3147,7 +3147,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <td>region-per-site topology</td>
 <td>7 regional controllers federated to a global</td>
 <td>E2–E11 pass unchanged</td>
-<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (3 regions: the writer's WAN bytes are exactly the blocks with no copy in its region); DGX: <code>eval/dgx/offload.sh mesh</code></td>
+<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (3 regions: the writer's WAN bytes are exactly the blocks with no copy in its region); HPC: <code>eval/cluster/offload.sh mesh</code></td>
 </tr>
 </tbody>
 </table>
@@ -3320,7 +3320,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <tr>
 <td>E3.11</td>
 <td>publisher restart</td>
-<td>restart uky-pub</td>
+<td>restart site-a-pub</td>
 <td>re-publish idempotent, seq continues, no duplicate rows</td>
 <td>PLAN</td>
 </tr>
@@ -3852,7 +3852,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <td>E7.15</td>
 <td>network partition (bridge down)</td>
 <td>SUSPECT not LOST until lost_ms; no repair storm; heals on reconnect</td>
-<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (a region cut mid-publish loses nothing, records nothing there, heals and chains through it again), <code>FollowerReadTest</code> (a cut-off follower refuses reads, never serves stale); DGX silent-region form: <code>eval/dgx/offload.sh silent</code></td>
+<td>PLAN (multi-host); in process: <code>MultiRegionChainTest</code> (a region cut mid-publish loses nothing, records nothing there, heals and chains through it again), <code>FollowerReadTest</code> (a cut-off follower refuses reads, never serves stale); HPC silent-region form: <code>eval/cluster/offload.sh silent</code></td>
 </tr>
 <tr>
 <td>E-BR</td>
@@ -3863,7 +3863,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 <tr>
 <td>E-TP-CH</td>
 <td>chain against star, R=3</td>
-<td>core_throughput C with <code>core_replication=star</code> then <code>chain</code> (<code>eval/dgx/offload.sh chain</code>, <code>mesh</code>)</td>
+<td>core_throughput C with <code>core_replication=star</code> then <code>chain</code> (<code>eval/cluster/offload.sh chain</code>, <code>mesh</code>)</td>
 <td>chain R=3 &gt;= 1.5x star R=3 and &gt;= 0.7x R=1</td>
 </tr>
 <tr>
@@ -4374,7 +4374,7 @@ campaigns (240 sites on one host; 72 sites across 8 bridged regions; 10^6-file i
 </tr>
 <tr>
 <td>E13.8</td>
-<td>64-node DGX mesh</td>
+<td>64-node HPC mesh</td>
 <td>E1–E11</td>
 <td>pass</td>
 <td>PLAN</td>
@@ -4520,7 +4520,7 @@ evidence stays in E4-E9.</em></p>
 <tr>
 <td>SC-28</td>
 <td>blocks encrypted before they leave the core; upload staging sealed at rest; metadata log integrity-protected</td>
-<td><code>BlockCodecTest</code>, <code>StreamServiceTest</code>, <code>CoreLogTest</code>; cost: <code>eval/results/staging_cost_dgx_20260926.json</code></td>
+<td><code>BlockCodecTest</code>, <code>StreamServiceTest</code>, <code>CoreLogTest</code>; cost: <code>eval/results/staging_cost_cluster_20260926.json</code></td>
 <td>UNIT (wave 1); metadata confidentiality PLAN (S11)</td>
 </tr>
 <tr>
@@ -4551,7 +4551,7 @@ evidence stays in E4-E9.</em></p>
 </table>
 <p>Scale and cost evidence behind these rows: <code>eval/results/scale/summary.json</code> (metadata heap, replay,
 snapshot and install at 10^7-10^8 blocks), <code>eval/results/dedup/</code> (block size on real imaging),
-<code>eval/results/modules/dgx/index_resolve_durable-local-223123.json</code> (durable audit cost).</p>
+<code>eval/results/modules/cluster/index_resolve_durable-local-223123.json</code> (durable audit cost).</p>
 <h2 id="e16-pilot-readiness-btsa-nine-sites">E16 — Pilot readiness (BTSA, nine sites)<a class="headerlink" href="#e16-pilot-readiness-btsa-nine-sites" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

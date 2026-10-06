@@ -4833,7 +4833,7 @@ failure domains.</p>
   drives consume cleaning cartridges. Budget per-site operations, not just capital.</li>
 </ul>
 <h3 id="transport">Transport<a class="headerlink" href="#transport" title="Permanent link">&para;</a></h3>
-<p>[[KentuckyWired]] is the natural carrier — state-owned open-access middle mile with presence in all
+<p>A state-owned open-access middle mile with presence in all
 120 counties and a 100G core — but ingest and repair bandwidth should be sized explicitly: at a given
 link rate, regenerating one library's contents takes a computable number of days, and that number is
 what determines how many simultaneous library losses the policy should actually be asked to survive.</p>
@@ -5843,7 +5843,7 @@ GcEpochRec
 
 RedactionRec                        // the only irreversible act besides sweep
   String lineage, rdom;  long ordered_seq, executed_seq;
-  String authority, approver_set;   // e.g. "IRB-2026-114"; institutional quorum, not the index quorum
+  String authority, approver_set;   // e.g. "IRB-2026-001"; institutional quorum, not the index quorum
   long   files, bytes, xorbs_touched;
   List&lt;String&gt; sigs;                // dated, signed attestation; survives the data
 </code></pre></div>
@@ -6290,7 +6290,7 @@ readable set is exactly <code>{f : every span's xid is AVAILABLE}</code>. Only r
 <p><strong>Planning is over xorbs, and durability is evaluated at planning time.</strong> The planner resolves
 enumeration → spans → distinct <code>xid</code> set, then intersects with the <code>xorb</code> table and returns a
 <strong>non-deliverable set up front</strong> — "18,432 files cannot be delivered: 12 xorbs REDACTED under
-IRB-2026-114, 1 xorb LOST" — before a single mount is scheduled. Without this the consumer sees a job
+IRB-2026-001, 1 xorb LOST" — before a single mount is scheduled. Without this the consumer sees a job
 stuck at 99.9997% for days, because on tape "not yet" and "never" are indistinguishable from the
 recall path.</p>
 <p><strong>Waves are ranges of enumeration ORDINAL, not of <code>rel</code>.</strong> A wave is <code>[lo_ord, hi_ord)</code> over
@@ -6807,7 +6807,7 @@ depends on large byte-identical regions (frozen backbones, unchanged embeddings)
 shifts slightly, neither chunker shares anything. <strong>Measure real checkpoints before deciding.</strong></p>
 <h2 id="measured-checkpoints-do-not-deduplicate-2026-09-19">Measured: checkpoints do not deduplicate (2026-09-19)<a class="headerlink" href="#measured-checkpoints-do-not-deduplicate-2026-09-19" title="Permanent link">&para;</a></h2>
 <p>The assumption the redaction design rested on, tested on real training output. Harness
-<code>eval/ckpt_dedup.py</code>, raw results <code>eval/results/ckpt_dedup_results.json</code>. Measured on a DGX compute
+<code>eval/ckpt_dedup.py</code>, raw results <code>eval/results/ckpt_dedup_results.json</code>. Measured on an HPC compute
 node over <code>ft/checkpoints/sft_v530_v6_long_p2</code>, a real SFT run with checkpoints every 500 steps, 51 GB
 each (12.06 GB weights, 24.1 GB optimizer state, 12.06 GB FSDP copy).</p>
 <p>64 KiB fixed blocks rather than CDC, deliberately: checkpoint files have identical structure at
@@ -6938,37 +6938,37 @@ housekeeping detail.</p>
 <td>10.41</td>
 </tr>
 <tr>
-<td>dgx-03, node-local tmp</td>
+<td>cluster node 03, node-local tmp</td>
 <td>none</td>
 <td>1260.5</td>
 <td>0.198</td>
 </tr>
 <tr>
-<td>dgx-03, node-local tmp</td>
+<td>cluster node 03, node-local tmp</td>
 <td>data only</td>
 <td>256.6</td>
 <td>0.974</td>
 </tr>
 <tr>
-<td>dgx-03, node-local tmp</td>
+<td>cluster node 03, node-local tmp</td>
 <td><strong>data+dir (shipped)</strong></td>
 <td><strong>339.0</strong></td>
 <td><strong>0.737</strong></td>
 </tr>
 <tr>
-<td>dgx-03, shared project fs</td>
+<td>cluster node 03, shared project fs</td>
 <td>none</td>
 <td>8.1</td>
 <td>30.875</td>
 </tr>
 <tr>
-<td>dgx-03, shared project fs</td>
+<td>cluster node 03, shared project fs</td>
 <td>data only</td>
 <td>8.8</td>
 <td>28.567</td>
 </tr>
 <tr>
-<td>dgx-03, shared project fs</td>
+<td>cluster node 03, shared project fs</td>
 <td>data+dir</td>
 <td>8.6</td>
 <td>29.038</td>
@@ -6977,7 +6977,7 @@ housekeeping detail.</p>
 </table>
 <p>The macOS run carried its own caveat — Java <code>force(true)</code> maps to <code>F_FULLFSYNC</code> there, flushing the
 physical drive cache, so the file recorded that the numbers were worst-case and MUST be re-measured
-on the deployment host. The dgx-03 run settles it.</p>
+on the deployment host. The cluster node 03 run settles it.</p>
 <p>Four findings.</p>
 <ol>
 <li><strong>The shipped barrier costs 0.737 ms per fragment on Linux node-local storage at 339 MB/s</strong>, not

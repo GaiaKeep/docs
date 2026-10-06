@@ -3035,11 +3035,11 @@ workloads, and future external agents. The first two or three decide which verb 
 estate (198 GB, small, well-understood), heartlens-ct3d-native (25.94 TB, 6.9 M files), the KOS
 V4/V5 corpora, model checkpoints. <strong>Rec:</strong> panAtlas index first — small, its sizes are measured,
 and it exercises identity, versioning and the doc_uid rule without needing a tape.</p>
-<p><strong>P3 [NOW] — Is the DGX copy retained after archiving, or deleted?</strong> <strong>ANSWERED 2026-10-02:</strong> the DGX copy is uncontrolled cache, never trusted or counted; the durable tier alone must recreate any dataset and survive the loss of a whole site. Tape is primary, not backup. This decides whether two
-tape sites is survivable (it is if the DGX copy stays) and whether tape is primary or backup.</p>
-<p><strong>P4 — Is this system the primary store for these datasets, or a durable tier behind the DGX
+<p><strong>P3 [NOW] — Is the HPC cluster copy retained after archiving, or deleted?</strong> <strong>ANSWERED 2026-10-02:</strong> the HPC cluster copy is uncontrolled cache, never trusted or counted; the durable tier alone must recreate any dataset and survive the loss of a whole site. Tape is primary, not backup. This decides whether two
+tape sites is survivable (it is if the HPC cluster copy stays) and whether tape is primary or backup.</p>
+<p><strong>P4 — Is this system the primary store for these datasets, or a durable tier behind the HPC cluster
 filesystem?</strong> <strong>ANSWERED 2026-10-02:</strong> see P3: tape is primary; the durable tier alone recreates any dataset. Primary means GFS must serve training-rate reads; tier means it only needs to
-materialise into the DGX.</p>
+materialise into the HPC cluster.</p>
 <p><strong>P5 — Are humans ever consumers?</strong> <strong>ANSWERED 2026-10-02:</strong> agents remain the primary consumers (no FUSE, userland mount or S3 console), but rich human dashboards are wanted: where data is and how it is working, down to the block, location and tape type, built on Cresco's mesh data. Multiple interfaces eventually. <strong>ANSWERED IN PART 2026-09-19:</strong> not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
 mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
 tab) is still wanted for operators.</p>
@@ -3084,8 +3084,8 @@ distribution and shoe-shine floor that every capacity figure depends on.</p>
 maximum modules, and <strong>whether one accessor serves the whole stack</strong>. The accessor turned out to be
 the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.</p>
 <p><strong>H3 — How many sites for phase one: 2 or 3?</strong> <strong>ANSWERED 2026-09-20:</strong> three (decision log: 3-way replication across three sites). <strong>Rec:</strong> 3. Two cannot form a quorum for index
-commits. Two is survivable only if the DGX copy is retained (P3) and a witness is added (R4).</p>
-<p><strong>H4 — Which physical locations?</strong> UK campus buildings, partner institutions, colocation? Each
+commits. Two is survivable only if the HPC cluster copy is retained (P3) and a witness is added (R4).</p>
+<p><strong>H4 — Which physical locations?</strong> campus buildings, partner institutions, colocation? Each
 must be a genuinely independent failure domain (power, network, building).</p>
 <p><strong>H5 — LTO-10 media: LA (30 TB) or PA (up to 40 TB)?</strong> <strong>Rec:</strong> PA, unless PA is not available as
 WORM for the cohorts that need it (see D3), or the premium exceeds 33 % and you stay under 132 PB.</p>
@@ -3316,7 +3316,7 @@ though it uses paths and sidecar files?</p>
 <p><strong>I1 [NOW] — Confirm the verbs:</strong> <strong>ANSWERED 2026-10-02:</strong> a cache-tier concern, deferred to phase two. <code>prospect</code> (what would it cost to get this version here, by which
 strategy) and <code>realise</code> (the only verb that moves bytes).</p>
 <p><strong>I2 — Should agents be able to move compute to data</strong>, not just data to compute? That requires
-GFS to know about compute locations and schedulers (SLURM on the DGX).</p>
+GFS to know about compute locations and schedulers (SLURM on the HPC cluster).</p>
 <p><strong>I3 — Transport for streaming: Cresco dataplane only, or also plain HTTP/gRPC for agents outside
 the mesh?</strong></p>
 <p><strong>I4 — Which client languages must work at launch?</strong> Python (pycrescolib) and Java are both
@@ -3337,7 +3337,7 @@ versions, but is no longer primary storage.</p>
 <p><strong>F3 — Does filerepo become a GFS binding, a GFS client, or both?</strong></p>
 <hr />
 <h2 id="14-operations">14. Operations<a class="headerlink" href="#14-operations" title="Permanent link">&para;</a></h2>
-<p><strong>O1 [NOW] — Fix the DGX mesh storage path?</strong> <strong>ANSWERED 2026-10-02:</strong> deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under <code>~/cresco/nodes</code> are on a network
+<p><strong>O1 [NOW] — Fix the HPC cluster mesh storage path?</strong> <strong>ANSWERED 2026-10-02:</strong> deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under <code>~/cresco/nodes</code> are on a network
 filesystem and are now refused durable copies. Point <code>store_dir</code> at node-local storage, or attest?
 <strong>Rec:</strong> node-local; it is also 40× faster.</p>
 <p><strong>O2 — Who operates each site day to day</strong> (media handling, drive swaps, destruction ceremonies)?</p>
@@ -3353,11 +3353,11 @@ barrier evidence?</strong></p>
 highest-leverage unmeasured constant in the design; a 45 % error moves throughput ~23 %. Needs a
 real drive. When, and where?</p>
 <p><strong>M2 [BEFORE MEDIA] — Shoe-shine floor / minimum speed-match rate for LTO-10.</strong> <strong>ANSWERED 2026-10-02:</strong> see M1. Sets spool size.</p>
-<p><strong>M3 — Count the imaging estate.</strong> ~850 TB UK chest CT and ~700 TB KPDT pathology are 92.6 % of
-the sizing basis and come off slides, with five conflicting KPDT figures. Can someone run a PACS
+<p><strong>M3 — Count the imaging estate.</strong> ~850 TB chest CT and ~700 TB pathology imaging are 92.6 % of
+the sizing basis and come off slides, with five conflicting inventory figures. Can someone run a PACS
 query and a pathology system query?</p>
 <p><strong>M4 — Consent-withdrawal rate</strong> on a real clinical lineage. Who would know?</p>
-<p><strong>M5 — A real request log to mine co-occurrence from.</strong> Does any exist (DGX job logs, panAtlas API
+<p><strong>M5 — A real request log to mine co-occurrence from.</strong> Does any exist (HPC job logs, panAtlas API
 logs)?</p>
 <p><strong>M6 — Power-loss test on the candidate site hosts</strong> — the only way to prove a barrier reaches
 power-safe media rather than just costs time. Worth doing? <strong>IN PART 2026-09-26 (OUT-01):</strong> the

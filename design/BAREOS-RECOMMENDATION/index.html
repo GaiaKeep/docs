@@ -4104,7 +4104,7 @@ mechanism.</p>
 <p><strong>One dedicated x86-64 Linux host with root and ~2 TB of scratch.</strong> mhvtl is an out-of-tree kernel
 module needing matching kernel headers and a rebuild on every kernel update. The development machine
 is macOS; the full-tunnel VPN hijacks the vmnet subnet, so local VMs are not a reliable fallback; and
-the DGX cluster is SLURM with no root and no kernel-module rights. <strong>Ask for the host now, not when
+the HPC cluster is SLURM with no root and no kernel-module rights. <strong>Ask for the host now, not when
 tape hardware is ordered.</strong> mhvtl also ships a TCMU transport (<code>usr/transport_tcmu.c</code>) which relies
 on in-tree <code>target_core_user</code> rather than an out-of-tree module — try that first, as it removes the
 kernel-module build from the critical path.</p>
@@ -4331,7 +4331,7 @@ drive</strong>.</p>
 </ul>
 <hr />
 <h2 id="13-the-disclosure-inventory-read-from-source-2026-09-19">13. The disclosure inventory, read from source (2026-09-19)<a class="headerlink" href="#13-the-disclosure-inventory-read-from-source-2026-09-19" title="Permanent link">&para;</a></h2>
-<p>Verified against <code>bareos/bareos</code> cloned on a DGX node, <code>core/src/stored/label.cc</code>. <strong>The disclosure
+<p>Verified against <code>bareos/bareos</code> cloned on a cluster node, <code>core/src/stored/label.cc</code>. <strong>The disclosure
 is materially larger than §3's G-8 stated</strong>, which named only commit time. <code>CreateVolumeLabel</code> and
 the session label together serialise the following <em>in the clear</em> onto the medium.</p>
 <p><strong>Volume label, once per volume</strong> — <code>label.cc:481-504</code>:</p>

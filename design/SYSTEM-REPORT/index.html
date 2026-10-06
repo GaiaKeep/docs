@@ -3067,7 +3067,7 @@ regression covers four geometries at exact-multiple, one byte under and one byte
 </ul>
 <h2 id="9-limits-of-the-evidence-and-what-is-not-built-yet">9. Limits of the evidence and what is not built yet<a class="headerlink" href="#9-limits-of-the-evidence-and-what-is-not-built-yet" title="Permanent link">&para;</a></h2>
 <ul>
-<li>All measurements are on one host. Multi-host and WAN numbers are the next venue (the DGX mesh).</li>
+<li>All measurements are on one host. Multi-host and WAN numbers are the next venue (the HPC cluster mesh).</li>
 <li>The index runs as a primary with log-shipped replicas; the Raft group is designed, not built.</li>
 <li>Hierarchical (local-parity) codes are represented by the local resiliency class in scoring; full local parity groups are a roadmap item.</li>
 <li>Grants and custody tokens use a federation secret; regional-CA signatures and mTLS binding of the client identity are the production form. Site keys are files with 0600 permissions; production is PKCS#11/HSM/KMS.</li>
@@ -3076,7 +3076,7 @@ regression covers four geometries at exact-multiple, one byte under and one byte
 </ul>
 <h2 id="10-next-steps">10. Next steps<a class="headerlink" href="#10-next-steps" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Run the campaigns across real hosts on the DGX mesh to obtain WAN-shaped numbers and to exercise regional brokers on separate machines.</li>
+<li>Run the campaigns across real hosts on the HPC cluster mesh to obtain WAN-shaped numbers and to exercise regional brokers on separate machines.</li>
 <li>Land W-GFS-3 and run each site as its own tenant end to end with the cross-tenant sink rules, then re-run the tenant-isolation checks live.</li>
 <li>Replace the federation secret with regional-CA signed grants and approver signatures; move site keys to an HSM/KMS.</li>
 <li>Raft for the index core; local parity groups for in-site repair.</li>

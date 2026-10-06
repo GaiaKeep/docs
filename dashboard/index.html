@@ -2660,7 +2660,7 @@ to see what the agents' storage is doing.</p>
 </tbody>
 </table>
 <h2 id="where-it-runs-and-how-to-open-it">Where it runs and how to open it<a class="headerlink" href="#where-it-runs-and-how-to-open-it" title="Permanent link">&para;</a></h2>
-<p>The dashboard serves on <code>127.0.0.1:28900</code> on a login node of the DGX cluster, run by a supervisor that restarts it
+<p>The dashboard serves on <code>127.0.0.1:28900</code> on a login node of the HPC cluster, run by a supervisor that restarts it
 if it exits. It answers only loopback <code>Host</code> headers and sends no CORS header, so a hostile web page in your browser
 cannot read tenant data through it — the only way in is an ssh tunnel:</p>
 <div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-N<span class="w"> </span>-L<span class="w"> </span><span class="m">28900</span>:127.0.0.1:28900<span class="w"> </span>&lt;account&gt;@&lt;cluster<span class="w"> </span>login<span class="w"> </span>host&gt;<span class="w">   </span><span class="c1"># then open http://localhost:28900/</span>

@@ -1374,10 +1374,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#transport-foundation-dgx" class="md-nav__link">
+  <a href="#transport-foundation-hpc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport foundation (DGX)
+        Transport foundation (HPC)
       
     </span>
   </a>
@@ -1385,10 +1385,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ingest-dgx" class="md-nav__link">
+  <a href="#ingest-hpc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ingest (DGX)
+        Ingest (HPC)
       
     </span>
   </a>
@@ -2704,10 +2704,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#transport-foundation-dgx" class="md-nav__link">
+  <a href="#transport-foundation-hpc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport foundation (DGX)
+        Transport foundation (HPC)
       
     </span>
   </a>
@@ -2715,10 +2715,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ingest-dgx" class="md-nav__link">
+  <a href="#ingest-hpc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ingest (DGX)
+        Ingest (HPC)
       
     </span>
   </a>
@@ -2837,11 +2837,11 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>The measurements behind release 1.3. <strong>DGX</strong> means the multi-host runs on the DGX cluster: 4 nodes,
+<p>The measurements behind release 1.3. <strong>HPC</strong> means the multi-host runs on the HPC cluster: 4 nodes,
 the secured build, signed requests and strict node-key pinning. <strong>In-process</strong> means a single JVM on
 one Mac, which is useful for comparing before and after, not as absolute numbers. Raw results are
 under <code>eval/results/</code> in the repository.</p>
-<h2 id="transport-foundation-dgx">Transport foundation (DGX)<a class="headerlink" href="#transport-foundation-dgx" title="Permanent link">&para;</a></h2>
+<h2 id="transport-foundation-hpc">Transport foundation (HPC)<a class="headerlink" href="#transport-foundation-hpc" title="Permanent link">&para;</a></h2>
 <p>The first multi-host run found the transport, not the storage engine, was the bottleneck. These
 fixes came first:
 - the broker's socket buffers now use kernel autotuning;
@@ -2899,7 +2899,7 @@ fixes came first:
 GB, with no measurable throughput loss: it was within the run-to-run spread. Before the security
 layer was merged, one flow measured 802 MB/s through the hub and 1,208 MB/s over the dynamic mesh's
 direct agent-to-agent links; 4 flows measured 2.3 GB/s and 3.1 GB/s.</p>
-<h2 id="ingest-dgx">Ingest (DGX)<a class="headerlink" href="#ingest-dgx" title="Permanent link">&para;</a></h2>
+<h2 id="ingest-hpc">Ingest (HPC)<a class="headerlink" href="#ingest-hpc" title="Permanent link">&para;</a></h2>
 <p>Ingest is a striped multi-part upload over 8 flows, with a short commit, at R=3 (three copies on
 three sites).</p>
 <table>
@@ -2949,13 +2949,13 @@ receipt. <strong>Star:</strong> the writer sends every copy itself.</p>
 </thead>
 <tbody>
 <tr>
-<td>DGX, through the hub</td>
+<td>HPC, through the hub</td>
 <td>234 MB/s</td>
 <td>254 MB/s</td>
 <td>1.09×</td>
 </tr>
 <tr>
-<td>DGX, dynamic mesh</td>
+<td>HPC, dynamic mesh</td>
 <td>245 MB/s</td>
 <td>261 MB/s</td>
 <td>1.06×</td>
@@ -2994,7 +2994,7 @@ receipt. <strong>Star:</strong> the writer sends every copy itself.</p>
 </table>
 <ul>
 <li><strong>The writer's egress</strong> is 1× the data with chain, against 3× with star.</li>
-<li><strong>On the DGX the gain is small</strong> because publishing there is limited by the engine, not by the
+<li><strong>On the HPC cluster the gain is small</strong> because publishing there is limited by the engine, not by the
   network: R=1 publishes at the same 250–270 MB/s. Chain is the default for publishes of 8 MiB or
   more.</li>
 </ul>
@@ -3064,7 +3064,7 @@ cluster; no images did.</p>
 </thead>
 <tbody>
 <tr>
-<td>1,000 real de-identified DICOM instances (542 MB), DGX, with the format adapter</td>
+<td>1,000 real de-identified DICOM instances (542 MB), HPC, with the format adapter</td>
 <td>4,257 B per instance: <strong>0.79 %</strong></td>
 </tr>
 <tr>

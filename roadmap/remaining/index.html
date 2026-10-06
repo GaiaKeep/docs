@@ -2726,7 +2726,7 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <li>[x] <strong>Chunking</strong>: a per-domain setting (content-defined by default)</li>
 <li>[x] Redo <strong>S1</strong>, the metadata-key IV discipline, under the dedup model</li>
 <li>[ ] Choose the <strong>first consumers</strong> and the <strong>first dataset</strong> (P1, P2); proposed: the panAtlas index</li>
-<li>[ ] Decide whether the <strong>DGX copy is kept</strong> after archiving (P3); this decides whether two sites could ever suffice</li>
+<li>[ ] Decide whether the <strong>HPC copy is kept</strong> after archiving (P3); this decides whether two sites could ever suffice</li>
 <li>[x] <strong>Hash function</strong>: SHA-384 by default, fixed per domain</li>
 <li>[ ] <strong>Java toolchain</strong> for raw SCSI: JDK 22+, JNA or a C helper</li>
 <li>[ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)</li>
@@ -2734,8 +2734,8 @@ phase ends with an end-to-end proof rather than unit tests alone.</p>
 <h2 id="phase-1-durable-storage-core">Phase 1: durable storage core<a class="headerlink" href="#phase-1-durable-storage-core" title="Permanent link">&para;</a></h2>
 <div class="admonition success">
 <p class="admonition-title">Shipped as release 1.3 (2026-10-01)</p>
-<p>The durable storage core is built, tested and validated on the DGX: 2,188 automated tests green
-in CI, and the secured live fabric check 88/88 on the DGX. It covers per-tenant authorization on
+<p>The durable storage core is built, tested and validated on the HPC cluster: 2,188 automated tests green
+in CI, and the secured live fabric check 88/88 on the HPC cluster. It covers per-tenant authorization on
 every verb, a Raft-replicated core with journal compaction, striped ingest with a short commit,
 chain replication, format-aware dedup and pack containers. See <a href="../../built/release-1-3/">Release 1.3</a>.</p>
 <p>Remaining in this phase:</p>
@@ -2754,7 +2754,7 @@ hash-verified, with no human action.</p>
 <li>[ ] Locus properties with a recorded basis; media labels as telemetry only</li>
 <li>[ ] Remaining locus properties: per-access setup cost, removability, volatility, reclaim granularity and latency, wear in native units</li>
 <li>[ ] Policy as constraints plus scoring; explicit behaviour when a policy can't be satisfied</li>
-<li>[x] DGX storage nodes moved to node-local <code>store_dir</code></li>
+<li>[x] HPC storage nodes moved to node-local <code>store_dir</code></li>
 </ul>
 <p><strong>Blocks and governance</strong></p>
 <ul>
@@ -2798,7 +2798,7 @@ hash-verified, with no human action.</p>
 <li>[x] Global deduplication for public data across tenants</li>
 <li>[ ] Moving computation to data (<code>realise</code> with a remote locus), integrated with SLURM</li>
 <li>[ ] Hardware key custody (HSM) and a FIPS 140-3 validated module for DoD fielding</li>
-<li>[x] Multi-host deployment on the DGX (hub and dynamic mesh) and wide-area emulation</li>
+<li>[x] Multi-host deployment on the HPC cluster (hub and dynamic mesh) and wide-area emulation</li>
 <li>[ ] Partner sites</li>
 </ul>
 <h2 id="carried-from-the-prototype">Carried from the prototype<a class="headerlink" href="#carried-from-the-prototype" title="Permanent link">&para;</a></h2>

@@ -2795,7 +2795,7 @@ writes the same data with and without the barrier and compares the rates:</p>
 </thead>
 <tbody>
 <tr>
-<td>DGX node-local disk</td>
+<td>HPC node-local disk</td>
 <td>×3.72</td>
 <td>Barrier costs time</td>
 <td>Yes</td>
@@ -2807,13 +2807,13 @@ writes the same data with and without the barrier and compares the rates:</p>
 <td>Yes</td>
 </tr>
 <tr>
-<td>DGX shared project filesystem, 2026-09-19 (one pass)</td>
+<td>HPC shared project filesystem, 2026-09-19 (one pass)</td>
 <td>×0.94</td>
 <td>Indeterminate</td>
 <td>Refused</td>
 </tr>
 <tr>
-<td>DGX shared project filesystem, 2026-09-23 (5 rounds, unanimous)</td>
+<td>HPC shared project filesystem, 2026-09-23 (5 rounds, unanimous)</td>
 <td>costs time every round</td>
 <td>Barrier costs time</td>
 <td>Admitted</td>
@@ -2832,17 +2832,17 @@ operator sets <code>gfs_durability_attested=true</code>. That setting is always 
 never as a measurement. Timing also can't prove that data survives a power loss; only a power-loss
 test can show that.</p>
 <div class="admonition note">
-<p class="admonition-title">Correction (2026-09-23, DGX jobs 221777 and 221810)</p>
-<p>A single timing pass proved unreliable: on dgx-03 it classified one of four identical node-local
+<p class="admonition-title">Correction (2026-09-23, HPC jobs 221777 and 221810)</p>
+<p>A single timing pass proved unreliable: on cluster node 03 it classified one of four identical node-local
 directories INDETERMINATE (the first site probed ran on a cold JVM). The probe now warms up, runs
 five rounds in alternating order, and counts a locus durable only if <strong>every</strong> round agrees. With
-that probe the DGX shared project filesystem measured <strong>COSTS_TIME</strong> unanimously (13–14 MiB/s),
+that probe the HPC cluster shared project filesystem measured <strong>COSTS_TIME</strong> unanimously (13–14 MiB/s),
 contradicting the earlier ×0.94. So it may be admitted. Its real cost is speed: 10–18× slower
 than node-local storage.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Operational consequence</p>
-<p>On the DGX, storage nodes default to a directory under <code>~/cresco/nodes/…</code>, which is on the
+<p>On the HPC cluster, storage nodes default to a directory under <code>~/cresco/nodes/…</code>, which is on the
 shared network filesystem. The robust probe now admits it, but it is 10–18× slower than
 node-local storage, so point <code>store_dir</code> at node-local storage. If a probe run there comes back
 inconsistent, those nodes are refused durable copies, and placement logs why.</p>

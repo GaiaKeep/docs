@@ -2779,7 +2779,7 @@ simulation or arithmetic). Artifacts are in <code>GaiaKeep/gfs</code> under <cod
 <tr>
 <td>What does the fsync barrier cost?</td>
 <td>Linux node-local: 339 MiB/s with the barrier, 0.74 ms per 256 KiB fragment. macOS: ~8× slower (full flush)</td>
-<td>Measured (DGX dgx-03, laptop); <code>fsync_cost.json</code></td>
+<td>Measured (HPC cluster node 03, laptop); <code>fsync_cost.json</code></td>
 </tr>
 <tr>
 <td>Does storage location matter more than its declared class?</td>
@@ -2903,7 +2903,7 @@ block-level deduplication is a requirement.</p>
 <tr>
 <td>How big is the panAtlas index estate?</td>
 <td>198.04 GB over 200,497,968 documents (988 B/document); 11.24 GB source records, 186.80 GB derived</td>
-<td>Measured on the DGX, 2026-09-19</td>
+<td>Measured on the HPC cluster, 2026-09-19</td>
 </tr>
 <tr>
 <td>What does it cost to bring back from tape?</td>

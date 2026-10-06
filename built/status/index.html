@@ -2742,8 +2742,8 @@
 <code>GaiaKeep/gfs</code> <code>1.3</code> at <code>8461e1a</code>, with CI green on 2,188 core tests. Details are in
 <a href="../tests/">Test results</a> and <a href="../benchmarks/">Benchmarks</a>.</p>
 <div class="admonition success">
-<p class="admonition-title">Release 1.3: the durable storage core, validated on the DGX</p>
-<p>The secured build passes the live fabric check <strong>88/88</strong> on the DGX cluster. That build has
+<p class="admonition-title">Release 1.3: the durable storage core, validated on the HPC cluster</p>
+<p>The secured build passes the live fabric check <strong>88/88</strong> on the HPC cluster. That build has
 signed requests, strict node-key pinning and sealed keys. An 8 GB ingest at three copies runs at
 146 MB/s and reads back at 289 MB/s, byte-identical. No request takes more than 20 s. A
 de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
@@ -2766,7 +2766,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Dataplane for data, MsgEvent for control, QoS per traffic class</td>
 <td><strong>Proven</strong></td>
-<td>DGX: 0.7 GB/s per flow, 2.1–2.4 GB/s on 4–8 flows, control p99 16 ms under load</td>
+<td>HPC: 0.7 GB/s per flow, 2.1–2.4 GB/s on 4–8 flows, control p99 16 ms under load</td>
 </tr>
 <tr>
 <td>Framework fixes: no silent message loss, tunnel integrity, secret redaction</td>
@@ -2776,7 +2776,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Replicated core: Raft log, lease, pre-vote, snapshots, non-voter catch-up</td>
 <td><strong>Proven</strong></td>
-<td>112 tests, power-cut campaigns, failover in the DGX fabric check</td>
+<td>112 tests, power-cut campaigns, failover in the HPC cluster fabric check</td>
 </tr>
 </tbody>
 </table>
@@ -2798,7 +2798,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Ingest: striped parts, then a short idempotent commit; resumable uploads</td>
 <td><strong>Proven</strong></td>
-<td>DGX 2–16 GB ingest, every request ≤ 18 s</td>
+<td>HPC 2–16 GB ingest, every request ≤ 18 s</td>
 </tr>
 <tr>
 <td>Async jobs with signed events on the dataplane</td>
@@ -2808,7 +2808,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Chain replication with signed per-hop receipts</td>
 <td><strong>Proven</strong></td>
-<td>DGX: chain ≥ star on hub and mesh; chaos test 1,118 publishes clean</td>
+<td>HPC: chain ≥ star on hub and mesh; chaos test 1,118 publishes clean</td>
 </tr>
 <tr>
 <td>Follower reads with read-your-writes</td>
@@ -2823,7 +2823,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Format-aware dedup (DICOM, NIfTI, TIFF) with client-side have-check</td>
 <td><strong>Proven</strong></td>
-<td>real data on the DGX: 0.79 % of bytes sent on re-upload</td>
+<td>real data on the HPC cluster: 0.79 % of bytes sent on re-upload</td>
 </tr>
 <tr>
 <td>Pack containers on storage nodes</td>
@@ -2902,7 +2902,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Signed requests (ECDSA P-384), tenant-scoped roles, tamper-evident audit</td>
 <td><strong>Proven</strong></td>
-<td>DGX fabric check, all requests signed</td>
+<td>HPC fabric check, all requests signed</td>
 </tr>
 <tr>
 <td>Key custody: file, environment, PKCS#11; master-key rotation window</td>
@@ -2912,7 +2912,7 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <tr>
 <td>Signed, encrypted storage-node traffic; pinned node keys; term fencing</td>
 <td><strong>Proven</strong></td>
-<td>DGX with strict pinning</td>
+<td>HPC with strict pinning</td>
 </tr>
 <tr>
 <td>Client transfer key exchange bound to the request</td>

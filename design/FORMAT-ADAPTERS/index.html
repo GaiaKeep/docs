@@ -2929,7 +2929,7 @@ exactly.</p>
       truncation, spliced structure. Never an exception, always an exact round trip.</li>
 <li>[ ] Adversarial inputs finish in bounded time: deep nesting, lengths far past the end, cycles,
       floods of tiny structures.</li>
-<li>[ ] Measured on real data on the DGX: dedup, edit cost, block references per TiB and throughput,
+<li>[ ] Measured on real data on the HPC cluster: dedup, edit cost, block references per TiB and throughput,
       against the plain chunker it wraps. It must not cost more than it saves.</li>
 <li>[ ] Its id, version and behaviour are recorded here.</li>
 </ul>
@@ -2981,7 +2981,7 @@ publish and refuses any block that differs.</p>
 version therefore needs client support before its domains can take a have-check. Until then, such
 domains' clients upload whole.</p>
 <h2 id="measured-results">Measured results<a class="headerlink" href="#measured-results" title="Permanent link">&para;</a></h2>
-<p>Measured on the UK DGX with the production chunkers and SHA-384 (array 223418, merge 223419, bench
+<p>Measured on the HPC cluster with the production chunkers and SHA-384 (array 223418, merge 223419, bench
 223420; drivers <code>eval/fmt/</code>, results <code>eval/results/dedup/dicom_aware_r1.json</code> and
 <code>format_*_r1.json</code>, provenance <code>run_format_r1.json</code>). The DICOM and WSI corpora and edits are those of
 the block-size measurement (D-C1-1, lists of job 223029), and every plain-CDC figure reproduces it
@@ -3123,7 +3123,7 @@ labels and macros, so the thumbnail stands in, with its strips zeroed and its IF
   on an IFD-first file the variant would make each tile a block.</li>
 </ul>
 <p><strong>NIfTI</strong>: 123 KiTS23 <code>imaging.nii.gz</code> files (every 4th case), float64 NIfTI-1 with <code>vox_offset</code> 352.
-KiTS23 on the DGX is gzip only: 489 files, 42.1 GB, no uncompressed <code>.nii</code> (job 223305).</p>
+KiTS23 on the HPC cluster is gzip only: 489 files, 42.1 GB, no uncompressed <code>.nii</code> (job 223305).</p>
 <table>
 <thead>
 <tr>
