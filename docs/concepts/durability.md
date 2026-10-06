@@ -28,8 +28,15 @@ is kept, and a small witness VM breaks ties. That is an [open question](../roadm
 What replication buys at this scale costs very little. At 3 PB usable it needs 143 more LTO-10
 cartridges in total than the best erasure code would:
 
-- **Every site is independently readable.** One site can serve any object with no cross-site
-  reads and keep running if disconnected.
+- **Every site holds a complete local copy of the data.** A site can serve any object with no
+  cross-site reads, so repair never waits on another site's media. Read the serving contract
+  carefully, though: the copy is data, not an API. Collection discovery, version lookup and
+  downloads are served by the core's replicated log, and the core serves only while a majority
+  lease holds ([The replicated core log](../design/CORE-LOG.md)). An isolated site's objects are
+  intact and durable, but its API is not serving while the site is disconnected; reads that need
+  the core wait for quorum. Serving objects from an isolated site without the core is **not built**
+  (it is a future goal for the caching tier's stale-read modes; see
+  [The caching tier](../roadmap/caching-tier.md)).
 - **Repair is a copy**, not a reconstruction.
 - **A lost site can be rebuilt anywhere**: a new site, a rented rack, disk, or cloud. Under the
   earlier cross-site code, a lost site's pieces could not be re-placed on the surviving sites at
