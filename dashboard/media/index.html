@@ -2771,6 +2771,17 @@ library's own state):</p>
 </ul>
 <p>An empty library is stated plainly: <em>no cartridge has been written in this library yet — archive copies are made by
 <code>core.archive</code></em>, which copies a collection's blocks to tape as extra copies and verifies them by reading back.</p>
+<div class="admonition note">
+<p class="admonition-title">What archive's read-back guarantee covers</p>
+<p>The read-back verification follows the write-verify policy, <code>tape_write_verify</code> (owner decision
+2026-10-01, default <strong>FULL</strong>): <strong>FULL</strong> reads every written container back; <strong>SAMPLED</strong> reads the
+first container of each write session and then 1 in <code>tape_write_verify_sample_every</code> (10); <strong>NONE</strong>
+performs no post-write read-back at all (<a href="../../design/TAPE-SIMULATION/">Tape simulation §4.3</a>). An
+archive that completes under SAMPLED or NONE has copied the data but has <strong>not</strong> verified every
+container by reading it back. Before reporting an archive as read-back verified, check the copies'
+state on the <a href="../placements/">Placements page</a>: tape copies distinguish <strong>verified</strong> (read back
+byte for byte) from <strong>claimed</strong> (written, not yet read back).</p>
+</div>
 <h2 id="disk-and-pack-stores">Disk and pack stores<a class="headerlink" href="#disk-and-pack-stores" title="Permanent link">&para;</a></h2>
 <p>Per-container detail for the packed stores (containers and live fraction) is not served by the core yet — the
 design record's open item S-4. Free bytes, copies and barrier evidence per node are in the registry above.</p>

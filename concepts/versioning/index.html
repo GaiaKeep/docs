@@ -693,6 +693,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#an-agents-versioning-workflow-what-is-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An agent's versioning workflow (what is built)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#extracts-citable-points-in-time" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2682,6 +2693,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#an-agents-versioning-workflow-what-is-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An agent's versioning workflow (what is built)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#extracts-citable-points-in-time" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2751,25 +2773,41 @@
 <h1 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h1>
 <div class="admonition info">
 <p class="admonition-title">Status</p>
-<p><strong>Designed.</strong> Specified in the design record (<code>ENTAIL-AGENT-NATIVE-FS.md</code> §3 and §6;
-<code>STORAGE-DIRECTION.md</code>, versioning sections). Not yet built. The prototype publishes
-file-granular deltas to the index, which is <strong>Proven</strong>, but it has no version objects.</p>
+<p><strong>Built (release 1.3), Proven on the live fabric</strong> for the versioning model agents use:
+versioned reads, per-branch version histories, compare-and-set commits, time-travel reads and
+retention classes — the storage engine's versioning is <strong>Proven</strong> (508 engine tests, model-based
+testing and the crash matrix; see <a href="../../built/status/">Status at a glance</a>), and the control
+dashboard browses collections, branches and version histories as existing behavior
+(<a href="../../dashboard/collections/">Collections and versions</a>).
+<strong>Designed, not built:</strong> the runs-and-roots container layout below (each commit a ~6 KB root
+referencing unchanged runs), the caching tier's working copies, and the pin-amplification
+accounting described later on this page. The prototype's file-granular index publishing is
+<strong>Proven</strong> for the prototype era and is not the 1.3 mechanism.</p>
 </div>
 <h2 id="the-rules">The rules<a class="headerlink" href="#the-rules" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Reads are versioned.</strong> Every read names a version, or an extract of one. There is no "latest
-  bytes of this file" read. An agent that wants the latest asks the index which version is current
-  and then reads that version.</li>
-<li><strong>Writes are confirmed by quorum.</strong> A new version exists once a quorum of the federation index
-  has committed it.</li>
+  bytes of this file" read. An agent that wants the latest asks the core which version is current
+  (the branch head) and then reads that version.</li>
+<li><strong>Writes are confirmed by quorum.</strong> A new version exists once the core's replicated log has
+  committed it (a majority of the core peers). A durable collection's version additionally commits
+  only when its tape copies verify: until then reads answer <code>COMMITTING</code> and the publish reply names
+  the commit job to await (<a href="../../design/CORE-LOG/">The replicated core log</a>, <a href="../../design/TAPE-SIMULATION/">Tape simulation</a>).</li>
 <li><strong>Durable storage is versioned; live copies are caches.</strong> A working copy on a GPU node or at a
   partner site is a cache of a named version, or an unversioned scratch cache. It is never a second
-  source of truth. See <a href="../../roadmap/caching-tier/">The caching tier</a>.</li>
+  source of truth. See <a href="../../roadmap/caching-tier/">The caching tier</a> (<strong>Designed</strong>).</li>
 </ul>
 <h2 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">&para;</a></h2>
 <p>A <strong>collection</strong> (dataset) has a history of <strong>versions</strong>. Each version is a small root record that
 names an ordered list of immutable <strong>runs</strong>. Each run lists the files changed in one commit,
 including deletions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Built today</p>
+<p>The 1.3 core stores each version as a whole-version file table with per-branch numbering,
+parent links and commit notes — what the dashboard's history view and <code>core.versions</code> show —
+not yet the run/root decomposition here. That decomposition (commits proportional to what
+changed, containers never rewritten on tape) is <strong>Designed</strong> (ENTAIL-AGENT-NATIVE-FS §3, §6).</p>
+</div>
 <ul>
 <li>A commit writes <strong>one new run plus a root of about 6 KB</strong>. Every unchanged run is referenced by
   name, so committing is proportional to what changed, not to dataset size.</li>
@@ -2779,6 +2817,21 @@ including deletions.</p>
 </ul>
 <p>Branches allow parallel work by different agents. Each branch holds a lease, and merges are
 compare-and-set against the branch head.</p>
+<h2 id="an-agents-versioning-workflow-what-is-built">An agent's versioning workflow (what is built)<a class="headerlink" href="#an-agents-versioning-workflow-what-is-built" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Discover</strong> the collections you may name: the authorized tenant listing
+   (<code>core.collections</code>, paged), plus what your profile and role bindings name — the dashboard's
+   <a href="../../dashboard/collections/">Collections page</a> shows both.</li>
+<li><strong>Inspect</strong> a collection's branches and each branch's head (<code>core.branches</code>), then its version
+   history, newest first (<code>core.versions</code>, paged) — the collection's detail page in the dashboard.</li>
+<li><strong>Retrieve</strong> an exact version: every read names a version (or reads the branch head by default).</li>
+<li><strong>Create</strong> a new version: put files and commit; concurrent writers compare-and-set against the
+   branch head, and the loser receives the head that moved (stale-head) and rebases.</li>
+<li><strong>Reconcile</strong> a pending publication before declaring it complete: a durable collection's commit
+   may answer <code>COMMITTING</code> — poll the named commit job (or <code>core.putstatus</code>) until it finishes;
+   reads answer <code>COMMITTING</code> until then (<a href="../../design/TAPE-SIMULATION/">Tape simulation</a> §4,
+   <a href="../../design/JOBS-AND-API/">Jobs and the API</a>).</li>
+</ol>
 <h2 id="extracts-citable-points-in-time">Extracts: citable points in time<a class="headerlink" href="#extracts-citable-points-in-time" title="Permanent link">&para;</a></h2>
 <p>An <strong>extract</strong> is a frozen, named selection from one or more versions. It is the unit an agent
 cites in a paper, a model card or a grant, and later reproduces.</p>
