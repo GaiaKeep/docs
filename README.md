@@ -11,7 +11,7 @@ python3 scripts/sync_design.py            # refresh docs/design/ and the open qu
 ```
 
 Publishing is by hand, never by GitHub Actions (owner, 2026-10-02): after pushing `main`, run `scripts/deploy.sh`
-on a workstation or a DGX node. It runs the gates below, builds with `mkdocs build --strict` and pushes the built
+on a workstation or a cluster node. It runs the gates below, builds with `mkdocs build --strict` and pushes the built
 site to the `gh-pages` branch, which Pages serves (`scripts/deploy.sh --dry-run` stops after the build). The home
 page's architecture graphic is generated: edit `scripts/make_hero.py` and run it, never the SVG.
 

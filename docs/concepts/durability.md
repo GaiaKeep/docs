@@ -20,7 +20,7 @@ distribution and encoding are developed.
 | 4 | 3 | 1: the same as three, at a third more site cost |
 | 5 | 3 | 2 |
 
-Two sites can't form a quorum. Two is survivable only if the source copy (for example on the DGX)
+Two sites can't form a quorum. Two is survivable only if the source copy (for example on the HPC cluster)
 is kept, and a small witness VM breaks ties. That is an [open question](../roadmap/open-questions.md) (P3).
 
 ### Why replication first

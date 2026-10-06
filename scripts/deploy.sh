@@ -4,7 +4,7 @@
 #   scripts/deploy.sh            # gates, strict build, push the built site to gh-pages
 #   scripts/deploy.sh --dry-run  # gates and build only
 #
-# Runs anywhere with git, Python 3.10+ and gitleaks: a workstation or a DGX node. Pages serves the
+# Runs anywhere with git, Python 3.10+ and gitleaks: a workstation or a cluster node. Pages serves the
 # gh-pages branch as it is pushed. Push credentials: GH_TOKEN in the environment, else the git
 # credential helper of `origin`. The site is public, so nothing is published unless every gate passes.
 set -euo pipefail

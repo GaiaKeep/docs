@@ -21,7 +21,7 @@ to see what the agents' storage is doing.
 
 ## Where it runs and how to open it
 
-The dashboard serves on `127.0.0.1:28900` on a login node of the DGX cluster, run by a supervisor that restarts it
+The dashboard serves on `127.0.0.1:28900` on a login node of the HPC cluster, run by a supervisor that restarts it
 if it exits. It answers only loopback `Host` headers and sends no CORS header, so a hostile web page in your browser
 cannot read tenant data through it — the only way in is an ssh tunnel:
 

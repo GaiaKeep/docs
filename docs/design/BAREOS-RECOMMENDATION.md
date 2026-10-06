@@ -578,7 +578,7 @@ Every FATAL and SERIOUS class raised across the four positions and twelve attack
 **One dedicated x86-64 Linux host with root and ~2 TB of scratch.** mhvtl is an out-of-tree kernel
 module needing matching kernel headers and a rebuild on every kernel update. The development machine
 is macOS; the full-tunnel VPN hijacks the vmnet subnet, so local VMs are not a reliable fallback; and
-the DGX cluster is SLURM with no root and no kernel-module rights. **Ask for the host now, not when
+the HPC cluster is SLURM with no root and no kernel-module rights. **Ask for the host now, not when
 tape hardware is ordered.** mhvtl also ships a TCMU transport (`usr/transport_tcmu.c`) which relies
 on in-tree `target_core_user` rather than an out-of-tree module — try that first, as it removes the
 kernel-module build from the critical path.
@@ -756,7 +756,7 @@ Each is a falsifiable statement. A **NO** on R-1, R-2 or R-8 re-opens the decisi
 
 ## 13. The disclosure inventory, read from source (2026-09-19)
 
-Verified against `bareos/bareos` cloned on a DGX node, `core/src/stored/label.cc`. **The disclosure
+Verified against `bareos/bareos` cloned on a cluster node, `core/src/stored/label.cc`. **The disclosure
 is materially larger than §3's G-8 stated**, which named only commit time. `CreateVolumeLabel` and
 the session label together serialise the following *in the clear* onto the medium.
 

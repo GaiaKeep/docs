@@ -7,7 +7,7 @@
 
 ## 1. Objectives
 
-1. **Data sharing (primary).** Any participant in Kentucky — cluster, lab server, desktop — can publish a dataset into a federated index and expose it to collaborators through per-project namespaces. Data never moves; it stays on the contributor's hardware and storage tier of choice.
+1. **Data sharing (primary).** Any participant — cluster, lab server, desktop — can publish a dataset into a federated index and expose it to collaborators through per-project namespaces. Data never moves; it stays on the contributor's hardware and storage tier of choice.
 2. **Geographic redundancy (secondary, same machinery).** Between the participating universities there is essentially no geographic redundancy for most data today. Pledged bulk capacity across sites provides a low-cost, low-performance durability tier using global erasure coding rather than replicas.
 
 Both objectives are served by the same capability: indexing, routing, and storing data at federated locations.

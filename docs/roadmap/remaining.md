@@ -13,7 +13,7 @@ Nothing in phase 1 can be specified exactly until these are answered. See
 - [x] **Chunking**: a per-domain setting (content-defined by default)
 - [x] Redo **S1**, the metadata-key IV discipline, under the dedup model
 - [ ] Choose the **first consumers** and the **first dataset** (P1, P2); proposed: the panAtlas index
-- [ ] Decide whether the **DGX copy is kept** after archiving (P3); this decides whether two sites could ever suffice
+- [ ] Decide whether the **HPC copy is kept** after archiving (P3); this decides whether two sites could ever suffice
 - [x] **Hash function**: SHA-384 by default, fixed per domain
 - [ ] **Java toolchain** for raw SCSI: JDK 22+, JNA or a C helper
 - [ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)
@@ -21,8 +21,8 @@ Nothing in phase 1 can be specified exactly until these are answered. See
 ## Phase 1: durable storage core
 
 !!! success "Shipped as release 1.3 (2026-10-01)"
-    The durable storage core is built, tested and validated on the DGX: 2,188 automated tests green
-    in CI, and the secured live fabric check 88/88 on the DGX. It covers per-tenant authorization on
+    The durable storage core is built, tested and validated on the HPC cluster: 2,188 automated tests green
+    in CI, and the secured live fabric check 88/88 on the HPC cluster. It covers per-tenant authorization on
     every verb, a Raft-replicated core with journal compaction, striped ingest with a short commit,
     chain replication, format-aware dedup and pack containers. See [Release 1.3](../built/release-1-3.md).
 
@@ -42,7 +42,7 @@ hash-verified, with no human action.
 - [ ] Locus properties with a recorded basis; media labels as telemetry only
 - [ ] Remaining locus properties: per-access setup cost, removability, volatility, reclaim granularity and latency, wear in native units
 - [ ] Policy as constraints plus scoring; explicit behaviour when a policy can't be satisfied
-- [x] DGX storage nodes moved to node-local `store_dir`
+- [x] HPC storage nodes moved to node-local `store_dir`
 
 **Blocks and governance**
 
@@ -88,7 +88,7 @@ After durable storage is complete. See [The caching tier](caching-tier.md).
 - [x] Global deduplication for public data across tenants
 - [ ] Moving computation to data (`realise` with a remote locus), integrated with SLURM
 - [ ] Hardware key custody (HSM) and a FIPS 140-3 validated module for DoD fielding
-- [x] Multi-host deployment on the DGX (hub and dynamic mesh) and wide-area emulation
+- [x] Multi-host deployment on the HPC cluster (hub and dynamic mesh) and wide-area emulation
 - [ ] Partner sites
 
 ## Carried from the prototype
