@@ -670,17 +670,17 @@ shape(F_train)   -> sweep_drive_seconds [38 h, 54 h]    // wall clock [4.2 h, 6.
                     // utilisation precisely because it wastes drive-seconds on mounts
                     // (eval/results/plant_sim.json).
                  , pack_alignment ALIGNED,
-                    residency_coverage [{louisville, 0.0}]
+                    residency_coverage [{site-a, 0.0}]
 register_transform(tokenise_wsi, determinism BITWISE, rdom_rule PRESERVE,
                    output ROWS{...})                       -> T_tok
 derive([F_train], T_tok, {tile:512}, idem)                 -> D_tok      (ABSENT, O(1), free)
 prospect(D_tok, {deadline: 18h})                           -> ADMISSIBLE
     shared_cost: recall of F_train, invariant across strategies
-    strategies: COMPUTE_AT@louisville (local group exists)  — 0 input core bytes
+    strategies: COMPUTE_AT@site-a (local group exists)  — 0 input core bytes
                 DELIVER@caller                              — 40 TB core, 8.9h, refused: PLEDGE
     rewrites:   none needed
 intend(D_tok, horizon{+2h,+18h}, BATCH)                     -> coalesced with 3 other intents
-realise(D_tok, sink RESIDENCY{louisville}, draw)            -> Job (one tape pass, ordinal waves)
+realise(D_tok, sink RESIDENCY{site-a}, draw)            -> Job (one tape pass, ordinal waves)
 -- epoch 1..N:
 realise(D_tok, sink STREAM{shuffle seed_e}, draw)           -> attaches to the residency; no mounts
 evict(D_tok) when done                                      -> bytes released, CITATION SURVIVES
@@ -725,7 +725,7 @@ resolve_citation(citation)   -> { cert, redaction_chain_head, index_seq, stalene
                                   availability: PARTIALLY_REDACTED }
 verify(citation, WITH_CHECKPOINT)
    -> root_pub verifies; 1,203,926 of 1,204,338 leaves prove inclusion;
-      412 leaves return signed redaction attestations under IRB-2026-114, effective 2026-04-02;
+      412 leaves return signed redaction attestations under IRB-2026-001, effective 2026-04-02;
       intersect(consumed_set_root of receipt R, redaction set) = 412  ->  NOT REPRODUCIBLE,
       bounded and attributed
 attest(citation)  -> custody_health{t:7, n:12, live_shares:9, decryptability_horizon: 2034-11}
@@ -1108,7 +1108,7 @@ Experimentation must be cheaper than not experimenting, or agents route around t
 **Start.**
 
 ```
-open_task(P_irb2026_114, parent_task: null, locus: louisville,
+open_task(P_irb2026_001, parent_task: null, locus: site-a,
           policy {flush_cadence_s: 900, on_lease_lapse: MERGE_AND_HOLD,
                   on_input_redacted: QUARANTINE_AND_REPLAY,
                   on_authority_expiring: PROMOTE{kymed-derived, run}},

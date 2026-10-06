@@ -111,7 +111,7 @@ kid is refused with the reason).
   `core_heartbeat_ms`. A peer that has heard from a leader within the timeout ignores vote requests.
 - The leader writes a proposal to its log and sends it at once, and syncs its log on a thread of its own: the
   raft monitor is never held while the medium syncs, so heartbeats, acknowledgements and status go on during a
-  slow fsync (an ingest's writes on the same disk made one take ~3 s on the DGX, 2026-10-01, and the leader, its
+  slow fsync (an ingest's writes on the same disk made one take ~3 s on the HPC cluster, 2026-10-01, and the leader, its
   monitor held, sent no heartbeat, counted no acknowledgement and stepped down). Its own copy counts toward a
   commit only once synced (`durable_index` in status). A follower still syncs before it answers; a follower's
   stall shorter than `core_election_timeout_ms` is ridden out.

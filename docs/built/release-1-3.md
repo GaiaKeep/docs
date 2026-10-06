@@ -2,7 +2,7 @@
 
 GFS 1.3 is the first release of the durable storage core. It was integrated from about twenty
 independently built packages, reviewed adversarially twice, and validated on a single host and on
-the DGX cluster before shipping.
+the HPC cluster before shipping.
 
 | What | Where | State |
 |---|---|---|
@@ -20,7 +20,7 @@ See [Test results](tests.md) for what was tested and [Benchmarks](benchmarks.md)
   MsgEvents open and close streams and carry nothing else.
 - **QoS tiers per traffic class:** acknowledgements high, background bulk lowest, Raft on its own class.
 - **Speed:** many flows per transfer, never one request per block. A flow went from 62–82 MB/s to
-  0.7 GB/s, and 2.1–2.4 GB/s across 4–8 flows on the DGX.
+  0.7 GB/s, and 2.1–2.4 GB/s across 4–8 flows on the HPC cluster.
 - **Acks:** selective-acknowledgement ranges, coalesced, so one lost frame no longer floods the link.
 - **Bounded memory:** windows, budgets and per-transfer state sized to the window.
 
@@ -75,7 +75,7 @@ See [Test results](tests.md) for what was tested and [Benchmarks](benchmarks.md)
 
 ## Found and fixed on the way
 
-The adversarial reviews, power-cut campaigns, crash matrix, model-based tests and DGX runs found and
+The adversarial reviews, power-cut campaigns, crash matrix, model-based tests and HPC runs found and
 fixed defects that unit tests alone had missed. Every fix has a regression test that failed before
 it. The most serious:
 
@@ -86,7 +86,7 @@ it. The most serious:
 - **A wiped core peer could be promoted to voter by a stale message,** and a committed entry could
   then be overwritten.
 - **A leader holding a lock while syncing its log stopped sending heartbeats under heavy upload,**
-  and lost leadership. Found on the DGX. The sync now runs outside the lock, and the default election
+  and lost leadership. Found on the HPC cluster. The sync now runs outside the lock, and the default election
   timeout is 6 s.
 - **More than 20 durability ordering defects** in the logs, journals, pack and tape stores, found by
   power-cut testing.

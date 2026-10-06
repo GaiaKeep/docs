@@ -41,12 +41,12 @@ estate (198 GB, small, well-understood), heartlens-ct3d-native (25.94 TB, 6.9 M 
 V4/V5 corpora, model checkpoints. **Rec:** panAtlas index first — small, its sizes are measured,
 and it exercises identity, versioning and the doc_uid rule without needing a tape.
 
-**P3 [NOW] — Is the DGX copy retained after archiving, or deleted?** **ANSWERED 2026-10-02:** the DGX copy is uncontrolled cache, never trusted or counted; the durable tier alone must recreate any dataset and survive the loss of a whole site. Tape is primary, not backup. This decides whether two
-tape sites is survivable (it is if the DGX copy stays) and whether tape is primary or backup.
+**P3 [NOW] — Is the HPC cluster copy retained after archiving, or deleted?** **ANSWERED 2026-10-02:** the HPC cluster copy is uncontrolled cache, never trusted or counted; the durable tier alone must recreate any dataset and survive the loss of a whole site. Tape is primary, not backup. This decides whether two
+tape sites is survivable (it is if the HPC cluster copy stays) and whether tape is primary or backup.
 
-**P4 — Is this system the primary store for these datasets, or a durable tier behind the DGX
+**P4 — Is this system the primary store for these datasets, or a durable tier behind the HPC cluster
 filesystem?** **ANSWERED 2026-10-02:** see P3: tape is primary; the durable tier alone recreates any dataset. Primary means GFS must serve training-rate reads; tier means it only needs to
-materialise into the DGX.
+materialise into the HPC cluster.
 
 **P5 — Are humans ever consumers?** **ANSWERED 2026-10-02:** agents remain the primary consumers (no FUSE, userland mount or S3 console), but rich human dashboards are wanted: where data is and how it is working, down to the block, location and tape type, built on Cresco's mesh data. Multiple interfaces eventually. **ANSWERED IN PART 2026-09-19:** not for humans; built for agents (decision log). Still open: whether an operator's read-only inspection path (the dashboard Storage tab) is wanted. You've said no. Confirm that means: no browsing UI, no FUSE
 mount, no S3 console — or whether a read-only human inspection path (e.g. the dashboard's Storage
@@ -111,9 +111,9 @@ maximum modules, and **whether one accessor serves the whole stack**. The access
 the Cube's real throughput ceiling (~14 drives/site), and I have no figure for the Stack.
 
 **H3 — How many sites for phase one: 2 or 3?** **ANSWERED 2026-09-20:** three (decision log: 3-way replication across three sites). **Rec:** 3. Two cannot form a quorum for index
-commits. Two is survivable only if the DGX copy is retained (P3) and a witness is added (R4).
+commits. Two is survivable only if the HPC cluster copy is retained (P3) and a witness is added (R4).
 
-**H4 — Which physical locations?** UK campus buildings, partner institutions, colocation? Each
+**H4 — Which physical locations?** campus buildings, partner institutions, colocation? Each
 must be a genuinely independent failure domain (power, network, building).
 
 **H5 — LTO-10 media: LA (30 TB) or PA (up to 40 TB)?** **Rec:** PA, unless PA is not available as
@@ -457,7 +457,7 @@ though it uses paths and sidecar files?
 strategy) and `realise` (the only verb that moves bytes).
 
 **I2 — Should agents be able to move compute to data**, not just data to compute? That requires
-GFS to know about compute locations and schedulers (SLURM on the DGX).
+GFS to know about compute locations and schedulers (SLURM on the HPC cluster).
 
 **I3 — Transport for streaming: Cresco dataplane only, or also plain HTTP/gRPC for agents outside
 the mesh?**
@@ -492,7 +492,7 @@ versions, but is no longer primary storage.
 
 ## 14. Operations
 
-**O1 [NOW] — Fix the DGX mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under `~/cresco/nodes` are on a network
+**O1 [NOW] — Fix the HPC cluster mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under `~/cresco/nodes` are on a network
 filesystem and are now refused durable copies. Point `store_dir` at node-local storage, or attest?
 **Rec:** node-local; it is also 40× faster.
 
@@ -519,13 +519,13 @@ real drive. When, and where?
 
 **M2 [BEFORE MEDIA] — Shoe-shine floor / minimum speed-match rate for LTO-10.** **ANSWERED 2026-10-02:** see M1. Sets spool size.
 
-**M3 — Count the imaging estate.** ~850 TB UK chest CT and ~700 TB KPDT pathology are 92.6 % of
-the sizing basis and come off slides, with five conflicting KPDT figures. Can someone run a PACS
+**M3 — Count the imaging estate.** ~850 TB chest CT and ~700 TB pathology imaging are 92.6 % of
+the sizing basis and come off slides, with five conflicting inventory figures. Can someone run a PACS
 query and a pathology system query?
 
 **M4 — Consent-withdrawal rate** on a real clinical lineage. Who would know?
 
-**M5 — A real request log to mine co-occurrence from.** Does any exist (DGX job logs, panAtlas API
+**M5 — A real request log to mine co-occurrence from.** Does any exist (HPC job logs, panAtlas API
 logs)?
 
 **M6 — Power-loss test on the candidate site hosts** — the only way to prove a barrier reaches

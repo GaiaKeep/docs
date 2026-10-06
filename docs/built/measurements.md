@@ -11,7 +11,7 @@ simulation or arithmetic). Artifacts are in `GaiaKeep/gfs` under `eval/results/`
 
 | Question | Result | Basis |
 |---|---|---|
-| What does the fsync barrier cost? | Linux node-local: 339 MiB/s with the barrier, 0.74 ms per 256 KiB fragment. macOS: ~8× slower (full flush) | Measured (DGX dgx-03, laptop); `fsync_cost.json` |
+| What does the fsync barrier cost? | Linux node-local: 339 MiB/s with the barrier, 0.74 ms per 256 KiB fragment. macOS: ~8× slower (full flush) | Measured (HPC cluster node 03, laptop); `fsync_cost.json` |
 | Does storage location matter more than its declared class? | Shared project filesystem **8.1–8.8 MiB/s**, node-local **339 MiB/s**: a **40×** gap between identically described nodes | Measured; `fsync_cost.json` |
 | Can timing show whether a barrier reaches storage? | Barrier cost ratio: node-local ×3.72, macOS ×17.97, shared filesystem ×0.94. It proves the barrier *works* in the first two; the shared filesystem can't be judged | Measured; `BarrierTest` |
 
@@ -50,7 +50,7 @@ simulation or arithmetic). Artifacts are in `GaiaKeep/gfs` under `eval/results/`
 
 | Question | Result | Basis |
 |---|---|---|
-| How big is the panAtlas index estate? | 198.04 GB over 200,497,968 documents (988 B/document); 11.24 GB source records, 186.80 GB derived | Measured on the DGX, 2026-09-19 |
+| How big is the panAtlas index estate? | 198.04 GB over 200,497,968 documents (988 B/document); 11.24 GB source records, 186.80 GB derived | Measured on the HPC cluster, 2026-09-19 |
 | What does it cost to bring back from tape? | One mount plus 495 s of transfer, **13.2–14.2 min** | Modelled; `IndexResidency` |
 
 ## Codec throughput (single host)

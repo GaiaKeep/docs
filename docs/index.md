@@ -30,12 +30,12 @@ The system is required to be five things:
 ## Where things stand
 
 **Release 1.3 shipped on 2026-10-01.** The durable storage core is built, tested and validated on
-the DGX cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/tests.md) and
+the HPC cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/tests.md) and
 [Benchmarks](built/benchmarks.md).
 
 - **What is proven.**
     - **The 1.3 core:** 2,188 automated tests, green in CI. The secured live fabric check passes
-      88/88 on the DGX.
+      88/88 on the HPC cluster.
     - **Ingest:** 8–16 GB at three copies runs at about 150 MB/s and reads back at about 290 MB/s,
       with no request over 20 s.
     - **Transport:** 0.7 GB/s per flow and over 2 GB/s across 4–8 flows.

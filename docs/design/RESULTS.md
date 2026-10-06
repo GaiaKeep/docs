@@ -97,7 +97,7 @@ Works end to end but the same-host region↔global bridges flap (a documented Cr
 limitation, "Controller Path Lost" every ~7 s per region): cross-region push peaks 441–499 MB/s and
 RPC p99 stays 2–4 ms under flood, but promotes/restores/repairs pay 5–20 s stalls per flap and a
 region-loss storm healed in 12 min instead of seconds. GFS finished every operation correctly
-through fallback and retry; the multi-host DGX mesh is where bridged numbers will be clean (W-GFS-5).
+through fallback and retry; the multi-host HPC mesh is where bridged numbers will be clean (W-GFS-5).
 
 ## Defects found and fixed by the scale campaigns
 1. **Correlated placement**: top-k by score put every object on the same sites → weighted random spread.

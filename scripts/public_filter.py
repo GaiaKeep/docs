@@ -25,6 +25,38 @@ SCRUB = [
     (re.compile(r"\b(10|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7]))\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"), "<private address>"),
     (re.compile(r"\b192\.168\.\d{1,3}\.\d{1,3}\b"), "<private address>"),
     (re.compile(r"\b172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}\b"), "<private address>"),
+    # facility and institution names are never published (owner decision 2026-10-06).
+    # The cluster is "the HPC cluster"; its nodes are "cluster node N"; harness paths are eval/cluster/.
+    (re.compile(r"\bthe UK DGX\b"), "the HPC cluster"),
+    (re.compile(r"\bthe DGX cluster\b"), "the HPC cluster"),
+    (re.compile(r"\bDGX cluster\b"), "HPC cluster"),
+    (re.compile(r"\bThe DGX\b"), "The HPC cluster"),
+    (re.compile(r"\bthe DGX\b"), "the HPC cluster"),
+    (re.compile(r"\ba DGX compute\s+node\b"), "an HPC compute node"),
+    (re.compile(r"\ba DGX\s+node\b"), "a cluster node"),
+    (re.compile(r"\bDGX-class\b"), "HPC-class"),
+    (re.compile(r"\bDGX\b"), "HPC"),
+    (re.compile(r"\bdgx-(\d+)\b"), r"cluster node \1"),
+    (re.compile(r"\beval/dgx/"), "eval/cluster/"),
+    (re.compile(r"\bbench/dgx/"), "bench/cluster/"),
+    (re.compile(r"\bmodules/dgx/"), "modules/cluster/"),
+    (re.compile(r"_dgx_"), "_cluster_"),
+    (re.compile(r"\bdgx\b", re.IGNORECASE), "HPC"),
+    # partner sites and institutional identifiers
+    (re.compile(r"\buky-pub\b"), "site-a-pub"),
+    (re.compile(r"\buky\b"), "site-a"),
+    (re.compile(r"\buofl\b"), "site-b"),
+    (re.compile(r"\bwku\b"), "site-c"),
+    (re.compile(r"\bUK campus buildings\b"), "campus buildings"),
+    (re.compile(r"\bUK chest CT\b"), "chest CT"),
+    (re.compile(r"\bKPDT pathology\b"), "pathology imaging"),
+    (re.compile(r"\bKPDT figures\b"), "inventory figures"),
+    (re.compile(r"\[\[KentuckyWired\]\] is the natural carrier — state-owned"), "A state-owned"),
+    (re.compile(r"\bAny participant in Kentucky\b"), "Any participant"),
+    (re.compile(r"\bany participant in Kentucky\b"), "any participant"),
+    (re.compile(r"\bIRB-2026-114\b"), "IRB-2026-001"),
+    (re.compile(r"\bP_irb2026_114\b"), "P_irb2026_001"),
+    (re.compile(r"\blouisville\b"), "site-a"),
 ]
 
 # never publishable: the check fails outright
@@ -39,6 +71,9 @@ FORBIDDEN = [
     (re.compile(r"^\s*(?:>\s*)?\*\*(?:PRIVATE\b|Private\.\*\*)"), "a document marked private (OUTSTANDING.md, TAPE-FORMAT.md, ...)"),
     (re.compile(r"never goes to the public docs site|not part of the public docs sync"), "a document marked private"),
     (re.compile(r"\b(core_master_key|gfs_secret|cresco_service_key)\s*[=:]\s*['\"]?[0-9A-Za-z+/_-]{16,}"), "secret value"),
+    (re.compile(r"\bUniversity of Kentucky\b", re.IGNORECASE), "institution name"),
+    (re.compile(r"\b[\w.-]*uky\.edu\b"), "institutional hostname"),
+    (re.compile(r"\bKentuckyWired\b"), "institutional network name"),
 ]
 
 

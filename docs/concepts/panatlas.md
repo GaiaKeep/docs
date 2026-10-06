@@ -6,7 +6,7 @@ of this storage system: every document has a unique id and metadata, and everyth
 
 ## The index is a dataset, not a structure of the store
 
-**Measured 2026-09-19** on the DGX:
+**Measured 2026-09-19** on the HPC cluster:
 
 | Part | Size | Share |
 |---|---:|---:|

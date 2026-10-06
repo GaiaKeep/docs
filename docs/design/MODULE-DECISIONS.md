@@ -241,7 +241,7 @@ The CI runner (Azure, Linux x86-64, 2 cores) measured **SHA-256 at 1,365 MB/s an
 613 MB/s**, a **2.2×** gap against 1.67× on Apple silicon. SHA-384 is still above one LTO-10 drive
 (400 MB/s) on a single core, with less headroom than the laptop suggested. Hashing parallelises per
 block, so a many-core server has room to spare. The recommendation to keep SHA-384 stands, now on
-x86 evidence. The DGX run (job 221777) adds a server-class x86 figure.
+x86 evidence. The HPC cluster run (job 221777) adds a server-class x86 figure.
 
 ### A measurement correction: JIT warm-up
 
@@ -259,33 +259,33 @@ after every restart.
 - `eval/gfs-core.sh bench [...]` measures primitives, publish and read, versioning, repair and scrub,
   and writes JSON to `eval/results/bench/`.
 - Both are classes in the bundle (`io.cresco.gfs.core.tools`), so they run on any deployment host.
-- CI (then `.github/workflows/test.yml`; on the DGX since 2026-10-02, docs/CI.md) runs the suite, the wire-contract lint, the smoke test and a
+- CI (then `.github/workflows/test.yml`; on the HPC cluster since 2026-10-02, docs/CI.md) runs the suite, the wire-contract lint, the smoke test and a
   small benchmark on every push, and uploads the results. The first run passed.
 
-## Update 2026-09-23 (evening): on DGX servers
+## Update 2026-09-23 (evening): on HPC servers
 
-The smoke test and benchmark ran on DGX compute nodes via SLURM: job 221777 on dgx-03, then job
-221810 on dgx-01 after the fixes below. Logs and JSON are in `eval/results/bench/dgx/`. Both are
+The smoke test and benchmark ran on HPC compute nodes via SLURM: job 221777 on cluster node 03, then job
+221810 on cluster node 01 after the fixes below. Logs and JSON are in `eval/results/bench/cluster/`. Both are
 x86-64 with 32 cores, JDK 21.
 
 **Two defects the server found, both fixed:**
 
-1. **The durability probe was a single timing pass.** On dgx-03 it classified one of four identical
+1. **The durability probe was a single timing pass.** On cluster node 03 it classified one of four identical
    node-local directories INDETERMINATE and the other three COSTS_TIME: the first site probed ran on
    a cold JVM. The probe now warms up, runs five rounds alternating which pass goes first, and counts
    a locus durable only when **every** round agrees (`classifyRounds`). The per-round ratios are kept
-   for audit. On dgx-01 all four node-local sites came back unanimous, and the smoke test passed
+   for audit. On cluster node 01 all four node-local sites came back unanimous, and the smoke test passed
    25/25.
 2. **The engine was CPU-bound on one thread.** On x86 each core is slower at this work (SHA-384
    718 MB/s, codec ~545 MB/s), and every block was hashed and encrypted serially. Per-block work now
    runs across cores, with the decisions that touch shared state kept sequential and in order.
    Domain keys are memoised, and the memo is cleared when a root is installed or destroyed.
 
-**Correction:** with the unanimous probe, the DGX **shared project filesystem measured COSTS_TIME**
+**Correction:** with the unanimous probe, the HPC cluster **shared project filesystem measured COSTS_TIME**
 (13–14 MiB/s), contradicting the one-pass ×0.94 from 2026-09-19. It is admitted; its real cost is
 speed, 10–18× slower than node-local storage.
 
-**dgx-01, node-local disk (job 221810):**
+**cluster node 01, node-local disk (job 221810):**
 
 | Mode | R | Publish MB/s | Verified read MB/s | Stored / logical (10 versions) | Repair copies/s |
 |---|---:|---:|---:|---:|---:|
@@ -296,7 +296,7 @@ speed, 10–18× slower than node-local storage.
 | GROUP | 3 | 76 | 380 | 0.00 | 2,464 |
 | GLOBAL | 3 | 77 | 380 | 0.00 | 2,336 |
 
-Against dgx-03 before the CPU fix, deduplicating-mode publish went from ~100 to **131–140 MB/s** at
+Against cluster node 03 before the CPU fix, deduplicating-mode publish went from ~100 to **131–140 MB/s** at
 R=1, and verified reads from 226–241 to **367–383 MB/s**. At R=3 the limit is now the disk syncs
 (74–77 MB/s). In RAM on the same CPU, publish reaches 152–227 MB/s at R=1 and reads 396–472 MB/s.
 
@@ -448,7 +448,7 @@ State: 324/324 unit tests; live fabric 61/61
 ## Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)
 
 Dedup and edit amplification were measured with the production chunkers and SHA-384 on real data on
-the UK DGX (SLURM array 223030, 32 tasks; lists 223029; merge 223031). A rerun on the same sample
+the HPC cluster (SLURM array 223030, 32 tasks; lists 223029; merge 223031). A rerun on the same sample
 (array 223196, merge 223197) reproduced every figure exactly and added exact size quantiles and read
 amplification. Data was read in place. The de-identification edits were made in memory and never
 written. Only aggregate numbers left the cluster: `eval/results/dedup/` (`*_r1.json`, `*_r2.json`).
@@ -582,11 +582,11 @@ blocks) or give viewer-facing pathology collections a smaller chunker per domain
 - **Measurement hygiene.** `DedupMeasure` block keys are HMAC-SHA-384 under a per-run secret, not
   plain SHA-384 prefixes, so a leftover key file cannot confirm a guessed header block. The shard
   work files are owner-only, and the merge deletes the block keys and sizes once its JSON is written
-  (the driver deletes the run key). The r1 and r2 work files on the DGX were deleted.
+  (the driver deletes the run key). The r1 and r2 work files on the HPC cluster were deleted.
 
 **Label edits.** The 837 GDC slides carry no label or macro image (GDC strips them). A first
 read-only search (job 223130) for scanner-native slides elsewhere timed out; a second, narrower one
-(job 223618) found seven Philips iSyntax slides on the DGX with label and macro images. Label edits
+(job 223618) found seven Philips iSyntax slides on the HPC cluster with label and macro images. Label edits
 were measured on those (job 223712, `eval/dedup/isyntax_label.sbatch`, run on node-local scratch)
 and on the six public OpenSlide Aperio test slides (CC0 or freely distributable, no patient data;
 `eval/dedup/openslide_label.sh`). The edit zeroes the label and macro images and blanks identifying
@@ -624,7 +624,7 @@ are in [FORMAT-ADAPTERS.md](FORMAT-ADAPTERS.md). The code is `core/chunk/format/
   `vox_offset`. A spec pins exact versions (`fmt:dicom@1,nifti@1,tiff@1+<inner>`). An adapter or
   version not on the allowlist refuses domain creation. The engine's segmented, parallel path cuts
   each region on its own, so no format needs the sequential path.
-- **Measured on the DGX** (array 223418, merge 223419, bench 223420; plain-CDC figures equal r1):
+- **Measured on the HPC cluster** (array 223418, merge 223419, bench 223420; plain-CDC figures equal r1):
 
 | Corpus and edit | `cdc` 1 MiB | with the adapter | Block refs per TiB, without → with |
 |---|---:|---:|---:|
@@ -649,7 +649,7 @@ are in [FORMAT-ADAPTERS.md](FORMAT-ADAPTERS.md). The code is `core/chunk/format/
   could not be tested on real data. Every GDC tile lies before its IFD, so a streaming chunker cannot
   cut there.
 - **Flags for the owner.**
-  - (1) NIfTI dedups only if stored uncompressed: KiTS23 on the DGX is `.nii.gz` only, and an edit
+  - (1) NIfTI dedups only if stored uncompressed: KiTS23 on the HPC cluster is `.nii.gz` only, and an edit
     to a gzip stream re-stores 80 % of it at any block size.
   - (2) Pixel data can itself identify: burned-in text, or a face reconstructed from head CT/MR.
     Bulk blocks therefore follow the domain's dedup policy like any other block.

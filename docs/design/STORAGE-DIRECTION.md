@@ -221,7 +221,7 @@ N >= 5. ~~The plan's own example is 10+4 across sites: two-site tolerance at ~40
 
 ### Transport
 
-[[KentuckyWired]] is the natural carrier — state-owned open-access middle mile with presence in all
+A state-owned open-access middle mile with presence in all
 120 counties and a 100G core — but ingest and repair bandwidth should be sized explicitly: at a given
 link rate, regenerating one library's contents takes a computable number of days, and that number is
 what determines how many simultaneous library losses the policy should actually be asked to survive.
@@ -1151,7 +1151,7 @@ Strings: ~3.5× heap saving on every record below.
 
     RedactionRec                        // the only irreversible act besides sweep
       String lineage, rdom;  long ordered_seq, executed_seq;
-      String authority, approver_set;   // e.g. "IRB-2026-114"; institutional quorum, not the index quorum
+      String authority, approver_set;   // e.g. "IRB-2026-001"; institutional quorum, not the index quorum
       long   files, bytes, xorbs_touched;
       List<String> sigs;                // dated, signed attestation; survives the data
 
@@ -1629,7 +1629,7 @@ readable set is exactly `{f : every span's xid is AVAILABLE}`. Only residency is
 **Planning is over xorbs, and durability is evaluated at planning time.** The planner resolves
 enumeration → spans → distinct `xid` set, then intersects with the `xorb` table and returns a
 **non-deliverable set up front** — "18,432 files cannot be delivered: 12 xorbs REDACTED under
-IRB-2026-114, 1 xorb LOST" — before a single mount is scheduled. Without this the consumer sees a job
+IRB-2026-001, 1 xorb LOST" — before a single mount is scheduled. Without this the consumer sees a job
 stuck at 99.9997% for days, because on tape "not yet" and "never" are indistinguishable from the
 recall path.
 
@@ -2067,7 +2067,7 @@ shifts slightly, neither chunker shares anything. **Measure real checkpoints bef
 ## Measured: checkpoints do not deduplicate (2026-09-19)
 
 The assumption the redaction design rested on, tested on real training output. Harness
-`eval/ckpt_dedup.py`, raw results `eval/results/ckpt_dedup_results.json`. Measured on a DGX compute
+`eval/ckpt_dedup.py`, raw results `eval/results/ckpt_dedup_results.json`. Measured on an HPC compute
 node over `ft/checkpoints/sft_v530_v6_long_p2`, a real SFT run with checkpoints every 500 steps, 51 GB
 each (12.06 GB weights, 24.1 GB optimizer state, 12.06 GB FSDP copy).
 
@@ -2134,16 +2134,16 @@ Harness `eval/fsync_cost.py`, raw results `eval/results/fsync_cost.json`. 256 Ki
 | macOS APFS | data+sidecar+dir | 21.7 | 11.53 |
 | macOS APFS | data+sidecar+dir, dir batched /6 | 23.3 | 10.73 |
 | macOS APFS | data+sidecar+dir, dir batched /128 | 24.0 | 10.41 |
-| dgx-03, node-local tmp | none | 1260.5 | 0.198 |
-| dgx-03, node-local tmp | data only | 256.6 | 0.974 |
-| dgx-03, node-local tmp | **data+dir (shipped)** | **339.0** | **0.737** |
-| dgx-03, shared project fs | none | 8.1 | 30.875 |
-| dgx-03, shared project fs | data only | 8.8 | 28.567 |
-| dgx-03, shared project fs | data+dir | 8.6 | 29.038 |
+| cluster node 03, node-local tmp | none | 1260.5 | 0.198 |
+| cluster node 03, node-local tmp | data only | 256.6 | 0.974 |
+| cluster node 03, node-local tmp | **data+dir (shipped)** | **339.0** | **0.737** |
+| cluster node 03, shared project fs | none | 8.1 | 30.875 |
+| cluster node 03, shared project fs | data only | 8.8 | 28.567 |
+| cluster node 03, shared project fs | data+dir | 8.6 | 29.038 |
 
 The macOS run carried its own caveat — Java `force(true)` maps to `F_FULLFSYNC` there, flushing the
 physical drive cache, so the file recorded that the numbers were worst-case and MUST be re-measured
-on the deployment host. The dgx-03 run settles it.
+on the deployment host. The cluster node 03 run settles it.
 
 Four findings.
 

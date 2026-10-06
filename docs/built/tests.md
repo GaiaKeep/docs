@@ -59,7 +59,7 @@ These counts are from the CI run above:
 | **Chain chaos test** | 1,118 publishes under 1,107 injected kills, partitions and delays: every acknowledged version intact. |
 | **Two-sided network partition** | The minority leader acknowledges nothing, and after healing no acknowledged write is lost. |
 | **Live fabric check, single host** | 61/61 (prototype fabric), then the secured build on the merged code. |
-| **Live fabric check, DGX** (secured: signed requests, strict node-key pinning, sealed keys) | **88/88** on the shipped build. It covers crash mid-publish, recovery, reconcile, failover and replica agreement. |
+| **Live fabric check, HPC** (secured: signed requests, strict node-key pinning, sealed keys) | **88/88** on the shipped build. It covers crash mid-publish, recovery, reconcile, failover and replica agreement. |
 | **Simulated tape, end to end** | Archive, lose the disk copies, recall and read back byte-identical. Also covered: recall ordering, concurrent recalls on two drives, a drive dying mid-write, failover with a recall outstanding, and scrubbing from tape. Run on the simulator and on virtual tape drives (mhVTL). |
 | **WAN emulation** (netem, 5 sites) | 30 ms round trip passes at every loss level, with BBR congestion control. 80 ms is partly passing; see [Benchmarks](benchmarks.md). |
 | **Adversarial reviews** | Two rounds over the merged code, by area: authorization, durability, replication, transport and data path. Every finding was reproduced with a test before being fixed. |

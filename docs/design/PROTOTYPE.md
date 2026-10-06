@@ -15,7 +15,7 @@ run/gfs/launch_gfs_fabric.sh       up | down | status | restart <agent> | kill <
 run/gfs/gfs_client.py              SDK over pycrescolib (deploy, RPC, dataplane fetch, jobs)
 run/gfs/gfs_eval.py                evaluation harness (E1–E11), writes run/gfs/results/
 run/gfs/logs/                      per-node logs + eval logs
-run/gfs/data/uky-pathology/        generated test dataset (publisher root)
+run/gfs/data/site-a-pathology/        generated test dataset (publisher root)
 run/gfs/restore/                   restore targets
 ```
 
@@ -23,9 +23,9 @@ run/gfs/restore/                   restore targets
 | agent | role(s) | site | class | pledge |
 |---|---|---|---|---|
 | global-controller | index primary (federation core) | — | — | — |
-| uky-pub | publisher + storage (filerepo watches the dataset) | uky | server-raid | 24 MiB |
-| s-uofl | storage | uofl | clustered-fs | 2 GiB |
-| s-wku | storage | wku | server-raid | 2 GiB |
+| site-a-pub | publisher + storage (filerepo watches the dataset) | site-a | server-raid | 24 MiB |
+| s-site-b | storage | site-b | clustered-fs | 2 GiB |
+| s-site-c | storage | site-c | server-raid | 2 GiB |
 | s-murray | storage | murray | desktop-single | 2 GiB |
 | s-eku | storage | eku | usb-single | 2 GiB |
 | s-nku | storage + index replica | nku | server-raid | 2 GiB |

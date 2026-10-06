@@ -88,7 +88,7 @@ Six constraints make most published storage guidance inapplicable. Please hold a
 
 ~~Measured checkpoint similarity decides whether deduplication is worth its complexity at the content layer at all — and if it is not, per-object keys become affordable again, which would retire the hardest unsolved problem in our redaction design.~~
 
-> **ANSWERED IN-HOUSE 2026-09-19 — DO NOT COMMISSION THIS.** `eval/results/ckpt_dedup_results.json`, measured on a real SFT run (checkpoints every 500 steps, ~48 GB of tensors each) on a DGX compute node: adjacent weight checkpoints share **0** of 184,044 64 KiB blocks, distant 0, the two weight copies inside one checkpoint 0, cross-run control 0, optimizer state 0.0020 % excluding zero blocks. Deduplication is **not** worth its complexity at the content layer; per-object keys are the default; `K_rdom` is retired.
+> **ANSWERED IN-HOUSE 2026-09-19 — DO NOT COMMISSION THIS.** `eval/results/ckpt_dedup_results.json`, measured on a real SFT run (checkpoints every 500 steps, ~48 GB of tensors each) on an HPC compute node: adjacent weight checkpoints share **0** of 184,044 64 KiB blocks, distant 0, the two weight copies inside one checkpoint 0, cross-run control 0, optimizer state 0.0020 % excluding zero blocks. Deduplication is **not** worth its complexity at the content layer; per-object keys are the default; `K_rdom` is retired.
 >
 > **What we still want from the literature is the *opposite* question:** published evidence of any archive that measured checkpoint similarity and found a **different** result, because a contradiction would be more valuable to us than a confirmation.
 >

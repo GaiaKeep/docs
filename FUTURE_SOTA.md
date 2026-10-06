@@ -47,7 +47,7 @@ The papers mandate four nested scopes: `tenant_id / user_id / agent_id / thread_
 | Paper scope | GaiaKeep today | Enforcement class | Gap |
 |---|---|---|---|
 | `tenant_id` | tenant + domain + role bindings + Forbidden==missing | **Hard** (key identity; the core refuses what the bindings do not name) | — |
-| `agent_id` | principal (every agent is a principal with its own key; the campaign's `vbu231-testbot` proved least-privilege enforcement) | **Hard** | — |
+| `agent_id` | principal (every agent is a principal with its own key; the campaign's dedicated least-privilege test principal proved enforcement) | **Hard** | — |
 | `thread_id` | branch / scratch collection / upload id | **Soft** (no TTL) | **Add branch TTL + ephemeral collections** — scratch-cache policy is the container; expiry is a maintenance-sweep addition |
 | `user_id` | delegated: a principal *is* the acting identity; human sub-identity rides in audit (`by`) | Soft | Add user sub-principals only when a real multi-user tenant appears — do not build unused machinery |
 
@@ -95,7 +95,7 @@ Three presence classes, one namespace, refuse-closed durability everywhere:
 
 | Class | Hardware | Runs | Durability role | Presence |
 |---|---|---|---|---|
-| **Cluster** | DGX-class + tape libraries | Core raft peers, stores, tape nodes, dashboard, atlases | Raft quorum, durable spool, MS6 tape tier | Permanent, pledged, attested |
+| **Cluster** | HPC-class + tape libraries | Core raft peers, stores, tape nodes, dashboard, atlases | Raft quorum, durable spool, MS6 tape tier | Permanent, pledged, attested |
 | **Server** | Lab/department machines | Store peers (NVMe/disk pledges), catalog exporters, compute-to-data targets | Replica + staging tier | Pledged; SUSPECT→LOST lifecycle as today |
 | **Desktop** | Workstations, laptops | Kit + MCP client, catalog exporter, optional opportunistic store (no durability pledge) | Client cache; **source of raw data** (the datasets agents train/evaluate on arrive here first) | Intermittent — delta-sync on connect |
 
@@ -127,7 +127,7 @@ Built **on** the substrate (not beside it), phased after the fabric tiers:
 ## 7. Attestation and confidentiality (the tier-1 differentiator)
 
 - **Now**: pinned core keys, GKT-2 bound transcripts (request **and** reply signed), end-to-end encryption, per-transfer MACs, refuse-closed IntegrityErrors. The client *already* refuses unkeyed/unattested answers — the haveopen defect proved the fail-closed posture works.
-- **Next (tier-1 SOTA):** add a **remote-attestation step to the GKT handshake** — the core presents a signed attestation (H100 Confidential Compute on the DGX is real hardware for this) before the session key derives. Session-key reuse after one attestation matches the papers' performance pattern and the existing handshake shape.
+- **Next (tier-1 SOTA):** add a **remote-attestation step to the GKT handshake** — the core presents a signed attestation (confidential-compute GPUs such as the H100 are real hardware for this) before the session key derives. Session-key reuse after one attestation matches the papers' performance pattern and the existing handshake shape.
 - **Regulatory posture**: attestation + crypto-shred + audit chain = the compliance story (GDPR Art. 17/32, EU AI Act) stated in cryptographic rather than contractual terms — the papers' "contractual trust → hardware-enforced protection" transition.
 
 ---
@@ -160,4 +160,4 @@ Built **on** the substrate (not beside it), phased after the fabric tiers:
 - Two owner-supplied reference papers (agent storage blueprints; competitive analysis of Mem0, Zep/Graphiti, Letta, Hindsight, Cognee, Redis Agent Memory, Oracle AI Database; lakeFS/Delta/Iceberg/Bacalhau/DVC/CAS comparisons; TEE/MemTrust attestation architecture).
 - Verified production state: `MAIN.md`, `REMEDIATION-PLAN.md` (this directory), gfs#1–#11 (GitHub), myAtlas `project-cresco-gfs.md`.
 - FileRepo: `PublisherEngine.java` (catalog-delta federation, grant-gated streaming), Cresco library filerepo (directory mirror, heartbeat index), vault reference on BlockStore limits.
-- panAtlas/myAtlas: vault `project-panatlas`, `org-nsf-open-knowledge-network`, `project-wikipedia-world-view`, `project-clm-decision-engine`; `panatlas/cresco` deployment on the DGX.
+- panAtlas/myAtlas: vault `project-panatlas`, `org-nsf-open-knowledge-network`, `project-wikipedia-world-view`, `project-clm-decision-engine`; `panatlas/cresco` deployment on the HPC cluster.

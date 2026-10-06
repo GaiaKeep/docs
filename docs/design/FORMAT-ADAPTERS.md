@@ -110,7 +110,7 @@ An adapter joins the allowlist (`FormatRegistry.REVIEWED`) only when every item 
       truncation, spliced structure. Never an exception, always an exact round trip.
 - [ ] Adversarial inputs finish in bounded time: deep nesting, lengths far past the end, cycles,
       floods of tiny structures.
-- [ ] Measured on real data on the DGX: dedup, edit cost, block references per TiB and throughput,
+- [ ] Measured on real data on the HPC cluster: dedup, edit cost, block references per TiB and throughput,
       against the plain chunker it wraps. It must not cost more than it saves.
 - [ ] Its id, version and behaviour are recorded here.
 
@@ -169,7 +169,7 @@ domains' clients upload whole.
 
 ## Measured results
 
-Measured on the UK DGX with the production chunkers and SHA-384 (array 223418, merge 223419, bench
+Measured on the HPC cluster with the production chunkers and SHA-384 (array 223418, merge 223419, bench
 223420; drivers `eval/fmt/`, results `eval/results/dedup/dicom_aware_r1.json` and
 `format_*_r1.json`, provenance `run_format_r1.json`). The DICOM and WSI corpora and edits are those of
 the block-size measurement (D-C1-1, lists of job 223029), and every plain-CDC figure reproduces it
@@ -227,7 +227,7 @@ labels and macros, so the thumbnail stands in, with its strips zeroed and its IF
   on an IFD-first file the variant would make each tile a block.
 
 **NIfTI**: 123 KiTS23 `imaging.nii.gz` files (every 4th case), float64 NIfTI-1 with `vox_offset` 352.
-KiTS23 on the DGX is gzip only: 489 files, 42.1 GB, no uncompressed `.nii` (job 223305).
+KiTS23 on the HPC cluster is gzip only: 489 files, 42.1 GB, no uncompressed `.nii` (job 223305).
 
 | Chunker | decompressed (46 GiB): `descrip` | `ext-add` | refs per TiB | as stored (9.7 GiB): `gz-descrip` |
 |---|---:|---:|---:|---:|

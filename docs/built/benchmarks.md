@@ -1,11 +1,11 @@
 # Benchmarks
 
-The measurements behind release 1.3. **DGX** means the multi-host runs on the DGX cluster: 4 nodes,
+The measurements behind release 1.3. **HPC** means the multi-host runs on the HPC cluster: 4 nodes,
 the secured build, signed requests and strict node-key pinning. **In-process** means a single JVM on
 one Mac, which is useful for comparing before and after, not as absolute numbers. Raw results are
 under `eval/results/` in the repository.
 
-## Transport foundation (DGX)
+## Transport foundation (HPC)
 
 The first multi-host run found the transport, not the storage engine, was the bottleneck. These
 fixes came first:
@@ -30,7 +30,7 @@ GB, with no measurable throughput loss: it was within the run-to-run spread. Bef
 layer was merged, one flow measured 802 MB/s through the hub and 1,208 MB/s over the dynamic mesh's
 direct agent-to-agent links; 4 flows measured 2.3 GB/s and 3.1 GB/s.
 
-## Ingest (DGX)
+## Ingest (HPC)
 
 Ingest is a striped multi-part upload over 8 flows, with a short commit, at R=3 (three copies on
 three sites).
@@ -52,8 +52,8 @@ receipt. **Star:** the writer sends every copy itself.
 
 | Setting, R=3 | Star | Chain | Chain / star |
 |---|---|---|---|
-| DGX, through the hub | 234 MB/s | 254 MB/s | 1.09× |
-| DGX, dynamic mesh | 245 MB/s | 261 MB/s | 1.06× |
+| HPC, through the hub | 234 MB/s | 254 MB/s | 1.09× |
+| HPC, dynamic mesh | 245 MB/s | 261 MB/s | 1.06× |
 | In-process, no network limit | 140 MB/s | 258 MB/s | 1.84× |
 | In-process, 1,000 MB/s network per host | 290 MB/s | 720 MB/s | 2.48× |
 | In-process, 400 MB/s network per host | 126 MB/s | 264 MB/s | 2.10× |
@@ -61,7 +61,7 @@ receipt. **Star:** the writer sends every copy itself.
 | In-process, 3 regions, one 125 MB/s link per region pair | 112 MB/s | 141 MB/s | 1.26× |
 
 - **The writer's egress** is 1× the data with chain, against 3× with star.
-- **On the DGX the gain is small** because publishing there is limited by the engine, not by the
+- **On the HPC cluster the gain is small** because publishing there is limited by the engine, not by the
   network: R=1 publishes at the same 250–270 MB/s. Chain is the default for publishes of 8 MiB or
   more.
 
@@ -88,7 +88,7 @@ cluster; no images did.
 
 | Re-upload | Bytes sent |
 |---|---|
-| 1,000 real de-identified DICOM instances (542 MB), DGX, with the format adapter | 4,257 B per instance: **0.79 %** |
+| 1,000 real de-identified DICOM instances (542 MB), HPC, with the format adapter | 4,257 B per instance: **0.79 %** |
 | The same, with plain 1 MiB chunking | 503,277 B per instance: 92.8 % |
 | Unchanged re-upload | 0 |
 | 32 synthetic CT instances (16.8 MB), in-process | 26,720 B: 0.16 %, 601× less than plain chunking |

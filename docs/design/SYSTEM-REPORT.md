@@ -127,7 +127,7 @@ Eighteen defects and harness weaknesses were found and fixed during the campaign
 
 ## 9. Limits of the evidence and what is not built yet
 
-- All measurements are on one host. Multi-host and WAN numbers are the next venue (the DGX mesh).
+- All measurements are on one host. Multi-host and WAN numbers are the next venue (the HPC cluster mesh).
 - The index runs as a primary with log-shipped replicas; the Raft group is designed, not built.
 - Hierarchical (local-parity) codes are represented by the local resiliency class in scoring; full local parity groups are a roadmap item.
 - Grants and custody tokens use a federation secret; regional-CA signatures and mTLS binding of the client identity are the production form. Site keys are files with 0600 permissions; production is PKCS#11/HSM/KMS.
@@ -136,7 +136,7 @@ Eighteen defects and harness weaknesses were found and fixed during the campaign
 
 ## 10. Next steps
 
-1. Run the campaigns across real hosts on the DGX mesh to obtain WAN-shaped numbers and to exercise regional brokers on separate machines.
+1. Run the campaigns across real hosts on the HPC cluster mesh to obtain WAN-shaped numbers and to exercise regional brokers on separate machines.
 2. Land W-GFS-3 and run each site as its own tenant end to end with the cross-tenant sink rules, then re-run the tenant-isolation checks live.
 3. Replace the federation secret with regional-CA signed grants and approver signatures; move site keys to an HSM/KMS.
 4. Raft for the index core; local parity groups for in-site repair.

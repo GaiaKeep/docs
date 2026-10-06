@@ -91,5 +91,5 @@ command-line smoke test, and a small benchmark. Results are uploaded as a build 
 | Chain chaos and partition tests | Kills, partitions and delays during chain replication, checked by a durability and linearizability oracle | `ChainChaosTest`, partition tests |
 | WAN grid | 5 sites in a Linux VM with netem round-trip time and loss; striped ingest compared with a LAN reference | the campaign WAN cells |
 | Simulated tape | An LTO-class drive and library simulator; mhVTL virtual drives driven through the real Linux tape device path | tape tests; `eval/tape/mhvtl/` |
-| DGX live harness | The secured multi-host fabric: sealed keys per node, strict node-key pinning, signed requests | `eval/dgx/live.sh <label> <jar> [check\|bench\|all]` |
+| HPC live harness | The secured multi-host fabric: sealed keys per node, strict node-key pinning, signed requests | `eval/cluster/live.sh <label> <jar> [check\|bench\|all]` |
 | Benchmark gate | Fails CI when a benchmark result falls below 0.4× its baseline, or dedup regresses | `eval/bench_gate.py` |
