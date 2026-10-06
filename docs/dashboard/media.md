@@ -47,6 +47,16 @@ library's own state):
 An empty library is stated plainly: *no cartridge has been written in this library yet — archive copies are made by
 `core.archive`*, which copies a collection's blocks to tape as extra copies and verifies them by reading back.
 
+!!! note "What archive's read-back guarantee covers"
+    The read-back verification follows the write-verify policy, `tape_write_verify` (owner decision
+    2026-10-01, default **FULL**): **FULL** reads every written container back; **SAMPLED** reads the
+    first container of each write session and then 1 in `tape_write_verify_sample_every` (10); **NONE**
+    performs no post-write read-back at all ([Tape simulation §4.3](../design/TAPE-SIMULATION.md)). An
+    archive that completes under SAMPLED or NONE has copied the data but has **not** verified every
+    container by reading it back. Before reporting an archive as read-back verified, check the copies'
+    state on the [Placements page](placements.md): tape copies distinguish **verified** (read back
+    byte for byte) from **claimed** (written, not yet read back).
+
 ## Disk and pack stores
 
 Per-container detail for the packed stores (containers and live fraction) is not served by the core yet — the
