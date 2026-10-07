@@ -124,6 +124,21 @@ Built **on** the substrate (not beside it), phased after the fabric tiers:
 
 ---
 
+## 6a. The memory-framework taxonomy, positioned (from the governance blueprint)
+
+The second reference blueprint classifies the agent-memory ecosystem into five architectural classes and asks which to build. The integration answer is positional: **GaiaKeep is the durability, versioning, isolation, and provenance substrate each of these frameworks assumes but does not provide** — and the MCP surface is the seam. What follows is the taxonomy with GaiaKeep's role stated per class; it is positioning, not a build list (the service layer in §6 is where the substrate gains agent-facing semantics).
+
+| Framework class (examples) | Its memory model | What it lacks that GaiaKeep provides | Integration shape |
+|---|---|---|---|
+| **Vector-fact extraction** (Mem0) | LLM-extracted facts in vector stores; append-only, resolution deferred to retrieval ranking | Durable versioned storage under the vectors; write-time supersession; hard tenancy; provenance lineage for erasure | Facts reference citable versions (`gfs:1r:<vid>#<extract>`); the append-then-rank model keeps its store, gains supersession and erasure from the substrate |
+| **Temporal knowledge graph** (Zep / Graphiti) | Bi-temporal nodes/edges with validity intervals in a graph DB | The graph itself is not durable or versioned; tenancy is namespace-level | Graph snapshots as versions (point-in-time graph reads, O(1) branching for hypothesis work); edges citing dataset versions |
+| **Virtual tiered memory** (Letta) | Context window as RAM; core/recall/archival blocks in Postgres + pgvector | Single-server durability; no federated tiering; agent-OS coupling (the anti-goal) | Archival blocks land in GaiaKeep collections; the paging contract maps to stage/pre-flight; no runtime lock-in taken |
+| **Code/doc knowledge graphs** (Cognee) | Graphs derived from repos and documents | Provenance to source commits; durability; multi-tenant isolation | Derived graphs as versions citing source versions — lineage is the substrate's native property |
+| **Biomimetic multi-network** (Hindsight) | World facts / experiences / entity summaries / evolving beliefs, with hard isolation banks | The banks' durability and erasure guarantees; belief states as versioned, diffable objects | Belief revision = new versions superseding old (immutable history); bank isolation = tenant hard boundaries; belief erasure = crypto-shred |
+| **Context-layer engines** (Meterless / H-MEM) | Four-engine tiered context with bounded carryover and a microkernel runtime contract | A durability substrate with storage classes and recall economics | The storage-class ladder (§1) is the backing store; pre-flight state tells the harness what a recall costs before committing |
+
+Two conclusions the taxonomy sharpens. First, **none of these frameworks solves durability, federation, or regulated erasure** — they all assume a storage layer that behaves like GaiaKeep already does; that is the substrate's market position and why the roadmap layers semantics ON the fabric rather than competing with them. Second, the **hard/soft isolation doctrine** (§2) is the report's strongest claim and GaiaKeep's strongest proof: frameworks that rely on soft tags leak; the substrate cannot leak because there is no un-scoped surface. GaiaKeep does not build a memory framework; it is the layer that makes any of them safe to run.
+
 ## 7. Attestation and confidentiality (the tier-1 differentiator)
 
 - **Now**: pinned core keys, GKT-2 bound transcripts (request **and** reply signed), end-to-end encryption, per-transfer MACs, refuse-closed IntegrityErrors. The client *already* refuses unkeyed/unattested answers — the haveopen defect proved the fail-closed posture works.
