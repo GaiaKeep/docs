@@ -23,6 +23,7 @@ held. Every dispatch is timed; an RPC held past `core_sync_rpc_max_ms` is logged
 |---|---|---|
 | core.withdraw | C2 (request_id required) | drop (one exclusive batch), then gc in slices |
 | core.rotatemaster (not dry_run) | C2 | rewrap roots |
+| core.membership add / remove | C2 (request_id required) | one raft configuration entry at a time (OUT-08c): add = learner, catch-up, promote; a leader that removes itself steps down and the next leader ends the job from the configuration in effect |
 | core.compose (more than `core_compose_sync_files` files, or with request_id) | C2 | commit; the job ends in the commit's batch |
 | core.extract (more than `core_extract_sync_leaves` files, or with request_id) | C2 | freeze and pin |
 | core.publish with request_id | C4 as a job | publish; ends in the commit's batch |
@@ -70,6 +71,20 @@ from the page that reaches the end.
 - `core.putstatus` `ranges`: `{path: {part: [[first, end), ...]]}` in flow sequence numbers. A part
   is re-opened with `resume=true`; its receiver starts from the chunks held. One writer per staged
   slot. A flow that stalls or drops does not fail an §1a upload.
+- **Across a leader change (OUT-89).** Once `core_ingest_checkpoint_bytes` (256 MiB) of whole files are
+  written, the writer checkpoints at the next file boundary: the window's site writes are sealed (an
+  intent, then the landed that records the copies) and, in the landed's batch, each whole file is
+  journaled (`ingestPart`: upload_id, path, durable byte offset = its size, its file entry, and for a keyed
+  file the MAC its commit must carry under each part-0 flow key) with a named hold `ingest|<upload_id>`
+  on its blocks (`addRef`), so gc and the orphan pass keep them; the first checkpoint opens the record
+  (`ingestOpen`, the target). Journaling waits until every core peer answers FEATURES with `ingj1`. A new
+  leader adopts every open record: `core.putstatus` answers `ingest_state=adopted` and `journaled`
+  `{path: offset}`; the client re-opens the same upload there (a part already open there with
+  `resume=true`), never sends a journaled file again (refused, 8), and commits under the same request_id
+  with the same proofs. The record and its hold end in the commit's own batch, or when the upload is
+  given up (discarded, failed, or not resumed within `core_upload_ttl_ms`), and its blocks then go to the
+  orphan pass. Only whole files are journaled: a file in progress at the leader change is sent again
+  (its whole-file hashes cannot cross leaders); its checkpointed blocks are deduplicated onto.
 - The legacy `core.publish` never holds its RPC past the budget: 13 `committing`, then
   `core.putstatus` `commit_state`; with request_id it is an idempotent job.
 - A wave-1 staged upload whose puts say `resumable=true` is resumable the same way (a dropped flow
@@ -109,6 +124,7 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.
 | core.extract | C2 when large | reader on every member; cite: tenant-admin of every member tenant |
 | core.extractstatus | C0 | the creator (state only), or a reader of every member |
 | core.extractlist, core.extractproof | C1 | a reader of every member |
+| core.extractattest | C1 | a reader of every member |
 | core.extractextend | C0 | a reader of every member; past the class maximum, tenant-admin of every member tenant |
 | core.extractrelease | C0 | the creator, or a tenant-admin of a member's tenant |
 | core.cut | C0 | reader on every member |
@@ -119,7 +135,58 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.
 | core.entail | C1 | reader on the whole input closure |
 | core.built | C0 | writer on the output collection, and reader on the input closure |
 | core.derivations | C1 | tenant-admin@tenant_id, or any principal for its own |
+| core.collections | C1 | tenant-admin@tenant_id or a tenant-wide reader@/writer@ (every collection); collection-scoped bindings: those collections only |
+| core.placement | C1 | reader on the version's collection (as core.list) |
+| core.jobs | C1 | any principal holding a role, its own jobs; an auditor every principal's (principal_id filter: auditor only) |
+| core.principals | C1 | tenant-admin@tenant_id (that tenant's principals); no tenant_id: system-admin (the system principals) |
+| core.retention op=list | C1 | any principal holding a role |
+| core.tapevol op=library | C0 | system-admin; observer (status and library) |
+| core.site op=events | C1 | system-admin, auditor or observer |
+| core.site op=containers | C1 | system-admin, auditor or observer |
 
+- Dashboard listings (core.collections, core.placement, core.jobs, core.principals, core.retention op=list):
+  each page comes from a sorted index kept on apply (per-tenant collections, (tenant, id) principals,
+  (accept time descending, job id) jobs globally, per principal and open-only, retention class names), so
+  a page costs a logarithm plus its size, never a scan of every tenant, collection, block, job or
+  principal. The indexes are derived: rebuilt by replay and snapshot install, never journaled, snapshotted
+  or hashed. Pages are bounded by `limit` (1..1000) and `core_page_bytes`; cursors are `gfs-cur-1`, bound
+  to their verb and scope (core.retention op=list continues by class name). Rows show only what the
+  caller's roles already show elsewhere: a collection's domain, dedup mode, replication and durability to
+  its tenant-admin, its retention class, profile and version and branch counts to its readers; a block's
+  `required` is its collection's replication (the block record's own requirement is the most any
+  referencing collection asks, which may be another collection's or another tenant's), and its state
+  follows the census rule (copies on up, ACTIVE, non-archive sites, not suspect, count toward it;
+  UNAVAILABLE with no readable copy). Node class and a packed copy's container are shown to a
+  system-admin or auditor, a tape copy's barcode to a system-admin; never a block id, digest or key.
+  `core.placement tape=true` asks each archive site once per page (`x.locate`, which now also answers
+  `custodian` and `mount` lists; an older node omits them and they read unknown) within half the sync
+  budget, at most 10 s; a site that does not answer leaves its copies' `presence` UNKNOWN. `tape=detail`
+  (OUT-96 S-3) adds, from the same locate, each tape copy's `file_number` and `block` (its container's tape
+  file and the logical block of the record holding its first byte, from the node's catalogue, no mount) and
+  `tape_type` (`LTO-10`, the one generation a real library is configured for, owner 2026-10-01; a simulated
+  library says `simulated <tape_sim_profile>`); `x.locate` carries them as additive `position`
+  (`<file>:<block>`) and `medium` lists. They name no data and no cartridge, so a reader sees them; the
+  barcode stays the system-admin's. core.jobs
+  filters by `principal_id` (`principal` is the request signature's own param). `core.tapevol
+  op=library` answers the tape node's library as it tracks it (configuration, drives, slots, volumes by
+  state, admin state and cohort, queues, counters).
+- Site history and containers (OUT-96 S-6, S-4). `core.site op=events [site] [after] [limit]` pages the
+  sites' journaled history newest first: each change of a site's lifecycle state (`kind=state`: ACTIVE,
+  DRAINING, LOST, DECOMMISSIONED) and of its liveness (`kind=up`: UP, DOWN) as the leader saw it, `{seq, ts,
+  site, kind, from, to}` (`from` is "" for the first event of a site the history holds). The leader compares
+  the sites with the newest journaled event of each after every probe pass (from the second pass of its term,
+  when its up flags are its own) and journals the differences as `siteEvt` deltas in one batch (an engine
+  extension, SiteEvents, gated by core_api_deltas, in the metadata hash and snapshots); `ts` is when the
+  leader saw the change, within one probe period of it. The newest 20000 events are kept; a page is read from
+  the sequence order or the per-site index. `core.site op=containers site [after] [limit]` pages one packed
+  site's containers in id order with the live bytes and copies the core's references record in each (what
+  compaction decides by; the container's size is the node's). The block table keeps no per-site container
+  index yet, so a page costs one pass over the core's container records (about one per GiB stored, never
+  per block); a per-site sorted index in the block table would make it a logarithm plus the page.
+- The observer role (owner Q6): an unscoped role a system-admin binds to a system principal, for a
+  dashboard's own key: the operators' reads above (node list, site status, history and containers, tape
+  status and library, the maintenance view), its own jobs, the retention classes; never data, the audit log
+  or a change (AuthzMatrixTest holds every verb's decision for it).
 - History: a per-collection branch index; cursors are bound to their verb and scope; pages are
   bounded by their limit and `core_page_bytes`. ChainDiff: chain mode (the paths the runs after the
   common history name) or scan mode, with scan and block budgets; property-tested against the
@@ -134,6 +201,44 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.
 - Extracts: selector grammar v1, salted leaves, an RFC 6962 root over SHA-384, a certificate signed
   by the core identity (verified again by every replica before xpin applies), pinning by runs or by
   selection, the 4x amplification refusal with arithmetic and rewrites, dry_run.
+- Two-phase pins (api §4.4, OUT-47, 2026-10-08): a pin whose holds exceed `core_extract_xsel_chunk_bytes` (1 MiB of
+  canonical JSON) is journaled in two phases. `xres` verifies the certificate, charges the pin and opens a RESERVING
+  record with a TTL (`core_extract_reservation_ttl_ms`, 15 min); each `xsel` chunk is checked and held under the
+  engine's monitor as it is journaled (collections live, runs adopted or inherited, paths still entries of their run),
+  and the last chunk pins (PINNED, the certificate's pinned_until). A reservation holds like a pin: a member's
+  withdrawal is refused (or ends it, withdraw_wins), grant ends and the lifecycle see it. One cut short ends ABANDONED
+  at once (its partial holds go, its idempotency key is free), or EXPIRED by the sweeper when its writer died; a retry
+  under the same request_id abandons a reservation a lost leader left and pins anew, and the job resolver never takes a
+  reservation for an outcome. Records replay and snapshot chunk for chunk (`xsnapc`, then the chunks as journaled,
+  deflated in memory). Each chunk costs its own size (measured: the last quarter of a 1,000,000-leaf reservation's 16
+  chunks applies as fast as the first, `ExtractReservationScaleTest`); `core_extract_selection_max_leaves` is
+  1,000,000. While a core peer does not answer the `xapi2` feature probe no `xres` is emitted and the old single-entry
+  bound (20,000 leaves by selection) applies.
+- Extracts of inherited entries (api §4, 2026-10-08): an entry a dependent keeps only by inherited references (its
+  run's collection withdrawn) is held where the dependent keeps it, by its run (RUNS) or its paths (SELECTION), once
+  every block is proven still held for the dependent (its `inherit|` hold, or its hold on a COPY term's copy). A
+  BREAK term, no grant at the withdrawal, or a grant ended since is still refused (`extract-unheld-entries`: nothing
+  to pin). Every drop of an inherited hold fails closed under an extract (`dropRef` of an `inherit|` holder,
+  `dropOwnRefs`, `redact`, and the lifecycle batch's dry check).
+- Peer attestation (api §4, 2026-10-08): each voting peer verifies a pinned extract against its own state (the
+  certificate is the record's and is signed by a key the core identity has had; the leaves rebuilt from its own
+  versions and salts give the certificate's count and root; every held run is kept and held there) and signs
+  `Kdf.info("GFS-XATT-1", extract_id, root, peer, ts)` with an attestation key generated in its process and never
+  written anywhere (`ExtractVerifier`). The leader asks the other voters over raft (XATT_REQ/XATT_RESP, MAC'd under
+  k_raft), attests itself, and journals each valid answer: the peer's key the first time it is used (`peerKey`, kept
+  for good, so an attestation verifies after the peer restarts with a new key) and the attestation (`xattest`), which
+  every replica verifies against the registered key. New pins are attested automatically (`core_extract_attest`);
+  `core.extractattest` asks again and waits up to min(wait_ms, the sync budget), answering `attestation` (ATTESTED
+  when every voter attested, PARTIAL, NONE), `attestations` [{peer, pub, ts, sig}], `voters`, `peer_keys` and each
+  refusing peer's reason. core.extractstatus and core.extractproof carry the attestations with the certificate.
+- Core identity history (api §4, 2026-10-08): `KeyHistory` keeps every public key the core identity has had (epochs)
+  and the master kids each was wrapped under. `core.rotatemaster identity=stage` journals a successor key pair
+  (`coreIdNext`, wrapped under the current kid, unused) and reports `next_identity_public`, which the operator adds to
+  every storage node's `core_public_key` and every client's pin; `identity=activate expect_identity=<it>` makes it the
+  identity in one `idRotate` the retiring key endorses (it signs `Kdf.info("GFS-IDROT-1", old, new, ts)`). A new pin
+  is verified against the current identity; a snapshot's records against any epoch, so a certificate signed before a
+  rotation still installs and verifies; core.extractproof returns `identity_history`. Snapshots carry the endorsed
+  chain (`idHist`, once there are two epochs) and a staged successor; a master rotation rewraps the successor too.
 - Cuts (api §4.10): one consistent point across up to 64 collections. Each member resolves to a
   named version or its branch head, all in one `cut` delta; the apply re-checks that every
   head-resolved member is still the head (a replica out of step refuses, fail closed). A cut holds
@@ -186,7 +291,8 @@ The lifecycle's own verbs are in docs/LIFECYCLE.md; these follow the same operat
 |---|---|---|---|
 | core.legalorder | C2 | tenant-admin@tenant_id or system-admin; approvers: `lifecycle_quorum_legal_order` (>= 2), a system-admin among them | A LEGAL_ORDER: `order_ref`, `authority`, `action=erase` (selectors as core.forget, `override_legal_hold`) or `action=shorten` (`collection_id`, `class`); `dry_run`, `request_id`, `wait_ms`, `events`. Time-locked by `lifecycle_legal_order_delay_ms`. |
 | core.retention op=get | C0 | any role (by `class`), tenant-admin or reader (by `collection_id`) | A retention class with its D10 `ceiling_ms`. |
-| core.forget / core.legalorder `deep=true` | C2 | as the verb | D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked; tape cartridges are listed for forced reclamation. core.lcstatus `deep` reports it. |
+| core.forget / core.legalorder `deep=true` | C2 | as the verb | D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked (on a remote packed node that advertises deeperase1, by the node itself: `x.deeperase`); a simulated cartridge is overwritten, a real one awaits an operator's attestation of its physical destruction (core.deepattest). core.lcstatus `deep` reports it. |
+| core.deepattest | C0 | system-admin | OUT-94: `lc_id`, `site_id`, `barcode`, `method`, `statement_digest` (SHA-384 hex): an operator attests a cartridge a deep record named was physically destroyed; only a cartridge AWAITING_ATTESTATION. Answers `deep_state`. |
 
 ## 4. Journal deltas added
 
@@ -214,6 +320,14 @@ Unknown ops still throw.
 | derivation | derivation_id, record_json, tenant, ts (a repeat is a no-op) |
 | derivAuthor | derivation_id, principal, purpose_id, ts |
 | built | derivation_id, output_json, actuals_json, receipt_id, ts, by |
+| xres | extract_id, cert_json, signer_pub, sig, chunks, reserve_until, ts (a two-phase pin's reservation, api §4) |
+| xsel | extract_id, seq, holds_chunk_json (the last chunk pins) |
+| xsnapc | a chunked record's state, snapshots only (its xsel chunks follow it) |
+| xattest | extract_id, peer, peer_pub, ts, sig |
+| peerKey | peer, pub, ts (a core peer's attestation key) |
+| coreIdNext | wrapped, public, kid (the identity's staged successor; an engine op, gated as wave-2) |
+| idRotate | old_pub, new_pub, ts, endorsement (an engine op, gated as wave-2) |
+| idHist | history_json, snapshots only |
 
 ## 5. Config keys added
 
@@ -225,7 +339,8 @@ core_diff_block_budget (10000000), core_page_bytes (4194304), core_have_page_max
 core_have_max_blocks (1048576), core_have_manifest_budget_bytes (1073741824),
 core_have_principal_budget_bytes (268435456), core_have_writer_only (deny),
 core_dedup_stats_read_gated (true), core_extract_max_amplification (4.0), core_extract_max_leaves
-(10000000), core_extract_selection_max_leaves (20000), core_extract_sync_leaves (100000),
+(10000000), core_extract_selection_max_leaves (1000000; was 20000), core_extract_xsel_chunk_bytes (1048576),
+core_extract_reservation_ttl_ms (900000), core_extract_attest (true), core_extract_sync_leaves (100000),
 core_extract_pin_bytes_per_tenant (109951162777600), core_extract_max_active_per_principal (1024),
 core_withdraw_vs_pin (refuse), core_cut_max_ttl_ms (604800000), core_cut_max_active_per_principal (64),
 core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true).
@@ -253,8 +368,16 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   is a new name) and at most 256 per scope. None of the built-ins is GLOBAL-eligible.
 - **Admission of commits:** §1a commits and request_id publishes are not counted against the job
   queues; §1a uploads are bounded by `core_ingest_max` and `core_ingest_per_principal` instead.
-- **Selection pins travel in one journal entry**, so `core_extract_selection_max_leaves` defaults to
-  20,000 (api §4.4 names 1,000,000 with xsel chunks, which are not built).
+- **Selection pins travel in xsel chunks** (2026-10-08): `core_extract_selection_max_leaves` defaults to api §4.4's
+  1,000,000; chunks of at most 1 MiB of holds; a reservation lives 15 min (`core_extract_reservation_ttl_ms`) before
+  the sweeper ends it EXPIRED. Flagged: the chunk size and the TTL are defaults chosen here, not owner decisions.
+- **Peer attestation is automatic and best effort** (2026-10-08, flagged): every new pin is attested by every voting
+  peer; a pin is PINNED before its attestations arrive (they are journaled as they come; a peer that is down attests
+  when asked again). Attestation keys live only in each peer's process (a restart registers a new one; every key a
+  peer used stays registered).
+- **The core identity rotates only on request, in two steps** (2026-10-08, flagged): `core.rotatemaster identity=stage`
+  then `identity=activate`; nothing rotates it automatically, and the storage nodes' and clients' pins of
+  `core_public_key` are the operator's to update between the two.
 - **Extract salts for NONE domains** use the public nonce (api §4.3 names HKDF(wrapKey(d))).
 - **Derivation and transform ids are keyed per tenant (V5):** HMAC-SHA-384 under
   HKDF(tenant root, "gfs/ids/v1"), so the same recipe in two tenants has two ids and an id reveals
@@ -277,11 +400,11 @@ core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (tr
   operator switch checked at the engine's one emit point. Off, no wave-2 delta is emitted (the verbs
   answer 8 api-not-enabled, commits carry no version record, core.status offers no jobs-1 or
   ingest-1a); on (the default), a peer on an older build that receives one fences (fail closed).
-- api §4: the xres/xsel two-phase reservation (the pin is one
-  atomic batch after an off-lock plan; selections above the single-entry bound are refused),
-  peer attestation (ExtractVerifier, core.extractattest), core identity history (a retired identity's
-  certificates would no longer verify on replay), extracts of entries kept only by inherited
-  references (refused, extract-unheld-entries).
+- api §4 is built (2026-10-08, fix/api-record): two-phase reservations, peer attestation, core identity history,
+  extracts of inherited entries (§3 above). Not built within it: carrying an extract's hold over to a dependent's
+  inherited references when the base it held through is withdrawn (such an extract still ends BROKEN, §6 V7);
+  attestation as a precondition of PINNED (a pin holds before its peers attest it); a peer quorum signature on cuts
+  (ENTAIL §3.3 quorum_cert).
 - api §3: a have-check against a version in another domain (refused, have-foreign-base), the block-list
   file hash. (Have-checks in format-adapter domains are built: see §3, "Have-checks in format-adapter
   domains".)

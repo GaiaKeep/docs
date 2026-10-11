@@ -3,6 +3,12 @@
 
 # GFS prototype — how to build, run and evaluate it locally
 
+> **Retired (OUT-42, owner N-PROTO 2026-10-02; fix/proto-retire 2026-10-08).** The prototype storage path this page
+> describes (federation index, fragment store, publisher, erasure-coded durability tier, Shamir custody, the
+> `storagesummary` beacon and the harnesses below) is no longer in the bundle: its actions answer 9. The page is
+> kept as the record of what was built and measured. The storage core and its node registry:
+> `docs/NODE-REGISTRY.md`, `docs/OPERATIONS.md`.
+
 The prototype is a new Cresco plugin (`code/gfs`, bundle `io.cresco.gfs`) plus a local launcher,
 a Python SDK and an evaluation harness under `run/gfs/`. It runs an 8-JVM fabric on one host and
 executes the runnable sections of `EVALUATION-PLAN.md` end to end.
