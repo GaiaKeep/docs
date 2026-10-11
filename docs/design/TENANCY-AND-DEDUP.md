@@ -197,6 +197,23 @@ default resolution; the owner can widen it per tenant.
 Reference counts are part of the index's replicated state. They are updated in the same quorum
 commit as the version that adds or drops a reference.
 
+### 7.1 Per-tenant quotas (OUT-59, W-GFS-2)
+
+A system-admin sets a tenant's quota with `core.quota op=set tenant_id=<t> stored_max=<bytes> staging_max=<bytes>
+weight=<1..1000>` (-1: no limit); it is one journaled `tq` record in the tenant's TEN partition (SYS once its root is
+destroyed), gated by `core_api_deltas`. The tenant's admins and auditors read it, with its use, by `op=get`.
+
+- **Staging**: an upload's files reserve their declared bytes against the collection's tenant's `staging_max` on the
+  core leader (StreamService), beside the shared staging limits. Past it: status 17 (QUOTA) with `retry_after_ms`
+  (`core_quota_retry_after_ms`), retriable as the tenant's other uploads finish.
+- **Stored** (charge model (a), the recommended default; owner question): the unique bytes of the blocks held in the
+  domains the tenant owns, each block once per domain however many versions or collections reference it; a GLOBAL
+  domain's blocks are charged to the system. The counter is kept at each block's first reference and last release
+  (never by a walk) and derived from the block table, so it is the same on every peer and after a snapshot install.
+  A commit whose not-yet-held blocks in the tenant's domains would take it past `stored_max` is refused whole
+  (status 17, no `retry_after_ms`). Blocks in another tenant's domain (a grant) are charged to that owner.
+- **Weight** is recorded for the schedulers that apportion shared capacity; nothing enforces it yet.
+
 ## 8. Keys
 
 ```

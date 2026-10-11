@@ -19,6 +19,7 @@ to the client only once a majority of peers has it on disk.
 | `seg-<first index>.log` | segment header (first index, term and MAC before it, header MAC), then records | append, one `force` per group commit |
 | `snap-<last index>.snap` | engine snapshot at that index, its term and chain MAC, payload SHA-384, MAC | temp, fsync, rename, directory fsync |
 | `imported-index.marker` | the one-time legacy import, MAC'd | once |
+| `epoch-<n>.key` | LC-ENC: an at-rest epoch's file key, AES-KWP-wrapped under the current master kid, MAC'd | temp, fsync, rename, directory fsync; destroyed (overwritten, unlinked) once no file needs it |
 
 A record is `magic | fmt | len | term | index | batch | hmac16 | payload | mac`, with
 `mac_i = HMAC-SHA-384(k_log, fmt|term|index|mac_(i-1)|payload)`. The 16-byte header MAC covers the
@@ -101,8 +102,26 @@ kid is refused with the reason).
   with a different history. Storage nodes accept `x.*` from every address in `core_peers` and
   `core_index_addrs`.
 - Every message carries a digest of the sender's `core_peers` (order-free). Peers configured with
-  different peer lists refuse each other's messages rather than count different quorums; changing
-  `core_peers` means restarting every peer with the new list (there is no joint consensus).
+  different peer lists refuse each other's messages rather than count different quorums, until the log
+  decides membership (below).
+- **Online membership (OUT-08c).** `core_peers` is the configuration until the first change. A change is
+  a raft configuration entry (entry kind 2, `memb1`): single-server (add a learner, promote a caught-up
+  learner, remove a voter or a learner), one at a time (the next only once the last is committed, and
+  only by a leader whose term's no-op committed), in effect on each peer as soon as it is appended,
+  committed or not, and undone if a new leader truncates it. Quorums, elections, the lease and
+  check-quorum count the configuration's voters; learners receive the log and count for nothing. A
+  leader the voters no longer include leads until that removal commits, then steps down; a peer that is
+  not a voter never campaigns. CoreLog notes configuration entries' indices as it verifies records at
+  open and as it appends, so finding them never reads the log; a snapshot records the configuration in
+  effect at its index as its leading `raftConf` delta (a snapshot that does not is not adopted), and a
+  peer installing one takes it from there. Once a peer's log holds a configuration it sends a fixed
+  dynamic digest and accepts any authenticated sender of the cluster (Raft's rules and leader
+  stickiness decide what it may do); a peer still on `core_peers` accepts the dynamic digest from any
+  sender, so a new member can lead it. An older build refuses the dynamic digest and halts on the entry
+  kind, so a change waits until every member the leader has heard from in two election timeouts has
+  answered FEATURES with `memb1` and a majority of the new voters have (a down peer does not hold a
+  replacement back). `core.membership` (system-admin) drives it: op=status, op=add and op=remove as C2
+  jobs (OPERATIONS §5.2).
 - **Divergent histories halt.** Every append carries the leader's chain values at `prevIndex` and at
   its last entry. A follower whose term matches at an index but whose chain value differs holds a
   history written by another cluster (a peer that once ran alone, a log copied from elsewhere): it
@@ -113,8 +132,14 @@ kid is refused with the reason).
   raft monitor is never held while the medium syncs, so heartbeats, acknowledgements and status go on during a
   slow fsync (an ingest's writes on the same disk made one take ~3 s on the HPC cluster, 2026-10-01, and the leader, its
   monitor held, sent no heartbeat, counted no acknowledgement and stepped down). Its own copy counts toward a
-  commit only once synced (`durable_index` in status). A follower still syncs before it answers; a follower's
-  stall shorter than `core_election_timeout_ms` is ridden out.
+  commit only once synced (`durable_index` in status). A follower does the same (OUT-08a): it writes the entries a
+  leader sends unforced, answers at once with what is already on its medium, and acknowledges the rest once a
+  sync on its sync thread covers it (one sync covers every append that arrived before it began;
+  `raft.follower_sync_acks`). Its monitor is free during the sync, so heartbeats, votes and the lease keep
+  flowing through a stall of any length, and the leader never counts an entry a follower has not forced.
+  Unforced appends are one group commit until a force returns (each record's group-commit start is the
+  first unforced index), so a power cut that tears an earlier one and keeps a later one, even across a
+  segment roll, is a torn tail, not refused as corruption.
   A leader that cannot reach a majority within the timeout steps down.
 - Commit counts only entries of the current term, from a majority's fsync. A new leader serves only
   after its term's no-op is committed and applied.
@@ -185,10 +210,46 @@ kid is refused with the reason).
   term, leader and commit index. A follower answers anything else with status `12` and `core_leader`.
   `eval/gkt.py:call_leader` follows that redirect, one retry per redirect, bounded.
 
+## At-rest encryption (LC-ENC, OUT-07)
+
+`core_at_rest_encryption` (default `false`; local to each peer) encrypts the log's files at rest:
+
+- **Epochs.** An at-rest epoch has a random 32-byte file key, AES-KWP-wrapped (SP 800-38F) under
+  `HKDF(master[kid], "gfs/core/at-rest-kek/v1")` then `HKDF(·, "gfs/core/at-rest-epoch/v1", "core-log", epoch)`, in
+  `epoch-<n>.key` (MAC'd under that kid's `k_log`). The epoch rolls at every snapshot (a compaction or an installed
+  snapshot) and at a master-key re-key; `adopt` rewrites every segment the compaction keeps under the new epoch (in
+  place: temp, fsync, rename over, the replaced file overwritten through its still-open channel) and destroys every
+  epoch key file no file, writer or new write needs. `kidsInUse` names the key files' kids, so an old kid retires only
+  once its epochs are gone.
+- **Segments (fmt 2).** The header adds the epoch and the segment's own random key, AES-KWP-wrapped under the epoch
+  key (bound to the segment's first index). Each record's stored payload is `iv ‖ ciphertext ‖ tag`: AES-256-GCM
+  under the segment key, the IV generated by the cryptographic module (`GfsCrypto.gcmSeal`), the record header (before
+  its MAC) as AAD. The record format stays 1 and its chain MAC is over the plaintext, so an encrypting peer and a
+  plain one have equal chain values. A segment key seals at most 2^24 records (the segment rolls).
+- **Snapshots (fmt 2).** The header adds the epoch and the file's own key (AES-KWP under the epoch key, bound to the
+  last index); the payload is 1 MiB plaintext chunks, each `iv ‖ ct ‖ tag` (module IV, the chunk index as AAD). The
+  length, SHA-384 and MAC are over the plaintext, so the payload a leader sends a follower is unchanged; each peer
+  stores what it receives in its own format.
+- **Recovery** opens every fmt-2 file only with its epoch's key file; a missing key file, a key that does not unwrap,
+  a chunk or record that does not decrypt are refusals (a record in the tail of the last segment that does not
+  decrypt is a torn tail, as a bad MAC is).
+- **Off again** writes new files in the clear and decrypts at the next compaction, after which the build can be
+  downgraded. An older build refuses fmt 2 by its format number.
+- Remanence: secure delete stays best effort on SSD and copy-on-write filesystems; a remanent copy of a deleted file
+  needs its epoch key file, and a remanent copy of that needs its master kid: retiring the kid (LIFECYCLE.md, kid
+  census) is what makes the copies unreadable.
+
 ## Compaction
 
 At a consistent cut the engine's snapshot deltas are written as a snapshot and the segments it
-covers are deleted. The cut holds the engine's lock and the policy and key-ring locks (their changes
+covers are deleted. **Streamed (OUT-26):** the leader takes its cut copy-on-write inside the consistent cut (policy,
+versions and holds copied, the block table cut by pages) and streams it after the cut is released: the delta count is
+declared first (a sealed cut is walked once dry to count its envelopes), then each delta and each phase's envelopes go
+straight into the file through `CoreLog.writeSnapshot(PayloadWriter)`; memory is the sealer's per-partition buffers
+(`core_meta_snapshot_group_bytes`) and one at-rest chunk, never a list. The install reads the file twice, one delta at
+a time: a first pass authenticates it (head, count, check, splice, context, MAC, the anti-rollback check) with nothing
+applied; the second applies it in order, sealed envelopes opened ahead by `core_meta_install_threads` workers in a
+bounded window, each opening used only while its partition's key is unchanged. The cut holds the engine's lock and the policy and key-ring locks (their changes
 are made outside the engine's lock and journaled by hooks), and a cut is discarded if anything
 reached the log meanwhile (`log.cuts_discarded`). A follower does not snapshot its engine under the
 raft lock: it replays its snapshot and committed log into a scratch engine off the lock and
@@ -225,6 +286,10 @@ majority; remove the setting once the core has formed.
 
 ## Config keys
 
+`core_at_rest_encryption` (LC-ENC, above) and `core_meta_install_threads` (the install's decrypt pool) are in the
+README's metadata-crypto table.
+
+
 | Key | Default | |
 |---|---|---|
 | `core_log_dir` | `<plugin data>/core-log` | put on node-local storage (OUT-40) |
@@ -243,6 +308,8 @@ majority; remove the setting once the core has formed.
 | `core_raft_bootstrap` | `false` | the first listed peer's first start forms a new core with a majority of empty peers (N18) |
 | `core_raft_voter_override` | none | this peer's own `raft.state_id`: vote although it lost its raft state (N18, OPERATIONS §5.3) |
 | `core_snapshot_min_interval_ms` | 60000 | least time between two on-demand snapshots taken |
+| `core_membership_enabled` | `true` | `core.membership` op=add and op=remove may change the configuration (OUT-08c) |
+| `core_membership_catchup_ms` | 600000 | how long an add waits for its learner to catch up before it fails, retryable |
 
 ## Evidence
 
