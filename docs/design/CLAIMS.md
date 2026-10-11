@@ -5,7 +5,7 @@
 
 *Generated 2026-09-18 11:06 by `run/gfs/gfs_claims.py` from `run/gfs/results/`. A claim is PROVEN only when the executed checks and measurements listed as evidence satisfy it.*
 
-**58/59 claims proven** (2026-10-08: the prototype index resolve claim is replaced by the core-path read claim, UNPROVEN until its DGX run, OUT-84; the other claims are the retired prototype's, kept as its record).
+**58/59 claims proven** (2026-10-08: the prototype index resolve claim is replaced by the core-path read claim, UNPROVEN until its HPC run, OUT-84; the other claims are the retired prototype's, kept as its record).
 
 | area | claim | status | evidence |
 |---|---|---|---|
@@ -62,7 +62,7 @@
 | Perf durability | 1 GiB object: encode >= 200 MB/s, restore >= 250 MB/s, verified | **PROVEN** | {"encode_mb_s": 271.76220806794055, "restore_mb_s": 282.7948080640707, "restore_ok": true} |
 | Perf durability | 1 GiB lost holder regenerated in <= 15 s (keyless) | **PROVEN** | {"repair_fragments": 205, "audit_ms": 90, "repair_s": 8.0, "repair_ok": true} |
 | Perf durability | Every restore in the sweep hash-verified and every lost holder repaired | **PROVEN** | 26/26 rows |
-| Perf core | core.head from 16 clients with follower reads (3 core peers, linearizable, signed and audited): p99 <= 50 ms and >= 500 reads/s (DGX standing deployment) | UNPROVEN (no evidence) | dgx: not run; local in-process (Mac OS X aarch64, 16 clients, 2026-10-08): p50 26.3 ms, p99 45.9 ms, 571/s. Replaces the retired prototype index's resolve figure (OUT-84; resolve p99 0.90 ms / 5,400 per s at 10^6 files, prototype only) |
+| Perf core | core.head from 16 clients with follower reads (3 core peers, linearizable, signed and audited): p99 <= 50 ms and >= 500 reads/s (HPC standing deployment) | UNPROVEN (no evidence) | HPC: not run; local in-process (Mac OS X aarch64, 16 clients, 2026-10-08): p50 26.3 ms, p99 45.9 ms, 571/s. Replaces the retired prototype index's resolve figure (OUT-84; resolve p99 0.90 ms / 5,400 per s at 10^6 files, prototype only) |
 | Perf index | Real filerepo publication: 50k files visible in <= 30 s | **PROVEN** | [{'files': 20000, 'generate_s': 1.4, 'time_to_visible_s': 5.1, 'files_per_s': 3898, 'publisher': {'dataset_id': 'frpub-20000', 'owner': 'orcid:0000-0001-alice', 'root': '<local workspace path>', |
 | Perf federation | 240 sites: listnodes p50 <= 20 ms, promote with placement solve p50 <= 20 ms, index CPU <= 50 % of one core | **PROVEN** | listnodes 5 ms, promote 3 ms, cpu 21.900000000000002 |
 | Perf client | Java client access path >= 200 MB/s for 256 MiB, hash verified (all reps) | **PROVEN** | {"summary": true, "reps": 5, "ok": 5, "mb_per_s_min": 31.3, "mb_per_s_median": 403.0, "mb_per_s_max": 407.9, "reps_detail": [{"rep": 0, "bytes": 143654912, "chunks": 1024, "refetched": 476, "rounds": 2, "seconds": 8.171, |

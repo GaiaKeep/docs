@@ -2067,8 +2067,7 @@ shifts slightly, neither chunker shares anything. **Measure real checkpoints bef
 ## Measured: checkpoints do not deduplicate (2026-09-19)
 
 The assumption the redaction design rested on, tested on real training output. Harness
-`eval/ckpt_dedup.py`, raw results `eval/results/ckpt_dedup_results.json`. Measured on an HPC compute
-node over `ft/checkpoints/sft_v530_v6_long_p2`, a real SFT run with checkpoints every 500 steps, 51 GB
+`eval/ckpt_dedup.py`, raw results `eval/results/ckpt_dedup_results.json`. Measured on an HPC compute node over `ft/checkpoints/sft_v530_v6_long_p2`, a real SFT run with checkpoints every 500 steps, 51 GB
 each (12.06 GB weights, 24.1 GB optimizer state, 12.06 GB FSDP copy).
 
 64 KiB fixed blocks rather than CDC, deliberately: checkpoint files have identical structure at
