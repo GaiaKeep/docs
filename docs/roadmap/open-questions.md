@@ -345,7 +345,7 @@ ciphertext; a second layer adds a key-custody dependency and buys nothing.
 **S8 — Per-request credentialed tokens for agents:** you mentioned audited per-request tokens.
 Scoped to what — dataset, version, verb, byte range, time window? Who issues them?
 
-**S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?** *Built (OUT-88, 2026-10-08),
+**S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?** **SETTLED 2026-10-16:** the built default stands (kept for ever; the owner stated no other preference). *Built (OUT-88, 2026-10-08),
 defaults pending your answer:* it is tamper-evident (a MAC chain anchored in the replicated journal) and lives on each
 core peer; with `core_audit_archive=true`, closed segments are archived as versions of the WORM collection
 `sys-audit/<peer>` (class `audit`) on tape, and the local copy is dropped after `core_audit_local_retention_ms` (30
@@ -359,7 +359,7 @@ finer, attribute-based rules (per dataset, per DUA)?
 **S11 — Is metadata confidentiality in scope?** **ANSWERED 2026-10-02:** confirmed as built; the rest of metadata encryption is still outstanding. The catalogue currently holds everything except
 content keys, including filenames. Must names and sizes be protected from site operators?
 
-**S12 — May an ordinary forget crypto-shred archived (WORM) audit?** *Built default (OUT-88, 2026-10-08):* yes. A
+**S12 — May an ordinary forget crypto-shred archived (WORM) audit?** **SETTLED 2026-10-16:** yes, as built, under the owner's standing rule that legal deletion overrides WORM. *Built default (OUT-88, 2026-10-08):* yes. A
 forget must remove the forgotten data's details from the audit (lifecycle G); an archived segment on WORM tape cannot
 be rewritten, so its per-object key is destroyed and **the whole segment version** becomes unreadable, including
 unrelated records in it (the chain still verifies across it by its journaled head, and the shred is a MAC'd record in

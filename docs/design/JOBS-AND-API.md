@@ -83,8 +83,21 @@ from the page that reaches the end.
   `resume=true`), never sends a journaled file again (refused, 8), and commits under the same request_id
   with the same proofs. The record and its hold end in the commit's own batch, or when the upload is
   given up (discarded, failed, or not resumed within `core_upload_ttl_ms`), and its blocks then go to the
-  orphan pass. Only whole files are journaled: a file in progress at the leader change is sent again
-  (its whole-file hashes cannot cross leaders); its checkpointed blocks are deduplicated onto.
+  orphan pass.
+- **Mid-file (OUT-89, `ingj2`).** A file in progress checkpoints too: after each batch of its blocks, once
+  `core_ingest_checkpoint_bytes` more of it are written, the blocks so far are sealed and journaled as its
+  prefix (`ingestPrefix`: upload_id, path, durable byte offset = the blocks' bytes, an entry naming those
+  blocks with no file hash) with the same hold, in a batch made durable at once; a later prefix of the same
+  file replaces it (the offset only grows) and the file's `ingestPart` ends it. A new leader answers
+  `journaled_prefix` `{path: offset}` in `core.putstatus`; the client re-opens that file's parts with
+  `resume=true` and skips every chunk wholly inside the prefix (the core counts them as landed), so only the
+  chunk across the prefix's end and the rest cross the wire again. The whole-file hashes cannot cross
+  leaders as hash state, so the new leader's writer reads the prefix back from the sites (each block
+  authenticated) before the bytes the client sends: the legacy sha256 check, the domain's file hash and
+  the keyed commit proof (under the new part-0 flow key) cover the whole file as before. In a dedup domain
+  the prefix's blocks are deduplicated onto; in NONE they are sealed again under the new object (an object's
+  deterministic IVs are never reused across leaders). A commit while a begun file is unfinished commits
+  nothing (`incomplete`). Journaled only while every core peer answers FEATURES with `ingj2`.
 - The legacy `core.publish` never holds its RPC past the budget: 13 `committing`, then
   `core.putstatus` `commit_state`; with request_id it is an idempotent job.
 - A wave-1 staged upload whose puts say `resumable=true` is resumable the same way (a dropped flow
