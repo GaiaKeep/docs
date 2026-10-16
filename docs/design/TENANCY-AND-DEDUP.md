@@ -107,7 +107,9 @@ encrypts exactly one plaintext, ever**. Identical blocks produce identical ciphe
 deduplication; different blocks use different keys. The GCM nonce-reuse hazard that `SegmentCipher`
 exists to prevent can't arise for data blocks in these modes. The IV is a fixed constant and nothing
 needs to be coordinated. This was the property of the pre-2026-09-19 `K_rdom` design, and it
-returns here.
+returns here. The constant IV is the crypto module's (`GfsCrypto.gcmSealOnce`, SP 800-38D §8.2.1 with the
+invocation field never leaving 0; FIPS 140-3 IG C.H, OUT-56), and a random IV would end the
+deduplication, so this is the construction gfs keeps (KEY-CUSTODY.md §IV).
 
 NONE keeps `SegmentCipher` (`SPECIFICATION.md` §20) unchanged, because per-object keys cover many
 chunks and need the counter discipline.

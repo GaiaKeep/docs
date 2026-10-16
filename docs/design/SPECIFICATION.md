@@ -2057,4 +2057,7 @@ permanent structure to get right on unerasable media.
   should — a lease on the idempotency key, refused rather than shared.
 - `CryptoBox.gcmEncryptWithIv` remains callable directly. Its comment now names `SegmentCipher` as
   the only sanctioned caller for object data; that is documentation, not a compiler error, and the
-  §17 checklist should grow a lint for direct callers.
+  §17 checklist should grow a lint for direct callers. *(2026-10-15, OUT-56: removed. Every GCM IV for
+  encryption is composed inside `GfsCrypto`; `SegmentCipher` names (xorb_seq, chunk_ordinal) to a
+  module counter that refuses a spent one, and the build fails on a GCM IV built anywhere else:
+  KEY-CUSTODY.md §IV.)*
