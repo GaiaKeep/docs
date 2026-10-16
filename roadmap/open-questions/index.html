@@ -3240,7 +3240,7 @@ ciphertext; a second layer adds a key-custody dependency and buys nothing.</p>
 <p><strong>S7 — FIPS 140-3 validated crypto module required now, or at DoD fielding?</strong> <strong>ANSWERED 2026-10-02:</strong> see S4 and the crypto facade: one configurable facade across GaiaKeep and Cresco, so the whole stack can be set to the same FIPS level; SHA-384 for new formats.</p>
 <p><strong>S8 — Per-request credentialed tokens for agents:</strong> you mentioned audited per-request tokens.
 Scoped to what — dataset, version, verb, byte range, time window? Who issues them?</p>
-<p><strong>S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?</strong> <em>Built (OUT-88, 2026-10-08),
+<p><strong>S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?</strong> <strong>SETTLED 2026-10-16:</strong> the built default stands (kept for ever; the owner stated no other preference). <em>Built (OUT-88, 2026-10-08),
 defaults pending your answer:</em> it is tamper-evident (a MAC chain anchored in the replicated journal) and lives on each
 core peer; with <code>core_audit_archive=true</code>, closed segments are archived as versions of the WORM collection
 <code>sys-audit/&lt;peer&gt;</code> (class <code>audit</code>) on tape, and the local copy is dropped after <code>core_audit_local_retention_ms</code> (30
@@ -3251,7 +3251,7 @@ requires the documentation it mandates to be kept 6 years; set at least that if 
 finer, attribute-based rules (per dataset, per DUA)?</p>
 <p><strong>S11 — Is metadata confidentiality in scope?</strong> <strong>ANSWERED 2026-10-02:</strong> confirmed as built; the rest of metadata encryption is still outstanding. The catalogue currently holds everything except
 content keys, including filenames. Must names and sizes be protected from site operators?</p>
-<p><strong>S12 — May an ordinary forget crypto-shred archived (WORM) audit?</strong> <em>Built default (OUT-88, 2026-10-08):</em> yes. A
+<p><strong>S12 — May an ordinary forget crypto-shred archived (WORM) audit?</strong> <strong>SETTLED 2026-10-16:</strong> yes, as built, under the owner's standing rule that legal deletion overrides WORM. <em>Built default (OUT-88, 2026-10-08):</em> yes. A
 forget must remove the forgotten data's details from the audit (lifecycle G); an archived segment on WORM tape cannot
 be rewritten, so its per-object key is destroyed and <strong>the whole segment version</strong> becomes unreadable, including
 unrelated records in it (the chain still verifies across it by its journaled head, and the shred is a MAC'd record in

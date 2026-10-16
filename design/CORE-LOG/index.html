@@ -3016,7 +3016,10 @@ reason).</p>
   consent would leave no peer able to elect a leader once the first one falls. An empty
   non-voter only consents: a consent counts toward an election that every peer joins (or the bootstrap
   majority above), never toward a majority. <code>core_raft_voter_override=&lt;its raft.state_id&gt;</code> makes a
-  non-voter vote when an operator has established that nothing committed depends on what it lost.</li>
+  non-voter vote when an operator has established that nothing committed depends on what it lost. It is armed at
+  start and applied only once no leader has been heard for two election timeouts (OUT-105: a serving leader
+  disarms it and catches the peer up instead; <code>raft.voter_override</code> reports armed, applied, ignored or forced);
+  <code>core_raft_voter_override_force=true</code> applies it at start.</li>
 <li>A follower whose log is behind the leader's snapshot (empty, new, wiped) is sent the snapshot.
   A follower that restarted (a new process incarnation) or rejects entries it had acknowledged
   (a truncated tail, a wiped directory) stops counting toward the quorum until it confirms them again.</li>
@@ -3246,7 +3249,12 @@ README's metadata-crypto table.</p>
 <tr>
 <td><code>core_raft_voter_override</code></td>
 <td>none</td>
-<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3)</td>
+<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3); armed until no leader is heard for two election timeouts (OUT-105)</td>
+</tr>
+<tr>
+<td><code>core_raft_voter_override_force</code></td>
+<td>false</td>
+<td>apply <code>core_raft_voter_override</code> at start, not armed (owner sign-off; <code>gaiakeep op raft override --force</code> prints it)</td>
 </tr>
 <tr>
 <td><code>core_snapshot_min_interval_ms</code></td>
