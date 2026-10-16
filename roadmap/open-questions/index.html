@@ -3230,7 +3230,8 @@ them as monotone (never shortened).</p>
 <p><strong>S2 [BEFORE MEDIA] — Enforce idempotency keys with a lease?</strong> <strong>ANSWERED 2026-10-02:</strong> yes. Today two writers under one key
 would each think they own the counter space. <strong>Rec:</strong> yes; refuse rather than share.</p>
 <p><strong>S3 — Make direct calls to <code>CryptoBox.gcmEncryptWithIv</code> for object data a lint failure?</strong>
-<strong>Rec:</strong> yes.</p>
+<strong>Rec:</strong> yes. <strong>DONE 2026-10-15 (OUT-56):</strong> the method is gone; no class outside <code>GfsCrypto</code> may build a
+GCM IV for encryption, and <code>CryptoCallSiteLintTest</code> fails the build on one (KEY-CUSTODY.md §IV).</p>
 <p><strong>S4 [BEFORE PROD] — Key custody: software keys, an HSM, or both?</strong> <strong>ANSWERED 2026-10-02:</strong> keys scoped per project and possibly per dataset (multi-tenant from day one); custody behind a swappable interface: software keys in phase one, an HSM later; FIPS-attainable from the start (approved algorithms only, one crypto chokepoint, swappable custody). The design assumes shredding is
 a hardware key destruction. Which HSM, and one per site?</p>
 <p><strong>S5 — Shamir t-of-n custody across sites: keep it, and what are t and n?</strong> <strong>ANSWERED 2026-10-02:</strong> Shamir-style federated key custody across system-maintained nodes.</p>
@@ -3239,11 +3240,26 @@ ciphertext; a second layer adds a key-custody dependency and buys nothing.</p>
 <p><strong>S7 — FIPS 140-3 validated crypto module required now, or at DoD fielding?</strong> <strong>ANSWERED 2026-10-02:</strong> see S4 and the crypto facade: one configurable facade across GaiaKeep and Cresco, so the whole stack can be set to the same FIPS level; SHA-384 for new formats.</p>
 <p><strong>S8 — Per-request credentialed tokens for agents:</strong> you mentioned audited per-request tokens.
 Scoped to what — dataset, version, verb, byte range, time window? Who issues them?</p>
-<p><strong>S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?</strong></p>
+<p><strong>S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?</strong> <em>Built (OUT-88, 2026-10-08),
+defaults pending your answer:</em> it is tamper-evident (a MAC chain anchored in the replicated journal) and lives on each
+core peer; with <code>core_audit_archive=true</code>, closed segments are archived as versions of the WORM collection
+<code>sys-audit/&lt;peer&gt;</code> (class <code>audit</code>) on tape, and the local copy is dropped after <code>core_audit_local_retention_ms</code> (30
+days). <strong>How long is it kept?</strong> Default: for ever (<code>core_audit_archive_retain_ms=0</code>); a positive value crypto-shreds
+archived segments older than it. <strong>Rec:</strong> keep for ever until a regulation names a period (HIPAA
+requires the documentation it mandates to be kept 6 years; set at least that if you choose a period).</p>
 <p><strong>S10 — Tenant model:</strong> <strong>ANSWERED 2026-10-02:</strong> confirmed as built; attribute and per-DUA rules stay deferred. reuse Cresco's shipped tenant namespacing and roles, or does GFS need
 finer, attribute-based rules (per dataset, per DUA)?</p>
 <p><strong>S11 — Is metadata confidentiality in scope?</strong> <strong>ANSWERED 2026-10-02:</strong> confirmed as built; the rest of metadata encryption is still outstanding. The catalogue currently holds everything except
 content keys, including filenames. Must names and sizes be protected from site operators?</p>
+<p><strong>S12 — May an ordinary forget crypto-shred archived (WORM) audit?</strong> <em>Built default (OUT-88, 2026-10-08):</em> yes. A
+forget must remove the forgotten data's details from the audit (lifecycle G); an archived segment on WORM tape cannot
+be rewritten, so its per-object key is destroyed and <strong>the whole segment version</strong> becomes unreadable, including
+unrelated records in it (the chain still verifies across it by its journaled head, and the shred is a MAC'd record in
+the peer's chain). A segment still held locally is redacted and archived again instead, so nothing unrelated is lost.
+Alternatives: (a) only a LEGAL_ORDER may shred archived audit (a consent withdrawal then leaves archived details
+readable until a legal order); (b) stage the segment back from tape, redact and archive it again (no collateral loss;
+costs a tape recall per forget that reaches the archive; not built). <strong>Rec:</strong> keep the default, and build (b) if
+collateral loss of audit records becomes a concern.</p>
 <hr />
 <h2 id="9-panatlas-integration">9. panAtlas integration<a class="headerlink" href="#9-panatlas-integration" title="Permanent link">&para;</a></h2>
 <p><strong>X1 [NOW] — Decide <code>doc_uid</code> blinding before the imaging element-level overlap job runs.</strong> <strong>ANSWERED 2026-10-02:</strong> the system mints its own collision-free identifiers and never relies on external keys; identity at the native-chunk level so dedup works across differently encrypted copies. Today

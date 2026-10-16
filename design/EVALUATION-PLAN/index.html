@@ -4489,9 +4489,9 @@ evidence stays in E4-E9.</em></p>
 </tr>
 <tr>
 <td>AU-11</td>
-<td>audit retention and archiving</td>
-<td>-</td>
-<td>PLAN (owner question S9)</td>
+<td>audit retention and archiving: closed, anchored segments archived to the WORM collection sys-audit/<peer> on tape, local copies dropped once VERIFIED and past the local retention, the chain verified across the archived prefix by its journaled heads, forget redaction by crypto-shred of archived segments (OUT-88)</td>
+<td><code>AuditArchiveTest</code>, <code>AuditLogArchiveTest</code>, <code>AuditArchiveServiceTest</code>, <code>AuditArchiveClusterTest</code></td>
+<td>UNIT (2026-10-08, <code>core_audit_archive</code> off by default); live on the standing deployment PLAN; retention period owner question S9</td>
 </tr>
 <tr>
 <td>IA-2, IA-3, IA-5</td>

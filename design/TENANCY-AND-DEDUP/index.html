@@ -3170,7 +3170,9 @@ encrypts exactly one plaintext, ever</strong>. Identical blocks produce identica
 deduplication; different blocks use different keys. The GCM nonce-reuse hazard that <code>SegmentCipher</code>
 exists to prevent can't arise for data blocks in these modes. The IV is a fixed constant and nothing
 needs to be coordinated. This was the property of the pre-2026-09-19 <code>K_rdom</code> design, and it
-returns here.</p>
+returns here. The constant IV is the crypto module's (<code>GfsCrypto.gcmSealOnce</code>, SP 800-38D §8.2.1 with the
+invocation field never leaving 0; FIPS 140-3 IG C.H, OUT-56), and a random IV would end the
+deduplication, so this is the construction gfs keeps (KEY-CUSTODY.md §IV).</p>
 <p>NONE keeps <code>SegmentCipher</code> (<code>SPECIFICATION.md</code> §20) unchanged, because per-object keys cover many
 chunks and need the counter discipline.</p>
 <h2 id="4-chunking">4. Chunking<a class="headerlink" href="#4-chunking" title="Permanent link">&para;</a></h2>
