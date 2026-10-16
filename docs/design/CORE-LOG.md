@@ -186,7 +186,10 @@ reason).
   consent would leave no peer able to elect a leader once the first one falls. An empty
   non-voter only consents: a consent counts toward an election that every peer joins (or the bootstrap
   majority above), never toward a majority. `core_raft_voter_override=<its raft.state_id>` makes a
-  non-voter vote when an operator has established that nothing committed depends on what it lost.
+  non-voter vote when an operator has established that nothing committed depends on what it lost. It is armed at
+  start and applied only once no leader has been heard for two election timeouts (OUT-105: a serving leader
+  disarms it and catches the peer up instead; `raft.voter_override` reports armed, applied, ignored or forced);
+  `core_raft_voter_override_force=true` applies it at start.
 - A follower whose log is behind the leader's snapshot (empty, new, wiped) is sent the snapshot.
   A follower that restarted (a new process incarnation) or rejects entries it had acknowledged
   (a truncated tail, a wiped directory) stops counting toward the quorum until it confirms them again.
@@ -356,7 +359,8 @@ README's metadata-crypto table.
 | `core_raft_freshness_ms` | 120000 | largest tolerated clock skew between core hosts; older messages are refused |
 | `core_raft_bootstrap` | `false` | the first listed peer's first start forms a new core with a majority of empty peers (N18) |
 | `core_raft_transfer` | `true` | leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (`xfer1`); off: neither advertised nor sent |
-| `core_raft_voter_override` | none | this peer's own `raft.state_id`: vote although it lost its raft state (N18, OPERATIONS §5.3) |
+| `core_raft_voter_override` | none | this peer's own `raft.state_id`: vote although it lost its raft state (N18, OPERATIONS §5.3); armed until no leader is heard for two election timeouts (OUT-105) |
+| `core_raft_voter_override_force` | false | apply `core_raft_voter_override` at start, not armed (owner sign-off; `gaiakeep op raft override --force` prints it) |
 | `core_snapshot_min_interval_ms` | 60000 | least time between two on-demand snapshots taken |
 | `core_membership_enabled` | `true` | `core.membership` op=add and op=remove may change the configuration (OUT-08c) |
 | `core_membership_catchup_ms` | 600000 | how long an add waits for its learner to catch up before it fails, retryable |
