@@ -329,7 +329,8 @@ them as monotone (never shortened).
 would each think they own the counter space. **Rec:** yes; refuse rather than share.
 
 **S3 — Make direct calls to `CryptoBox.gcmEncryptWithIv` for object data a lint failure?**
-**Rec:** yes.
+**Rec:** yes. **DONE 2026-10-15 (OUT-56):** the method is gone; no class outside `GfsCrypto` may build a
+GCM IV for encryption, and `CryptoCallSiteLintTest` fails the build on one (KEY-CUSTODY.md §IV).
 
 **S4 [BEFORE PROD] — Key custody: software keys, an HSM, or both?** **ANSWERED 2026-10-02:** keys scoped per project and possibly per dataset (multi-tenant from day one); custody behind a swappable interface: software keys in phase one, an HSM later; FIPS-attainable from the start (approved algorithms only, one crypto chokepoint, swappable custody). The design assumes shredding is
 a hardware key destruction. Which HSM, and one per site?
@@ -344,13 +345,29 @@ ciphertext; a second layer adds a key-custody dependency and buys nothing.
 **S8 — Per-request credentialed tokens for agents:** you mentioned audited per-request tokens.
 Scoped to what — dataset, version, verb, byte range, time window? Who issues them?
 
-**S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?**
+**S9 — Audit log: where does it live, how long is it kept, and must it be tamper-evident?** *Built (OUT-88, 2026-10-08),
+defaults pending your answer:* it is tamper-evident (a MAC chain anchored in the replicated journal) and lives on each
+core peer; with `core_audit_archive=true`, closed segments are archived as versions of the WORM collection
+`sys-audit/<peer>` (class `audit`) on tape, and the local copy is dropped after `core_audit_local_retention_ms` (30
+days). **How long is it kept?** Default: for ever (`core_audit_archive_retain_ms=0`); a positive value crypto-shreds
+archived segments older than it. **Rec:** keep for ever until a regulation names a period (HIPAA
+requires the documentation it mandates to be kept 6 years; set at least that if you choose a period).
 
 **S10 — Tenant model:** **ANSWERED 2026-10-02:** confirmed as built; attribute and per-DUA rules stay deferred. reuse Cresco's shipped tenant namespacing and roles, or does GFS need
 finer, attribute-based rules (per dataset, per DUA)?
 
 **S11 — Is metadata confidentiality in scope?** **ANSWERED 2026-10-02:** confirmed as built; the rest of metadata encryption is still outstanding. The catalogue currently holds everything except
 content keys, including filenames. Must names and sizes be protected from site operators?
+
+**S12 — May an ordinary forget crypto-shred archived (WORM) audit?** *Built default (OUT-88, 2026-10-08):* yes. A
+forget must remove the forgotten data's details from the audit (lifecycle G); an archived segment on WORM tape cannot
+be rewritten, so its per-object key is destroyed and **the whole segment version** becomes unreadable, including
+unrelated records in it (the chain still verifies across it by its journaled head, and the shred is a MAC'd record in
+the peer's chain). A segment still held locally is redacted and archived again instead, so nothing unrelated is lost.
+Alternatives: (a) only a LEGAL_ORDER may shred archived audit (a consent withdrawal then leaves archived details
+readable until a legal order); (b) stage the segment back from tape, redact and archive it again (no collateral loss;
+costs a tape recall per forget that reaches the archive; not built). **Rec:** keep the default, and build (b) if
+collateral loss of audit records becomes a concern.
 
 ---
 

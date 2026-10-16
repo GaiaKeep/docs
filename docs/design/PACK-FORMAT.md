@@ -85,7 +85,10 @@ root, and repack can move a record whose id it does not know. Everything else is
 **GCM IVs** are a counter pair, never random (SPECIFICATION §20 applied to container metadata, OPEN-QUESTIONS S1):
 `IV = u64 seq ‖ u32 domain`, with domain 1 for a record header, 2 for a metadata body, 3 for the
 trailer (whose seq is `0xFFFFFFFFFFFFFFFF`). Each `(seq, domain)` is used once per container, and
-each container has its own `K_meta`, so no IV is ever reused under a key.
+each container has its own `K_meta`, so no IV is ever reused under a key. In the Java writer the IV
+is composed by the crypto module (`GfsCrypto.GcmCounter`, MONOTONE: each domain's seq strictly
+increases, the writer never names IV bytes; FIPS 140-3 IG C.H scenario 3, OUT-56). The bytes are
+the ones this section specifies; a reader recomputes the IV from the seq as before.
 
 **Test vectors** (`K_root = 000102...1f`, `cid = a0a1...af`, the growing golden container):
 
@@ -567,6 +570,8 @@ holder would need a second key per record; it is not done (§16).
 - **Fixed-size parcels.** The tape binding writes containers with `capacity_bytes` = the parcel size
   (SPECIFICATION §3.1: 1 GiB), padded with a CSPRNG PAD record, so every parcel on a cartridge has
   the same length and none carries a cleartext length.
+  *As built (2026-10-15) the tape binding does not pad: a container is its content rounded up to the block,
+  and a lone small seal is one block plus the tail record (TAPE-FORMAT.md §2, "Container size as built").*
 - **No seek-back.** The header is the first record, written once. The index is at the end. Nothing
   is rewritten (§7.3's tail rewrite is disk-only and is refused by a sequential sink).
 - **The index after one seek to the end**: locate to the parcel's last block (`first block + capacity/B − 1`),

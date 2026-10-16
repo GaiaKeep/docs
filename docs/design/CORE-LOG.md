@@ -68,30 +68,57 @@ logs up to that index, on any peer.
   kid the peer does not hold refuses to start and names it.
 - **Every file is MAC'd under one kid** and verified under the held kid that authenticates it. A
   segment's records are under its header's kid. Recovery refuses an earlier kid where only the
-  header's may be: a segment starting after `rekeyedAt`, any segment after one under the header's
-  kid, a snapshot past `rekeyedAt`. A file under a retired kid that is put back, or forged by someone
-  holding the retired key, is refused rather than replayed.
-- **Re-key in place.** When a peer starts with a current kid its log is not keyed under,
-  `CoreLog.rekey` rewrites the header (new kid, `rekeyedAt` = the last index), rolls a new segment that
-  continues the MAC chain under the new kid, and rewrites the raft state and marker. Each step is
-  crash-safe; an interrupted re-key finishes on the next start. History is not rewritten: the chain
-  value at `rekeyedAt` is the same, and later records chain from it under the new kid.
+  header's may be: a segment starting after `rekeyedAt`, a snapshot past `rekeyedAt`; and a change of
+  kid between segments (or inside one) that no journaled switch accounts for. A file under a retired
+  kid that is put back, or forged by someone holding the retired key, is refused rather than replayed.
+- **The chain's kid changes through the log (journaled kid switch).** Chain values are MAC'd under
+  the kid in effect at each index, and peers compare them on every append, so every peer must change
+  kid at the same index. A `CHAINKID` entry (payload kind 3, naming a kid) says the chain continues
+  under that kid after it. The leader appends one once every member has answered the features probe
+  with `ckid1` and `cur:<kid>` naming the leader's current kid (within three election timeouts; a
+  member that is down or has not answered blocks it, and an older build never answers `ckid1`, so it
+  never receives the entry it would halt on). Each peer, as it appends the entry, forces it, rewrites
+  the header (new kid, `rekeyedAt` = the entry's index), rolls a new segment under the new kid and
+  rewrites the raft state and marker. A peer starting with a new current kid changes nothing in its
+  log; the leader's `raft.kid_switch` (core.status) says what the switch waits for. A follower that
+  does not hold the kid an entry names does not append it (it logs why and waits; it does not halt).
+- **Crashes and truncations.** A switch entry written and forced but not yet in the header is finished
+  at the next open. A truncation below a switch undoes it: the segment that held the first removed
+  index stays (emptied) as the record of the kid before, the header goes back to it, and an open after
+  a crash in between does the same. History is never rewritten: the chain value at the switch is the
+  same, and later records chain from it under the new kid.
+- **A follower with nothing after its snapshot** (a fresh peer, a snapshot install that replaced its
+  log, a truncation to the snapshot) cannot tell from its own files which kid the next record chains
+  under. It takes the held kid under which the leader's entries end at the leader's chain value (the
+  header's kid first). The leader's chain over those entries from the same value at the snapshot is
+  what any choice must match, so this accepts no history the check would otherwise refuse. Until it
+  has learned it, a peer whose snapshot was installed over its log (with more than one kid held) does
+  not stand for election, so it never extends the chain under a guess.
 - **The next snapshot retires the old kid.** While `kids_in_use` (core.status `log`) lists a kid
   other than the header's, the snapshot pass takes a snapshot every 10 s; once one lies past
   `rekeyedAt`, compaction deletes the old kid's segments and snapshot. `core.rotatemaster` reports
-  `log_kids_in_use` and a `retirable_kids` that accounts for the log as well as the roots.
+  `log_kid`, `log_kids_in_use` and a `retirable_kids` that accounts for the log as well as the roots.
 - **Raft messages** are MAC'd under the sender's current kid and verified under any held kid, so the
   rotation rolls through the peers one restart at a time, provided every peer holds the new kid
   (as a previous key) before any peer makes it current. A peer that does not hold it cannot follow;
   its raft status shows "MAC fails under every held master kid".
-- **Different peers may be keyed under different kids** during the rotation. Chain values then differ
-  between peers for the same entries, so a snapshot install to such a follower replaces its log
-  instead of keeping the matching suffix: slower, never wrong.
+- **`CoreLog.rekey`** moves a log to the current kid on its own, at its last index. It is for a log no
+  other peer compares chains with (tools, a copy); the core service no longer calls it. Builds before
+  OUT-25 called it at every start, which is why a peer re-keyed alone during a rolling restart halted
+  with "divergent history"; its re-key point (`rekeyedAt`) still opens as before.
 
 Tested: CoreLogTest (re-key in place, reopen, old kid retired after the snapshot, a forged old-kid
-snapshot refused, an interrupted re-key finished) and CoreServiceClusterTest (three peers restart
-after a rotation, rotatemaster, snapshots, restart with the old key retired; a peer without the new
-kid is refused with the reason).
+snapshot refused, an interrupted re-key finished), CoreLogKidSwitchTest (a switch at one index whatever
+the batching, a crash before the header, a truncation below the switch and a crash before its header, a
+record under the old kid after a switch refused, a switch to an unheld kid refused, learning the kid
+from the leader's chain and not from another history), KidRotationSimTest (three peers rolled onto a
+new current kid under write load with no halt and every acknowledged write kept, then onto the new kid
+alone; a peer that missed the switch catching up by entries and by snapshot; an uncommitted switch
+undone by truncation; a divergent log and a log re-keyed alone still halt), LifecycleAtRestClusterTest
+(the rotation rolled one peer at a time; the kid census retires the old kid) and CoreServiceClusterTest
+(the KEY-CUSTODY runbook end to end with rolling restarts and writes around each: add as previous, make
+current, rotatemaster, snapshots, remove the old kid; a peer without the new kid is refused with the
+reason).
 
 ## Replication (Raft)
 
@@ -173,6 +200,28 @@ kid is refused with the reason).
   granted or consented to this leadership. A wiped peer restarts at term 0 and follows any leader
   that reaches it, even one a newer term deposed, so its answers cannot show that no newer leader
   exists: a leader paused through an election and answered only by a wiped peer holds no lease.
+- **Leadership transfer (`xfer1`, Raft thesis §3.10).** A leader that steps down while it can still send (check-quorum
+  when its followers' answers are lost one way, as in the 2026-10-15 04:23 incident; removal from the voters; a held
+  candidacy; a fenced engine) hands its leadership to its most caught-up voter at once: it picks, among the voters that
+  vote (N18) and whose current process answered FEATURES with `xfer1`, the one with the highest match index (then the
+  latest answer), steps down (lease 0), then sends `TIMEOUT_NOW` (message type 16, format unchanged) to the other
+  capable voters and last to the candidate. The candidate, if it may lead (a voter with a log, candidacy not held, chain
+  kid known), campaigns for the next term at once: no pre-vote, no timer, its vote requests resent each heartbeat to
+  voters that have not granted. A voter told of the hand-over does not refuse that candidate's vote request for the next
+  term as sticky; its log comparison and its one vote per term apply as always, so a candidate whose log is short is
+  simply not elected and safety is Raft's (at most one leader per term, checked in every simulated run). A `TIMEOUT_NOW`
+  of an older term, or from a peer that is not the leader this peer follows, is ignored. A graceful stop
+  (`CoreService.stop`, so every plugin stop and rolling upgrade) hands over first: the leader takes no new proposals,
+  waits until the chosen voter holds its whole log and it is committed (at most half an election timeout; then it
+  hands over anyway and the vote decides), steps down, sends `TIMEOUT_NOW`, and waits until it hears the new leader
+  (one election timeout in all) before its transport stops. **Gate:** the leader asks each voter's features once per
+  process and keeps the answering incarnation; it sends `TIMEOUT_NOW` only to a peer whose current process (the
+  incarnation its appends come from) advertised `xfer1`, so an older build never receives the type (it would refuse
+  it, counted in `refused_messages`, not halt). `core_raft_transfer=false` turns it off on a peer: it neither advertises
+  nor sends it. Status: `raft.transfers_sent`, `transfers_taken`, `transfers_declined`, `transfer_votes`,
+  `last_transfer`, and `handoff` while one is in progress. Measured at a tenth of the standing timing (600 ms
+  elections): leaderless after a one-way-loss check-quorum step-down 786 ms mean without transfer, 13 ms (max 34) with
+  it; at a leader stop 868 ms without, 19 ms (max 37) with (`RaftSimTest`, 20 seeds each).
 - **Destructive maintenance asks the lease.** The live leader's engine checks, before each copy it
   destroys (gc, withdrawal, trim, scrub, intent cleanup), that it still holds its lease; otherwise
   the operation stops. A withdrawal is committed before the copies it frees are destroyed. The
@@ -306,10 +355,12 @@ README's metadata-crypto table.
 | `core_legacy_import` | `auto` | `skip` starts without the one-time import (`auto` or `skip`) |
 | `core_raft_freshness_ms` | 120000 | largest tolerated clock skew between core hosts; older messages are refused |
 | `core_raft_bootstrap` | `false` | the first listed peer's first start forms a new core with a majority of empty peers (N18) |
+| `core_raft_transfer` | `true` | leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (`xfer1`); off: neither advertised nor sent |
 | `core_raft_voter_override` | none | this peer's own `raft.state_id`: vote although it lost its raft state (N18, OPERATIONS §5.3) |
 | `core_snapshot_min_interval_ms` | 60000 | least time between two on-demand snapshots taken |
 | `core_membership_enabled` | `true` | `core.membership` op=add and op=remove may change the configuration (OUT-08c) |
 | `core_membership_catchup_ms` | 600000 | how long an add waits for its learner to catch up before it fails, retryable |
+| `core_identity_reanchor` | none | the journaled core identity's public key: this peer starts with that identity parked so an operator can re-anchor it (gfs#23, OPERATIONS §6.7); remove it afterwards |
 
 ## Evidence
 
@@ -319,7 +370,10 @@ simulation: elections, majority commit, failover, partitioned old leader, catch-
 chunked snapshot, and randomized faults over 300 and 200 rounds checking election safety, log
 matching, leader completeness, state machine safety and that every acknowledged entry reaches every
 peer, with power losses in the middle of writes that tear the unforced bytes of a group commit in any
-order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link),
+order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link; leadership transfer
+after a one-way-loss check-quorum step-down and at a graceful stop, measured with and without, an older build never
+sent TIMEOUT_NOW, and randomized faults with hand-overs, one-way losses and mixed builds),
+`LeadershipTransferClusterTest` (three `CoreService` peers: a stopped leader hands over),
 `CrescoRaftTransportTest` (lanes, byte bound, done reporting), `ReplicatedCoreTest` (real engines: failover byte-identical, rejoin, compaction across
 restarts, fencing, legacy import on one and three peers, apply refusal, policy and key-ring changes
 racing compaction, rebuild off the raft lock, lease and read barrier), `CoreServiceTest` (serving,
@@ -327,4 +381,5 @@ redirects, refusals), `CoreServiceClusterTest` (three `CoreService` peers over t
 transport's encoding on an in-process fabric: election, redirect, a 1.5 MB entry in frames, failover
 within the randomized election timeout, rejoin, a wiped peer caught up by snapshot frames, forged,
 replayed and malformed `core.raft.msg`). The live harness `eval/core_failover_check.py` (three
-peers, five storage nodes) is written and not yet run on the fabric.
+peers, five storage nodes) is not yet run on the fabric; its scenarios run, signed and sealed, against three real core
+peers in one JVM (`eval/tests/test_core_failover.py`, `RealClusterServer`, in CI's `evaltests`).

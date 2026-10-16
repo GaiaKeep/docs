@@ -294,6 +294,77 @@ The lifecycle's own verbs are in docs/LIFECYCLE.md; these follow the same operat
 | core.forget / core.legalorder `deep=true` | C2 | as the verb | D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked (on a remote packed node that advertises deeperase1, by the node itself: `x.deeperase`); a simulated cartridge is overwritten, a real one awaits an operator's attestation of its physical destruction (core.deepattest). core.lcstatus `deep` reports it. |
 | core.deepattest | C0 | system-admin | OUT-94: `lc_id`, `site_id`, `barcode`, `method`, `statement_digest` (SHA-384 hex): an operator attests a cartridge a deep record named was physically destroyed; only a cartridge AWAITING_ATTESTATION. Answers `deep_state`. |
 
+### Sealed params (GFS-SEAL-1, OUT-109)
+
+Every signed core.* request's params, and its reply, can travel sealed end to end between the client and the core
+peer that serves it, so the brokers, Cresco controllers and MsgEvent logs on the path see the action, the routing
+envelope and ciphertext, never a path, tenant, collection, principal or signature. Format: `ParamSeal` (core),
+`gaiakeep.seal` (Python), `Seal` (Java); vectors `clients/conformance/seal-golden-v1.json`, checked by all three.
+
+**Threat model.** In scope: a passive or active party on the control path (a broker, a controller, a log or
+debug dump of MsgEvents, a compromised agent relaying them) who reads or rewrites params. It learns which verb was
+called, when, between which agents, the envelope below and the sizes; it cannot read the sealed params or replies,
+cannot move a sealed body to another verb (the AAD binds the action) or peer (only the peer holding the seal key
+opens it), cannot replay one (the GFS-REQ-1 nonce, window and replay horizon are checked on the opened params,
+unchanged), and cannot downgrade a client that has seen a seal key from that peer. Out of scope: a compromised core
+peer (it holds the plaintext anyway), traffic analysis, and the first contact of a client in `seal=auto` with a
+peer an attacker strips the advertisement from (`seal=require` and `core_meta_require_sealed_params` close it).
+The dataplane (GKT) and job events are protected separately (OUT-28, GK-CJSON-1).
+
+**Keys.** Each core peer generates its own ECDH P-384 seal key pair in its process with the approved DRBG, never
+writes it, and rotates it every `core_seal_key_rotate_ms` (6 h; the previous key is accepted 10 minutes more). No
+journal delta, snapshot or state hash changes, and a peer restart is forward secrecy for everything sealed before
+it. The core identity (the key clients pin as `core_public_key`) endorses it. Per-peer keys rather than one shared
+key: a shared key would have to be journaled or derived from the identity's private key; a peer's own key needs
+neither, and a leader change costs a client one core.status to the new leader.
+
+**Advertisement** (core.status on every peer, and every status-18 reply): `seal_pub` (SPKI base64url),
+`seal_pub_kid` = hex(SHA-384(SPKI DER))[0,32), `seal_expires` (ms), `seal_peer` (the peer's id), `seal_identity`
+(the identity that signed), `seal_sig` = ECDSA P-384 over `Kdf.info("GFS-SEAL-1/key", audience, seal_peer, kid,
+seal_pub, seal_expires, seal_identity)`, `seal_required`, and `identity_history` once the identity has rotated. A
+client accepts it when `seal_identity` is pinned, or is reached from a pinned key through `identity_history`'s
+endorsed rotations (GFS-IDROT-1: each epoch signed by its predecessor over `info("GFS-IDROT-1", old, new, since)`),
+so a client pinning the retired identity follows an identity rotation (api §4). An advertisement that is present
+and does not verify is an integrity failure: the client never falls back to plaintext over it.
+
+**Request.** The client reuses one ephemeral P-384 key per advertisement (at most 15 minutes or 100,000
+requests), Z = ECDH(e, seal_pub) (48 bytes); per request a fresh 32-byte salt and
+
+    K_req, K_rsp = HKDF-SHA-384(salt, Z, Kdf.info("GFS-SEAL-1", "req" | "rsp", kid, seal_epk), 32)
+    AAD_dir      = Kdf.info("GFS-SEAL-1", dir, action, kid, seal_epk, seal_salt)
+
+Visible params: `action`, the envelope `request_id`, `read_peer`, `consistency`, `min_index` (what routes or
+steers a request before it is opened), and `seal=GFS-SEAL-1`, `seal_kid`, `seal_epk`, `seal_salt` (base64url),
+`seal_body` = base64url(iv(12) ‖ AES-256-GCM(K_req, AAD_req, JSON{param: value}) ‖ tag(16)): every other param,
+the signature fields (principal, sig_ts, sig_nonce, sig_params, sig) included. The client signs first (GFS-REQ-1
+over the plaintext params), then seals. The peer opens the body into the request's params in place, so the
+verifier, the authorizer, the audit and every handler run exactly as on plaintext; a sealed param that is also
+visible, the action or a scheme field inside the body is refused.
+
+**Reply.** A reply to an opened request whose signature, window and nonce verified carries `seal_reply` =
+base64url(iv ‖ AES-256-GCM(K_rsp, AAD_rsp, JSON{param: value}) ‖ tag): every param the core set or changed. The
+request's opened params are not echoed (the client re-adds what it sent), the transport's own params come back
+unchanged, and `status`, `core_leader`, `core_term`, `core_role`, `commit_index`, `applied_index`, `served_by` and
+`replay_horizon` stay visible too (the sealed copy is what a client believes). A request that does not reach
+verification (a replay, an expired signature, a follower read refused before its barrier) gets an unsealed
+reply of its status, `status_desc`, `reason` and that envelope only, so each K_rsp seals at most once. A client
+refuses an OK reply to a sealed request that carries no `seal_reply`. Each K seals one plaintext, with a random
+IV drawn inside the crypto module (`GfsCrypto.gcmSeal`; the clients' `aead`/`Aead` modules; KEY-CUSTODY.md §IV).
+
+**Routing.** A follower redirects a sealed request unopened (status 12, `core_leader`): it never sees the params,
+spends no nonce and writes no audit record; the client seals afresh to the leader's key (one core.status per new
+peer). A follower read (`read_peer` visible) is sealed to that peer and opened there. A request sealed to a key
+the peer does not hold (rotated, restarted, another peer's) gets status 18 SEAL_REFRESH with the peer's
+advertisement and nothing runs; the client takes the key and sends once more (signed afresh). A body that does
+not authenticate is status 3.
+
+**Gating.** `core_seal_params` (default true) advertises and opens; clients seal by default (`seal=auto`) to any
+peer that advertises and, once one has, never send it plaintext again; `seal=require` never sends a signed request
+in plaintext; `seal=off` never seals. A core peer on an older build advertises nothing and gets plaintext, so a
+mixed-version fabric works. `core_meta_require_sealed_params` (default false) refuses plaintext signed requests
+with status 18 (naming the key) and sends none of their signed params back; the unsigned probes (core.status,
+core.metahash), raft traffic and storage-node registration stay plaintext. Rollout: OPERATIONS.md §14.
+
 ## 4. Journal deltas added
 
 All are applied through `StorageEngine.apply`, registered in the delta registry through
@@ -343,7 +414,9 @@ core_dedup_stats_read_gated (true), core_extract_max_amplification (4.0), core_e
 core_extract_reservation_ttl_ms (900000), core_extract_attest (true), core_extract_sync_leaves (100000),
 core_extract_pin_bytes_per_tenant (109951162777600), core_extract_max_active_per_principal (1024),
 core_withdraw_vs_pin (refuse), core_cut_max_ttl_ms (604800000), core_cut_max_active_per_principal (64),
-core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true).
+core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true), core_seal_params (true),
+core_seal_key_rotate_ms (21600000), core_seal_sessions (16384), core_meta_require_sealed_params (false; built by
+GFS-SEAL-1).
 
 ## 6. Defaults adopted where the owner has not decided (flagged)
 
