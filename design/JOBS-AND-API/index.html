@@ -1986,17 +1986,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#sealed-params-gfs-seal-1-out-109" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sealed params (GFS-SEAL-1, OUT-109)
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2815,17 +2804,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#sealed-params-gfs-seal-1-out-109" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sealed params (GFS-SEAL-1, OUT-109)
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2902,7 +2880,7 @@ operation model (opmodel.spec.md) and the API package spec (api.spec.md). This p
 built, the journal deltas and config keys it adds, the defaults adopted where the owner has not
 decided (each flagged), and what is not built.</em></p>
 <h2 id="1-the-operation-model">1. The operation model<a class="headerlink" href="#1-the-operation-model" title="Permanent link">&para;</a></h2>
-<p>Every core.<em> and x.</em> action is classified (<code>OperationClass</code>): C0 instant control, C1 bounded reads,
+<p>Every core.* and x.* action is classified (<code>OperationClass</code>): C0 instant control, C1 bounded reads,
 C2 lifecycle mutations and C3 maintenance (async jobs), C4 ingest and download, X internal.
 <code>OperationClassTest</code> fails when a handled action is unclassified, when the table names an action
 nobody serves, and when any C2/C3 verb does not answer within the sync budget while its work is
@@ -2927,11 +2905,6 @@ held. Every dispatch is timed; an RPC held past <code>core_sync_rpc_max_ms</code
 <td>core.rotatemaster (not dry_run)</td>
 <td>C2</td>
 <td>rewrap roots</td>
-</tr>
-<tr>
-<td>core.membership add / remove</td>
-<td>C2 (request_id required)</td>
-<td>one raft configuration entry at a time (OUT-08c): add = learner, catch-up, promote; a leader that removes itself steps down and the next leader ends the job from the configuration in effect</td>
 </tr>
 <tr>
 <td>core.compose (more than <code>core_compose_sync_files</code> files, or with request_id)</td>
@@ -3005,33 +2978,6 @@ from the page that reaches the end.</p>
 <li><code>core.putstatus</code> <code>ranges</code>: <code>{path: {part: [[first, end), ...]]}</code> in flow sequence numbers. A part
   is re-opened with <code>resume=true</code>; its receiver starts from the chunks held. One writer per staged
   slot. A flow that stalls or drops does not fail an §1a upload.</li>
-<li><strong>Across a leader change (OUT-89).</strong> Once <code>core_ingest_checkpoint_bytes</code> (256 MiB) of whole files are
-  written, the writer checkpoints at the next file boundary: the window's site writes are sealed (an
-  intent, then the landed that records the copies) and, in the landed's batch, each whole file is
-  journaled (<code>ingestPart</code>: upload_id, path, durable byte offset = its size, its file entry, and for a keyed
-  file the MAC its commit must carry under each part-0 flow key) with a named hold <code>ingest|&lt;upload_id&gt;</code>
-  on its blocks (<code>addRef</code>), so gc and the orphan pass keep them; the first checkpoint opens the record
-  (<code>ingestOpen</code>, the target). Journaling waits until every core peer answers FEATURES with <code>ingj1</code>. A new
-  leader adopts every open record: <code>core.putstatus</code> answers <code>ingest_state=adopted</code> and <code>journaled</code>
-  <code>{path: offset}</code>; the client re-opens the same upload there (a part already open there with
-  <code>resume=true</code>), never sends a journaled file again (refused, 8), and commits under the same request_id
-  with the same proofs. The record and its hold end in the commit's own batch, or when the upload is
-  given up (discarded, failed, or not resumed within <code>core_upload_ttl_ms</code>), and its blocks then go to the
-  orphan pass.</li>
-<li><strong>Mid-file (OUT-89, <code>ingj2</code>).</strong> A file in progress checkpoints too: after each batch of its blocks, once
-  <code>core_ingest_checkpoint_bytes</code> more of it are written, the blocks so far are sealed and journaled as its
-  prefix (<code>ingestPrefix</code>: upload_id, path, durable byte offset = the blocks' bytes, an entry naming those
-  blocks with no file hash) with the same hold, in a batch made durable at once; a later prefix of the same
-  file replaces it (the offset only grows) and the file's <code>ingestPart</code> ends it. A new leader answers
-  <code>journaled_prefix</code> <code>{path: offset}</code> in <code>core.putstatus</code>; the client re-opens that file's parts with
-  <code>resume=true</code> and skips every chunk wholly inside the prefix (the core counts them as landed), so only the
-  chunk across the prefix's end and the rest cross the wire again. The whole-file hashes cannot cross
-  leaders as hash state, so the new leader's writer reads the prefix back from the sites (each block
-  authenticated) before the bytes the client sends: the legacy sha256 check, the domain's file hash and
-  the keyed commit proof (under the new part-0 flow key) cover the whole file as before. In a dedup domain
-  the prefix's blocks are deduplicated onto; in NONE they are sealed again under the new object (an object's
-  deterministic IVs are never reused across leaders). A commit while a begun file is unfinished commits
-  nothing (<code>incomplete</code>). Journaled only while every core peer answers FEATURES with <code>ingj2</code>.</li>
 <li>The legacy <code>core.publish</code> never holds its RPC past the budget: 13 <code>committing</code>, then
   <code>core.putstatus</code> <code>commit_state</code>; with request_id it is an idempotent job.</li>
 <li>A wave-1 staged upload whose puts say <code>resumable=true</code> is resumable the same way (a dropped flow
@@ -3108,11 +3054,6 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.</p>
 <td>a reader of every member</td>
 </tr>
 <tr>
-<td>core.extractattest</td>
-<td>C1</td>
-<td>a reader of every member</td>
-</tr>
-<tr>
 <td>core.extractextend</td>
 <td>C0</td>
 <td>a reader of every member; past the class maximum, tenant-admin of every member tenant</td>
@@ -3162,92 +3103,9 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.</p>
 <td>C1</td>
 <td>tenant-admin@tenant_id, or any principal for its own</td>
 </tr>
-<tr>
-<td>core.collections</td>
-<td>C1</td>
-<td>tenant-admin@tenant_id or a tenant-wide reader@/writer@ (every collection); collection-scoped bindings: those collections only</td>
-</tr>
-<tr>
-<td>core.placement</td>
-<td>C1</td>
-<td>reader on the version's collection (as core.list)</td>
-</tr>
-<tr>
-<td>core.jobs</td>
-<td>C1</td>
-<td>any principal holding a role, its own jobs; an auditor every principal's (principal_id filter: auditor only)</td>
-</tr>
-<tr>
-<td>core.principals</td>
-<td>C1</td>
-<td>tenant-admin@tenant_id (that tenant's principals); no tenant_id: system-admin (the system principals)</td>
-</tr>
-<tr>
-<td>core.retention op=list</td>
-<td>C1</td>
-<td>any principal holding a role</td>
-</tr>
-<tr>
-<td>core.tapevol op=library</td>
-<td>C0</td>
-<td>system-admin; observer (status and library)</td>
-</tr>
-<tr>
-<td>core.site op=events</td>
-<td>C1</td>
-<td>system-admin, auditor or observer</td>
-</tr>
-<tr>
-<td>core.site op=containers</td>
-<td>C1</td>
-<td>system-admin, auditor or observer</td>
-</tr>
 </tbody>
 </table>
 <ul>
-<li>Dashboard listings (core.collections, core.placement, core.jobs, core.principals, core.retention op=list):
-  each page comes from a sorted index kept on apply (per-tenant collections, (tenant, id) principals,
-  (accept time descending, job id) jobs globally, per principal and open-only, retention class names), so
-  a page costs a logarithm plus its size, never a scan of every tenant, collection, block, job or
-  principal. The indexes are derived: rebuilt by replay and snapshot install, never journaled, snapshotted
-  or hashed. Pages are bounded by <code>limit</code> (1..1000) and <code>core_page_bytes</code>; cursors are <code>gfs-cur-1</code>, bound
-  to their verb and scope (core.retention op=list continues by class name). Rows show only what the
-  caller's roles already show elsewhere: a collection's domain, dedup mode, replication and durability to
-  its tenant-admin, its retention class, profile and version and branch counts to its readers; a block's
-  <code>required</code> is its collection's replication (the block record's own requirement is the most any
-  referencing collection asks, which may be another collection's or another tenant's), and its state
-  follows the census rule (copies on up, ACTIVE, non-archive sites, not suspect, count toward it;
-  UNAVAILABLE with no readable copy). Node class and a packed copy's container are shown to a
-  system-admin or auditor, a tape copy's barcode to a system-admin; never a block id, digest or key.
-  <code>core.placement tape=true</code> asks each archive site once per page (<code>x.locate</code>, which now also answers
-  <code>custodian</code> and <code>mount</code> lists; an older node omits them and they read unknown) within half the sync
-  budget, at most 10 s; a site that does not answer leaves its copies' <code>presence</code> UNKNOWN. <code>tape=detail</code>
-  (OUT-96 S-3) adds, from the same locate, each tape copy's <code>file_number</code> and <code>block</code> (its container's tape
-  file and the logical block of the record holding its first byte, from the node's catalogue, no mount) and
-  <code>tape_type</code> (<code>LTO-10</code>, the one generation a real library is configured for, owner 2026-10-01; a simulated
-  library says <code>simulated &lt;tape_sim_profile&gt;</code>); <code>x.locate</code> carries them as additive <code>position</code>
-  (<code>&lt;file&gt;:&lt;block&gt;</code>) and <code>medium</code> lists. They name no data and no cartridge, so a reader sees them; the
-  barcode stays the system-admin's. core.jobs
-  filters by <code>principal_id</code> (<code>principal</code> is the request signature's own param). <code>core.tapevol
-  op=library</code> answers the tape node's library as it tracks it (configuration, drives, slots, volumes by
-  state, admin state and cohort, queues, counters).</li>
-<li>Site history and containers (OUT-96 S-6, S-4). <code>core.site op=events [site] [after] [limit]</code> pages the
-  sites' journaled history newest first: each change of a site's lifecycle state (<code>kind=state</code>: ACTIVE,
-  DRAINING, LOST, DECOMMISSIONED) and of its liveness (<code>kind=up</code>: UP, DOWN) as the leader saw it, <code>{seq, ts,
-  site, kind, from, to}</code> (<code>from</code> is "" for the first event of a site the history holds). The leader compares
-  the sites with the newest journaled event of each after every probe pass (from the second pass of its term,
-  when its up flags are its own) and journals the differences as <code>siteEvt</code> deltas in one batch (an engine
-  extension, SiteEvents, gated by core_api_deltas, in the metadata hash and snapshots); <code>ts</code> is when the
-  leader saw the change, within one probe period of it. The newest 20000 events are kept; a page is read from
-  the sequence order or the per-site index. <code>core.site op=containers site [after] [limit]</code> pages one packed
-  site's containers in id order with the live bytes and copies the core's references record in each (what
-  compaction decides by; the container's size is the node's). The block table keeps no per-site container
-  index yet, so a page costs one pass over the core's container records (about one per GiB stored, never
-  per block); a per-site sorted index in the block table would make it a logarithm plus the page.</li>
-<li>The observer role (owner Q6): an unscoped role a system-admin binds to a system principal, for a
-  dashboard's own key: the operators' reads above (node list, site status, history and containers, tape
-  status and library, the maintenance view), its own jobs, the retention classes; never data, the audit log
-  or a change (AuthzMatrixTest holds every verb's decision for it).</li>
 <li>History: a per-collection branch index; cursors are bound to their verb and scope; pages are
   bounded by their limit and <code>core_page_bytes</code>. ChainDiff: chain mode (the paths the runs after the
   common history name) or scan mode, with scan and block budgets; property-tested against the
@@ -3262,44 +3120,6 @@ merged, the two fmt: built-ins refuse with profile-chunker-unavailable.</p>
 <li>Extracts: selector grammar v1, salted leaves, an RFC 6962 root over SHA-384, a certificate signed
   by the core identity (verified again by every replica before xpin applies), pinning by runs or by
   selection, the 4x amplification refusal with arithmetic and rewrites, dry_run.</li>
-<li>Two-phase pins (api §4.4, OUT-47, 2026-10-08): a pin whose holds exceed <code>core_extract_xsel_chunk_bytes</code> (1 MiB of
-  canonical JSON) is journaled in two phases. <code>xres</code> verifies the certificate, charges the pin and opens a RESERVING
-  record with a TTL (<code>core_extract_reservation_ttl_ms</code>, 15 min); each <code>xsel</code> chunk is checked and held under the
-  engine's monitor as it is journaled (collections live, runs adopted or inherited, paths still entries of their run),
-  and the last chunk pins (PINNED, the certificate's pinned_until). A reservation holds like a pin: a member's
-  withdrawal is refused (or ends it, withdraw_wins), grant ends and the lifecycle see it. One cut short ends ABANDONED
-  at once (its partial holds go, its idempotency key is free), or EXPIRED by the sweeper when its writer died; a retry
-  under the same request_id abandons a reservation a lost leader left and pins anew, and the job resolver never takes a
-  reservation for an outcome. Records replay and snapshot chunk for chunk (<code>xsnapc</code>, then the chunks as journaled,
-  deflated in memory). Each chunk costs its own size (measured: the last quarter of a 1,000,000-leaf reservation's 16
-  chunks applies as fast as the first, <code>ExtractReservationScaleTest</code>); <code>core_extract_selection_max_leaves</code> is
-  1,000,000. While a core peer does not answer the <code>xapi2</code> feature probe no <code>xres</code> is emitted and the old single-entry
-  bound (20,000 leaves by selection) applies.</li>
-<li>Extracts of inherited entries (api §4, 2026-10-08): an entry a dependent keeps only by inherited references (its
-  run's collection withdrawn) is held where the dependent keeps it, by its run (RUNS) or its paths (SELECTION), once
-  every block is proven still held for the dependent (its <code>inherit|</code> hold, or its hold on a COPY term's copy). A
-  BREAK term, no grant at the withdrawal, or a grant ended since is still refused (<code>extract-unheld-entries</code>: nothing
-  to pin). Every drop of an inherited hold fails closed under an extract (<code>dropRef</code> of an <code>inherit|</code> holder,
-  <code>dropOwnRefs</code>, <code>redact</code>, and the lifecycle batch's dry check).</li>
-<li>Peer attestation (api §4, 2026-10-08): each voting peer verifies a pinned extract against its own state (the
-  certificate is the record's and is signed by a key the core identity has had; the leaves rebuilt from its own
-  versions and salts give the certificate's count and root; every held run is kept and held there) and signs
-  <code>Kdf.info("GFS-XATT-1", extract_id, root, peer, ts)</code> with an attestation key generated in its process and never
-  written anywhere (<code>ExtractVerifier</code>). The leader asks the other voters over raft (XATT_REQ/XATT_RESP, MAC'd under
-  k_raft), attests itself, and journals each valid answer: the peer's key the first time it is used (<code>peerKey</code>, kept
-  for good, so an attestation verifies after the peer restarts with a new key) and the attestation (<code>xattest</code>), which
-  every replica verifies against the registered key. New pins are attested automatically (<code>core_extract_attest</code>);
-  <code>core.extractattest</code> asks again and waits up to min(wait_ms, the sync budget), answering <code>attestation</code> (ATTESTED
-  when every voter attested, PARTIAL, NONE), <code>attestations</code> [{peer, pub, ts, sig}], <code>voters</code>, <code>peer_keys</code> and each
-  refusing peer's reason. core.extractstatus and core.extractproof carry the attestations with the certificate.</li>
-<li>Core identity history (api §4, 2026-10-08): <code>KeyHistory</code> keeps every public key the core identity has had (epochs)
-  and the master kids each was wrapped under. <code>core.rotatemaster identity=stage</code> journals a successor key pair
-  (<code>coreIdNext</code>, wrapped under the current kid, unused) and reports <code>next_identity_public</code>, which the operator adds to
-  every storage node's <code>core_public_key</code> and every client's pin; <code>identity=activate expect_identity=&lt;it&gt;</code> makes it the
-  identity in one <code>idRotate</code> the retiring key endorses (it signs <code>Kdf.info("GFS-IDROT-1", old, new, ts)</code>). A new pin
-  is verified against the current identity; a snapshot's records against any epoch, so a certificate signed before a
-  rotation still installs and verifies; core.extractproof returns <code>identity_history</code>. Snapshots carry the endorsed
-  chain (<code>idHist</code>, once there are two epochs) and a staged successor; a master rotation rewraps the successor too.</li>
 <li>Cuts (api §4.10): one consistent point across up to 64 collections. Each member resolves to a
   named version or its branch head, all in one <code>cut</code> delta; the apply re-checks that every
   head-resolved member is still the head (a replica out of step refuses, fail closed). A cut holds
@@ -3371,77 +3191,10 @@ cut exactly as the core does, so these domains take the have-check:</p>
 <td>core.forget / core.legalorder <code>deep=true</code></td>
 <td>C2</td>
 <td>as the verb</td>
-<td>D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked (on a remote packed node that advertises deeperase1, by the node itself: <code>x.deeperase</code>); a simulated cartridge is overwritten, a real one awaits an operator's attestation of its physical destruction (core.deepattest). core.lcstatus <code>deep</code> reports it.</td>
-</tr>
-<tr>
-<td>core.deepattest</td>
-<td>C0</td>
-<td>system-admin</td>
-<td>OUT-94: <code>lc_id</code>, <code>site_id</code>, <code>barcode</code>, <code>method</code>, <code>statement_digest</code> (SHA-384 hex): an operator attests a cartridge a deep record named was physically destroyed; only a cartridge AWAITING_ATTESTATION. Answers <code>deep_state</code>.</td>
+<td>D5 DEEP DELETE: once gc has reclaimed what the record freed, the pack containers that held it are rewritten and overwritten with random data before they are unlinked; tape cartridges are listed for forced reclamation. core.lcstatus <code>deep</code> reports it.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="sealed-params-gfs-seal-1-out-109">Sealed params (GFS-SEAL-1, OUT-109)<a class="headerlink" href="#sealed-params-gfs-seal-1-out-109" title="Permanent link">&para;</a></h3>
-<p>Every signed core.* request's params, and its reply, can travel sealed end to end between the client and the core
-peer that serves it, so the brokers, Cresco controllers and MsgEvent logs on the path see the action, the routing
-envelope and ciphertext, never a path, tenant, collection, principal or signature. Format: <code>ParamSeal</code> (core),
-<code>gaiakeep.seal</code> (Python), <code>Seal</code> (Java); vectors <code>clients/conformance/seal-golden-v1.json</code>, checked by all three.</p>
-<p><strong>Threat model.</strong> In scope: a passive or active party on the control path (a broker, a controller, a log or
-debug dump of MsgEvents, a compromised agent relaying them) who reads or rewrites params. It learns which verb was
-called, when, between which agents, the envelope below and the sizes; it cannot read the sealed params or replies,
-cannot move a sealed body to another verb (the AAD binds the action) or peer (only the peer holding the seal key
-opens it), cannot replay one (the GFS-REQ-1 nonce, window and replay horizon are checked on the opened params,
-unchanged), and cannot downgrade a client that has seen a seal key from that peer. Out of scope: a compromised core
-peer (it holds the plaintext anyway), traffic analysis, and the first contact of a client in <code>seal=auto</code> with a
-peer an attacker strips the advertisement from (<code>seal=require</code> and <code>core_meta_require_sealed_params</code> close it).
-The dataplane (GKT) and job events are protected separately (OUT-28, GK-CJSON-1).</p>
-<p><strong>Keys.</strong> Each core peer generates its own ECDH P-384 seal key pair in its process with the approved DRBG, never
-writes it, and rotates it every <code>core_seal_key_rotate_ms</code> (6 h; the previous key is accepted 10 minutes more). No
-journal delta, snapshot or state hash changes, and a peer restart is forward secrecy for everything sealed before
-it. The core identity (the key clients pin as <code>core_public_key</code>) endorses it. Per-peer keys rather than one shared
-key: a shared key would have to be journaled or derived from the identity's private key; a peer's own key needs
-neither, and a leader change costs a client one core.status to the new leader.</p>
-<p><strong>Advertisement</strong> (core.status on every peer, and every status-18 reply): <code>seal_pub</code> (SPKI base64url),
-<code>seal_pub_kid</code> = hex(SHA-384(SPKI DER))[0,32), <code>seal_expires</code> (ms), <code>seal_peer</code> (the peer's id), <code>seal_identity</code>
-(the identity that signed), <code>seal_sig</code> = ECDSA P-384 over <code>Kdf.info("GFS-SEAL-1/key", audience, seal_peer, kid,
-seal_pub, seal_expires, seal_identity)</code>, <code>seal_required</code>, and <code>identity_history</code> once the identity has rotated. A
-client accepts it when <code>seal_identity</code> is pinned, or is reached from a pinned key through <code>identity_history</code>'s
-endorsed rotations (GFS-IDROT-1: each epoch signed by its predecessor over <code>info("GFS-IDROT-1", old, new, since)</code>),
-so a client pinning the retired identity follows an identity rotation (api §4). An advertisement that is present
-and does not verify is an integrity failure: the client never falls back to plaintext over it.</p>
-<p><strong>Request.</strong> The client reuses one ephemeral P-384 key per advertisement (at most 15 minutes or 100,000
-requests), Z = ECDH(e, seal_pub) (48 bytes); per request a fresh 32-byte salt and</p>
-<div class="highlight"><pre><span></span><code>K_req, K_rsp = HKDF-SHA-384(salt, Z, Kdf.info("GFS-SEAL-1", "req" | "rsp", kid, seal_epk), 32)
-AAD_dir      = Kdf.info("GFS-SEAL-1", dir, action, kid, seal_epk, seal_salt)
-</code></pre></div>
-<p>Visible params: <code>action</code>, the envelope <code>request_id</code>, <code>read_peer</code>, <code>consistency</code>, <code>min_index</code> (what routes or
-steers a request before it is opened), and <code>seal=GFS-SEAL-1</code>, <code>seal_kid</code>, <code>seal_epk</code>, <code>seal_salt</code> (base64url),
-<code>seal_body</code> = base64url(iv(12) ‖ AES-256-GCM(K_req, AAD_req, JSON{param: value}) ‖ tag(16)): every other param,
-the signature fields (principal, sig_ts, sig_nonce, sig_params, sig) included. The client signs first (GFS-REQ-1
-over the plaintext params), then seals. The peer opens the body into the request's params in place, so the
-verifier, the authorizer, the audit and every handler run exactly as on plaintext; a sealed param that is also
-visible, the action or a scheme field inside the body is refused.</p>
-<p><strong>Reply.</strong> A reply to an opened request whose signature, window and nonce verified carries <code>seal_reply</code> =
-base64url(iv ‖ AES-256-GCM(K_rsp, AAD_rsp, JSON{param: value}) ‖ tag): every param the core set or changed. The
-request's opened params are not echoed (the client re-adds what it sent), the transport's own params come back
-unchanged, and <code>status</code>, <code>core_leader</code>, <code>core_term</code>, <code>core_role</code>, <code>commit_index</code>, <code>applied_index</code>, <code>served_by</code> and
-<code>replay_horizon</code> stay visible too (the sealed copy is what a client believes). A request that does not reach
-verification (a replay, an expired signature, a follower read refused before its barrier) gets an unsealed
-reply of its status, <code>status_desc</code>, <code>reason</code> and that envelope only, so each K_rsp seals at most once. A client
-refuses an OK reply to a sealed request that carries no <code>seal_reply</code>. Each K seals one plaintext, with a random
-IV drawn inside the crypto module (<code>GfsCrypto.gcmSeal</code>; the clients' <code>aead</code>/<code>Aead</code> modules; KEY-CUSTODY.md §IV).</p>
-<p><strong>Routing.</strong> A follower redirects a sealed request unopened (status 12, <code>core_leader</code>): it never sees the params,
-spends no nonce and writes no audit record; the client seals afresh to the leader's key (one core.status per new
-peer). A follower read (<code>read_peer</code> visible) is sealed to that peer and opened there. A request sealed to a key
-the peer does not hold (rotated, restarted, another peer's) gets status 18 SEAL_REFRESH with the peer's
-advertisement and nothing runs; the client takes the key and sends once more (signed afresh). A body that does
-not authenticate is status 3.</p>
-<p><strong>Gating.</strong> <code>core_seal_params</code> (default true) advertises and opens; clients seal by default (<code>seal=auto</code>) to any
-peer that advertises and, once one has, never send it plaintext again; <code>seal=require</code> never sends a signed request
-in plaintext; <code>seal=off</code> never seals. A core peer on an older build advertises nothing and gets plaintext, so a
-mixed-version fabric works. <code>core_meta_require_sealed_params</code> (default false) refuses plaintext signed requests
-with status 18 (naming the key) and sends none of their signed params back; the unsigned probes (core.status,
-core.metahash), raft traffic and storage-node registration stay plaintext. Rollout: OPERATIONS.md §14.</p>
 <h2 id="4-journal-deltas-added">4. Journal deltas added<a class="headerlink" href="#4-journal-deltas-added" title="Permanent link">&para;</a></h2>
 <p>All are applied through <code>StorageEngine.apply</code>, registered in the delta registry through
 <code>EngineExtension</code> (<code>StorageEngine.knownOps()</code>), replayed, snapshotted and counted in the metaHash.
@@ -3526,38 +3279,6 @@ Unknown ops still throw.</p>
 <td>built</td>
 <td>derivation_id, output_json, actuals_json, receipt_id, ts, by</td>
 </tr>
-<tr>
-<td>xres</td>
-<td>extract_id, cert_json, signer_pub, sig, chunks, reserve_until, ts (a two-phase pin's reservation, api §4)</td>
-</tr>
-<tr>
-<td>xsel</td>
-<td>extract_id, seq, holds_chunk_json (the last chunk pins)</td>
-</tr>
-<tr>
-<td>xsnapc</td>
-<td>a chunked record's state, snapshots only (its xsel chunks follow it)</td>
-</tr>
-<tr>
-<td>xattest</td>
-<td>extract_id, peer, peer_pub, ts, sig</td>
-</tr>
-<tr>
-<td>peerKey</td>
-<td>peer, pub, ts (a core peer's attestation key)</td>
-</tr>
-<tr>
-<td>coreIdNext</td>
-<td>wrapped, public, kid (the identity's staged successor; an engine op, gated as wave-2)</td>
-</tr>
-<tr>
-<td>idRotate</td>
-<td>old_pub, new_pub, ts, endorsement (an engine op, gated as wave-2)</td>
-</tr>
-<tr>
-<td>idHist</td>
-<td>history_json, snapshots only</td>
-</tr>
 </tbody>
 </table>
 <h2 id="5-config-keys-added">5. Config keys added<a class="headerlink" href="#5-config-keys-added" title="Permanent link">&para;</a></h2>
@@ -3569,13 +3290,10 @@ core_diff_block_budget (10000000), core_page_bytes (4194304), core_have_page_max
 core_have_max_blocks (1048576), core_have_manifest_budget_bytes (1073741824),
 core_have_principal_budget_bytes (268435456), core_have_writer_only (deny),
 core_dedup_stats_read_gated (true), core_extract_max_amplification (4.0), core_extract_max_leaves
-(10000000), core_extract_selection_max_leaves (1000000; was 20000), core_extract_xsel_chunk_bytes (1048576),
-core_extract_reservation_ttl_ms (900000), core_extract_attest (true), core_extract_sync_leaves (100000),
+(10000000), core_extract_selection_max_leaves (20000), core_extract_sync_leaves (100000),
 core_extract_pin_bytes_per_tenant (109951162777600), core_extract_max_active_per_principal (1024),
 core_withdraw_vs_pin (refuse), core_cut_max_ttl_ms (604800000), core_cut_max_active_per_principal (64),
-core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true), core_seal_params (true),
-core_seal_key_rotate_ms (21600000), core_seal_sessions (16384), core_meta_require_sealed_params (false; built by
-GFS-SEAL-1).</p>
+core_cut_max_runs (20000), core_api_deltas (true), core_have_format_adapters (true).</p>
 <h2 id="6-defaults-adopted-where-the-owner-has-not-decided-flagged">6. Defaults adopted where the owner has not decided (flagged)<a class="headerlink" href="#6-defaults-adopted-where-the-owner-has-not-decided-flagged" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>I8, push or poll:</strong> push. Job and commit outcomes are pushed as signed events on the dataplane,
@@ -3599,16 +3317,8 @@ GFS-SEAL-1).</p>
   is a new name) and at most 256 per scope. None of the built-ins is GLOBAL-eligible.</li>
 <li><strong>Admission of commits:</strong> §1a commits and request_id publishes are not counted against the job
   queues; §1a uploads are bounded by <code>core_ingest_max</code> and <code>core_ingest_per_principal</code> instead.</li>
-<li><strong>Selection pins travel in xsel chunks</strong> (2026-10-08): <code>core_extract_selection_max_leaves</code> defaults to api §4.4's
-  1,000,000; chunks of at most 1 MiB of holds; a reservation lives 15 min (<code>core_extract_reservation_ttl_ms</code>) before
-  the sweeper ends it EXPIRED. Flagged: the chunk size and the TTL are defaults chosen here, not owner decisions.</li>
-<li><strong>Peer attestation is automatic and best effort</strong> (2026-10-08, flagged): every new pin is attested by every voting
-  peer; a pin is PINNED before its attestations arrive (they are journaled as they come; a peer that is down attests
-  when asked again). Attestation keys live only in each peer's process (a restart registers a new one; every key a
-  peer used stays registered).</li>
-<li><strong>The core identity rotates only on request, in two steps</strong> (2026-10-08, flagged): <code>core.rotatemaster identity=stage</code>
-  then <code>identity=activate</code>; nothing rotates it automatically, and the storage nodes' and clients' pins of
-  <code>core_public_key</code> are the operator's to update between the two.</li>
+<li><strong>Selection pins travel in one journal entry</strong>, so <code>core_extract_selection_max_leaves</code> defaults to
+  20,000 (api §4.4 names 1,000,000 with xsel chunks, which are not built).</li>
 <li><strong>Extract salts for NONE domains</strong> use the public nonce (api §4.3 names HKDF(wrapKey(d))).</li>
 <li><strong>Derivation and transform ids are keyed per tenant (V5):</strong> HMAC-SHA-384 under
   HKDF(tenant root, "gfs/ids/v1"), so the same recipe in two tenants has two ids and an id reveals
@@ -3631,11 +3341,11 @@ GFS-SEAL-1).</p>
   operator switch checked at the engine's one emit point. Off, no wave-2 delta is emitted (the verbs
   answer 8 api-not-enabled, commits carry no version record, core.status offers no jobs-1 or
   ingest-1a); on (the default), a peer on an older build that receives one fences (fail closed).</li>
-<li>api §4 is built (2026-10-08, fix/api-record): two-phase reservations, peer attestation, core identity history,
-  extracts of inherited entries (§3 above). Not built within it: carrying an extract's hold over to a dependent's
-  inherited references when the base it held through is withdrawn (such an extract still ends BROKEN, §6 V7);
-  attestation as a precondition of PINNED (a pin holds before its peers attest it); a peer quorum signature on cuts
-  (ENTAIL §3.3 quorum_cert).</li>
+<li>api §4: the xres/xsel two-phase reservation (the pin is one
+  atomic batch after an off-lock plan; selections above the single-entry bound are refused),
+  peer attestation (ExtractVerifier, core.extractattest), core identity history (a retired identity's
+  certificates would no longer verify on replay), extracts of entries kept only by inherited
+  references (refused, extract-unheld-entries).</li>
 <li>api §3: a have-check against a version in another domain (refused, have-foreign-base), the block-list
   file hash. (Have-checks in format-adapter domains are built: see §3, "Have-checks in format-adapter
   domains".)</li>

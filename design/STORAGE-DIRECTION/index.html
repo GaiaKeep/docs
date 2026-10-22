@@ -5730,7 +5730,7 @@ land <strong>before</strong> any versioning code.</p>
 <tr>
 <td>P5</td>
 <td><code>wrapped_dek</code> is written <strong>verbatim into the append-only journal</strong> by the <code>object.manifest</code> payload, retained in heap, shipped to every replica by <code>dumpState</code>, and the catalog-DR proposal would write it to WORM. Zeroing the field at head shreds nothing.</td>
-<td>Key material never enters the journal, <code>dumpState</code>, <code>stateHash</code> or any WORM snapshot. The journal carries a <strong>key handle</strong>; wrapped keys live in a separately managed, compactible <strong>key store</strong> with a real delete path, keyed by <code>object_id</code> rather than by <code>(lineage, rdom)</code> (see <em>GC and redaction</em>). <em>(2026-09-19: </em><em>P5 is unaffected by the measurement</em><em> — this is a rename of the store's key, flagged so that a <code>K_rdom</code> sweep does not remove a live requirement. Key material still must never enter the journal, <code>dumpState</code>, <code>stateHash</code> or any WORM snapshot, and zeroing a field at head still shreds nothing.)</em></td>
+<td>Key material never enters the journal, <code>dumpState</code>, <code>stateHash</code> or any WORM snapshot. The journal carries a <strong>key handle</strong>; wrapped keys live in a separately managed, compactible <strong>key store</strong> with a real delete path, keyed by <code>object_id</code> rather than by <code>(lineage, rdom)</code> (see <em>GC and redaction</em>). <em>(2026-09-19: <strong>P5 is unaffected by the measurement</strong> — this is a rename of the store's key, flagged so that a <code>K_rdom</code> sweep does not remove a live requirement. Key material still must never enter the journal, <code>dumpState</code>, <code>stateHash</code> or any WORM snapshot, and zeroing a field at head still shreds nothing.)</em></td>
 </tr>
 <tr>
 <td>P6</td>
@@ -6252,7 +6252,7 @@ and it must have:</p>
    archival durability at commit against a 48-hour epoch fence makes tape-required lineages unable to
    commit at all. <em>(CORRECTED 2026-09-19: previously quoted as an 18 TB LTO-9 cartridge at ~180 days,
    on the same per-cohort fill assumption; basis <code>eval/results/plant_contention.json</code> and
-   <code>SPECIFICATION.md</code> §14.3. The correction makes the split </em><em>more</em><em> necessary, not less.)</em></li>
+   <code>SPECIFICATION.md</code> §14.3. The correction makes the split <strong>more</strong> necessary, not less.)</em></li>
 <li><strong>Authorisation and ledger.</strong> The committer may write this lineage and branch; the added bytes
    fit the reciprocity entitlement.</li>
 </ol>
@@ -6807,7 +6807,8 @@ depends on large byte-identical regions (frozen backbones, unchanged embeddings)
 shifts slightly, neither chunker shares anything. <strong>Measure real checkpoints before deciding.</strong></p>
 <h2 id="measured-checkpoints-do-not-deduplicate-2026-09-19">Measured: checkpoints do not deduplicate (2026-09-19)<a class="headerlink" href="#measured-checkpoints-do-not-deduplicate-2026-09-19" title="Permanent link">&para;</a></h2>
 <p>The assumption the redaction design rested on, tested on real training output. Harness
-<code>eval/ckpt_dedup.py</code>, raw results <code>eval/results/ckpt_dedup_results.json</code>. Measured on an HPC compute node over <code>ft/checkpoints/sft_v530_v6_long_p2</code>, a real SFT run with checkpoints every 500 steps, 51 GB
+<code>eval/ckpt_dedup.py</code>, raw results <code>eval/results/ckpt_dedup_results.json</code>. Measured on an HPC compute
+node over <code>ft/checkpoints/sft_v530_v6_long_p2</code>, a real SFT run with checkpoints every 500 steps, 51 GB
 each (12.06 GB weights, 24.1 GB optimizer state, 12.06 GB FSDP copy).</p>
 <p>64 KiB fixed blocks rather than CDC, deliberately: checkpoint files have identical structure at
 identical offsets, so there are no insertions for CDC to recover, and the earlier measurement showed

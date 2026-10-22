@@ -3773,10 +3773,7 @@ root, and repack can move a record whose id it does not know. Everything else is
 <p><strong>GCM IVs</strong> are a counter pair, never random (SPECIFICATION §20 applied to container metadata, OPEN-QUESTIONS S1):
 <code>IV = u64 seq ‖ u32 domain</code>, with domain 1 for a record header, 2 for a metadata body, 3 for the
 trailer (whose seq is <code>0xFFFFFFFFFFFFFFFF</code>). Each <code>(seq, domain)</code> is used once per container, and
-each container has its own <code>K_meta</code>, so no IV is ever reused under a key. In the Java writer the IV
-is composed by the crypto module (<code>GfsCrypto.GcmCounter</code>, MONOTONE: each domain's seq strictly
-increases, the writer never names IV bytes; FIPS 140-3 IG C.H scenario 3, OUT-56). The bytes are
-the ones this section specifies; a reader recomputes the IV from the seq as before.</p>
+each container has its own <code>K_meta</code>, so no IV is ever reused under a key.</p>
 <p><strong>Test vectors</strong> (<code>K_root = 000102...1f</code>, <code>cid = a0a1...af</code>, the growing golden container):</p>
 <div class="highlight"><pre><span></span><code>info("gfs/pack/v1/container", cid) = 000000156766732f7061636b2f76312f636f6e7461696e657200000010a0a1a2a3a4a5a6a7a8a9aaabacadaeaf
 K_c    = c966c31ddfc919d596c60b97849caee7bc915ce9f4c5999111239fe96470c896
@@ -4739,9 +4736,7 @@ holder would need a second key per record; it is not done (§16).</p>
   structure spans a filemark.</li>
 <li><strong>Fixed-size parcels.</strong> The tape binding writes containers with <code>capacity_bytes</code> = the parcel size
   (SPECIFICATION §3.1: 1 GiB), padded with a CSPRNG PAD record, so every parcel on a cartridge has
-  the same length and none carries a cleartext length.
-  <em>As built (2026-10-15) the tape binding does not pad: a container is its content rounded up to the block,
-  and a lone small seal is one block plus the tail record (TAPE-FORMAT.md §2, "Container size as built").</em></li>
+  the same length and none carries a cleartext length.</li>
 <li><strong>No seek-back.</strong> The header is the first record, written once. The index is at the end. Nothing
   is rewritten (§7.3's tail rewrite is disk-only and is refused by a sequential sink).</li>
 <li><strong>The index after one seek to the end</strong>: locate to the parcel's last block (<code>first block + capacity/B − 1</code>),

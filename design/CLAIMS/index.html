@@ -2565,7 +2565,7 @@
 </div>
 <h1 id="gfs-claims-registry-mechanical-evidence-check">GFS claims registry — mechanical evidence check<a class="headerlink" href="#gfs-claims-registry-mechanical-evidence-check" title="Permanent link">&para;</a></h1>
 <p><em>Generated 2026-09-18 11:06 by <code>run/gfs/gfs_claims.py</code> from <code>run/gfs/results/</code>. A claim is PROVEN only when the executed checks and measurements listed as evidence satisfy it.</em></p>
-<p><strong>58/59 claims proven</strong> (2026-10-08: the prototype index resolve claim is replaced by the core-path read claim, UNPROVEN until its HPC run, OUT-84; the other claims are the retired prototype's, kept as its record).</p>
+<p><strong>59/59 claims proven.</strong></p>
 <table>
 <thead>
 <tr>
@@ -2895,10 +2895,10 @@
 <td>26/26 rows</td>
 </tr>
 <tr>
-<td>Perf core</td>
-<td>core.head from 16 clients with follower reads (3 core peers, linearizable, signed and audited): p99 &lt;= 50 ms and &gt;= 500 reads/s (HPC standing deployment)</td>
-<td>UNPROVEN (no evidence)</td>
-<td>HPC: not run; local in-process (Mac OS X aarch64, 16 clients, 2026-10-08): p50 26.3 ms, p99 45.9 ms, 571/s. Replaces the retired prototype index's resolve figure (OUT-84; resolve p99 0.90 ms / 5,400 per s at 10^6 files, prototype only)</td>
+<td>Perf index</td>
+<td>10^6 files: resolve p99 &lt;= 1 ms and &gt;= 5000 resolves/s from 16 clients</td>
+<td><strong>PROVEN</strong></td>
+<td>[(100000, 0.7040500640869141, 5488.5), (250000, 0.36907196044921875, 5426.3), (500000, 0.3840923309326172, 5385.9), (1000000, 0.9000301361083984, 5466.1)]</td>
 </tr>
 <tr>
 <td>Perf index</td>

@@ -2240,23 +2240,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="7. Forgetting and reference counting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#71-per-tenant-quotas-out-59-w-gfs-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7.1 Per-tenant quotas (OUT-59, W-GFS-2)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2945,23 +2928,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="7. Forgetting and reference counting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#71-per-tenant-quotas-out-59-w-gfs-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7.1 Per-tenant quotas (OUT-59, W-GFS-2)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -3043,7 +3009,7 @@
 <h1 id="tenancy-collections-and-deduplication-design-of-record">Tenancy, collections and deduplication — design of record<a class="headerlink" href="#tenancy-collections-and-deduplication-design-of-record" title="Permanent link">&para;</a></h1>
 <p><em>2026-09-23. Written on the owner's direction; supersedes the parts of <code>SPECIFICATION.md</code> and
 <code>ENTAIL-AGENT-NATIVE-FS.md</code> listed in §10. Every choice the owner has not made explicitly is a
-</em><em>policy knob with a stated default</em><em>, never a constant, so that no point on the
+<strong>policy knob with a stated default</strong>, never a constant, so that no point on the
 isolation-to-global spectrum is closed off.</em></p>
 <h2 id="1-requirements-owner-verbatim">1. Requirements (owner, verbatim)<a class="headerlink" href="#1-requirements-owner-verbatim" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -3170,9 +3136,7 @@ encrypts exactly one plaintext, ever</strong>. Identical blocks produce identica
 deduplication; different blocks use different keys. The GCM nonce-reuse hazard that <code>SegmentCipher</code>
 exists to prevent can't arise for data blocks in these modes. The IV is a fixed constant and nothing
 needs to be coordinated. This was the property of the pre-2026-09-19 <code>K_rdom</code> design, and it
-returns here. The constant IV is the crypto module's (<code>GfsCrypto.gcmSealOnce</code>, SP 800-38D §8.2.1 with the
-invocation field never leaving 0; FIPS 140-3 IG C.H, OUT-56), and a random IV would end the
-deduplication, so this is the construction gfs keeps (KEY-CUSTODY.md §IV).</p>
+returns here.</p>
 <p>NONE keeps <code>SegmentCipher</code> (<code>SPECIFICATION.md</code> §20) unchanged, because per-object keys cover many
 chunks and need the counter discipline.</p>
 <h2 id="4-chunking">4. Chunking<a class="headerlink" href="#4-chunking" title="Permanent link">&para;</a></h2>
@@ -3305,22 +3269,6 @@ use NONE or COLLECTION, so no other collection can hold a reference to their blo
 default resolution; the owner can widen it per tenant.</p>
 <p>Reference counts are part of the index's replicated state. They are updated in the same quorum
 commit as the version that adds or drops a reference.</p>
-<h3 id="71-per-tenant-quotas-out-59-w-gfs-2">7.1 Per-tenant quotas (OUT-59, W-GFS-2)<a class="headerlink" href="#71-per-tenant-quotas-out-59-w-gfs-2" title="Permanent link">&para;</a></h3>
-<p>A system-admin sets a tenant's quota with <code>core.quota op=set tenant_id=&lt;t&gt; stored_max=&lt;bytes&gt; staging_max=&lt;bytes&gt;
-weight=&lt;1..1000&gt;</code> (-1: no limit); it is one journaled <code>tq</code> record in the tenant's TEN partition (SYS once its root is
-destroyed), gated by <code>core_api_deltas</code>. The tenant's admins and auditors read it, with its use, by <code>op=get</code>.</p>
-<ul>
-<li><strong>Staging</strong>: an upload's files reserve their declared bytes against the collection's tenant's <code>staging_max</code> on the
-  core leader (StreamService), beside the shared staging limits. Past it: status 17 (QUOTA) with <code>retry_after_ms</code>
-  (<code>core_quota_retry_after_ms</code>), retriable as the tenant's other uploads finish.</li>
-<li><strong>Stored</strong> (charge model (a), the recommended default; owner question): the unique bytes of the blocks held in the
-  domains the tenant owns, each block once per domain however many versions or collections reference it; a GLOBAL
-  domain's blocks are charged to the system. The counter is kept at each block's first reference and last release
-  (never by a walk) and derived from the block table, so it is the same on every peer and after a snapshot install.
-  A commit whose not-yet-held blocks in the tenant's domains would take it past <code>stored_max</code> is refused whole
-  (status 17, no <code>retry_after_ms</code>). Blocks in another tenant's domain (a grant) are charged to that owner.</li>
-<li><strong>Weight</strong> is recorded for the schedulers that apportion shared capacity; nothing enforces it yet.</li>
-</ul>
 <h2 id="8-keys">8. Keys<a class="headerlink" href="#8-keys" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>tenant root key (per tenant, custodied t-of-n)
  └─ K_dom = HKDF(tenant root, "dom" ‖ domain_id)              COLLECTION, GROUP
