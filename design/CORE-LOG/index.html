@@ -1975,6 +1975,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#at-rest-encryption-lc-enc-out-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At-rest encryption (LC-ENC, OUT-07)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compaction" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2720,6 +2731,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#at-rest-encryption-lc-enc-out-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At-rest encryption (LC-ENC, OUT-07)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compaction" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2825,6 +2847,11 @@ to the client only once a majority of peers has it on disk.</p>
 <td>the one-time legacy import, MAC'd</td>
 <td>once</td>
 </tr>
+<tr>
+<td><code>epoch-&lt;n&gt;.key</code></td>
+<td>LC-ENC: an at-rest epoch's file key, AES-KWP-wrapped under the current master kid, MAC'd</td>
+<td>temp, fsync, rename, directory fsync; destroyed (overwritten, unlinked) once no file needs it</td>
+</tr>
 </tbody>
 </table>
 <p>A record is <code>magic | fmt | len | term | index | batch | hmac16 | payload | mac</code>, with
@@ -2872,30 +2899,57 @@ logs up to that index, on any peer.</p>
   kid the peer does not hold refuses to start and names it.</li>
 <li><strong>Every file is MAC'd under one kid</strong> and verified under the held kid that authenticates it. A
   segment's records are under its header's kid. Recovery refuses an earlier kid where only the
-  header's may be: a segment starting after <code>rekeyedAt</code>, any segment after one under the header's
-  kid, a snapshot past <code>rekeyedAt</code>. A file under a retired kid that is put back, or forged by someone
-  holding the retired key, is refused rather than replayed.</li>
-<li><strong>Re-key in place.</strong> When a peer starts with a current kid its log is not keyed under,
-  <code>CoreLog.rekey</code> rewrites the header (new kid, <code>rekeyedAt</code> = the last index), rolls a new segment that
-  continues the MAC chain under the new kid, and rewrites the raft state and marker. Each step is
-  crash-safe; an interrupted re-key finishes on the next start. History is not rewritten: the chain
-  value at <code>rekeyedAt</code> is the same, and later records chain from it under the new kid.</li>
+  header's may be: a segment starting after <code>rekeyedAt</code>, a snapshot past <code>rekeyedAt</code>; and a change of
+  kid between segments (or inside one) that no journaled switch accounts for. A file under a retired
+  kid that is put back, or forged by someone holding the retired key, is refused rather than replayed.</li>
+<li><strong>The chain's kid changes through the log (journaled kid switch).</strong> Chain values are MAC'd under
+  the kid in effect at each index, and peers compare them on every append, so every peer must change
+  kid at the same index. A <code>CHAINKID</code> entry (payload kind 3, naming a kid) says the chain continues
+  under that kid after it. The leader appends one once every member has answered the features probe
+  with <code>ckid1</code> and <code>cur:&lt;kid&gt;</code> naming the leader's current kid (within three election timeouts; a
+  member that is down or has not answered blocks it, and an older build never answers <code>ckid1</code>, so it
+  never receives the entry it would halt on). Each peer, as it appends the entry, forces it, rewrites
+  the header (new kid, <code>rekeyedAt</code> = the entry's index), rolls a new segment under the new kid and
+  rewrites the raft state and marker. A peer starting with a new current kid changes nothing in its
+  log; the leader's <code>raft.kid_switch</code> (core.status) says what the switch waits for. A follower that
+  does not hold the kid an entry names does not append it (it logs why and waits; it does not halt).</li>
+<li><strong>Crashes and truncations.</strong> A switch entry written and forced but not yet in the header is finished
+  at the next open. A truncation below a switch undoes it: the segment that held the first removed
+  index stays (emptied) as the record of the kid before, the header goes back to it, and an open after
+  a crash in between does the same. History is never rewritten: the chain value at the switch is the
+  same, and later records chain from it under the new kid.</li>
+<li><strong>A follower with nothing after its snapshot</strong> (a fresh peer, a snapshot install that replaced its
+  log, a truncation to the snapshot) cannot tell from its own files which kid the next record chains
+  under. It takes the held kid under which the leader's entries end at the leader's chain value (the
+  header's kid first). The leader's chain over those entries from the same value at the snapshot is
+  what any choice must match, so this accepts no history the check would otherwise refuse. Until it
+  has learned it, a peer whose snapshot was installed over its log (with more than one kid held) does
+  not stand for election, so it never extends the chain under a guess.</li>
 <li><strong>The next snapshot retires the old kid.</strong> While <code>kids_in_use</code> (core.status <code>log</code>) lists a kid
   other than the header's, the snapshot pass takes a snapshot every 10 s; once one lies past
   <code>rekeyedAt</code>, compaction deletes the old kid's segments and snapshot. <code>core.rotatemaster</code> reports
-  <code>log_kids_in_use</code> and a <code>retirable_kids</code> that accounts for the log as well as the roots.</li>
+  <code>log_kid</code>, <code>log_kids_in_use</code> and a <code>retirable_kids</code> that accounts for the log as well as the roots.</li>
 <li><strong>Raft messages</strong> are MAC'd under the sender's current kid and verified under any held kid, so the
   rotation rolls through the peers one restart at a time, provided every peer holds the new kid
   (as a previous key) before any peer makes it current. A peer that does not hold it cannot follow;
   its raft status shows "MAC fails under every held master kid".</li>
-<li><strong>Different peers may be keyed under different kids</strong> during the rotation. Chain values then differ
-  between peers for the same entries, so a snapshot install to such a follower replaces its log
-  instead of keeping the matching suffix: slower, never wrong.</li>
+<li><strong><code>CoreLog.rekey</code></strong> moves a log to the current kid on its own, at its last index. It is for a log no
+  other peer compares chains with (tools, a copy); the core service no longer calls it. Builds before
+  OUT-25 called it at every start, which is why a peer re-keyed alone during a rolling restart halted
+  with "divergent history"; its re-key point (<code>rekeyedAt</code>) still opens as before.</li>
 </ul>
 <p>Tested: CoreLogTest (re-key in place, reopen, old kid retired after the snapshot, a forged old-kid
-snapshot refused, an interrupted re-key finished) and CoreServiceClusterTest (three peers restart
-after a rotation, rotatemaster, snapshots, restart with the old key retired; a peer without the new
-kid is refused with the reason).</p>
+snapshot refused, an interrupted re-key finished), CoreLogKidSwitchTest (a switch at one index whatever
+the batching, a crash before the header, a truncation below the switch and a crash before its header, a
+record under the old kid after a switch refused, a switch to an unheld kid refused, learning the kid
+from the leader's chain and not from another history), KidRotationSimTest (three peers rolled onto a
+new current kid under write load with no halt and every acknowledged write kept, then onto the new kid
+alone; a peer that missed the switch catching up by entries and by snapshot; an uncommitted switch
+undone by truncation; a divergent log and a log re-keyed alone still halt), LifecycleAtRestClusterTest
+(the rotation rolled one peer at a time; the kid census retires the old kid) and CoreServiceClusterTest
+(the KEY-CUSTODY runbook end to end with rolling restarts and writes around each: add as previous, make
+current, rotatemaster, snapshots, remove the old kid; a peer without the new kid is refused with the
+reason).</p>
 <h2 id="replication-raft">Replication (Raft)<a class="headerlink" href="#replication-raft" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Peers: <code>core_peers</code>, the <code>region:agent:plugin</code> of every core peer including this one. Absent, the
@@ -2905,8 +2959,26 @@ kid is refused with the reason).</p>
   with a different history. Storage nodes accept <code>x.*</code> from every address in <code>core_peers</code> and
   <code>core_index_addrs</code>.</li>
 <li>Every message carries a digest of the sender's <code>core_peers</code> (order-free). Peers configured with
-  different peer lists refuse each other's messages rather than count different quorums; changing
-  <code>core_peers</code> means restarting every peer with the new list (there is no joint consensus).</li>
+  different peer lists refuse each other's messages rather than count different quorums, until the log
+  decides membership (below).</li>
+<li><strong>Online membership (OUT-08c).</strong> <code>core_peers</code> is the configuration until the first change. A change is
+  a raft configuration entry (entry kind 2, <code>memb1</code>): single-server (add a learner, promote a caught-up
+  learner, remove a voter or a learner), one at a time (the next only once the last is committed, and
+  only by a leader whose term's no-op committed), in effect on each peer as soon as it is appended,
+  committed or not, and undone if a new leader truncates it. Quorums, elections, the lease and
+  check-quorum count the configuration's voters; learners receive the log and count for nothing. A
+  leader the voters no longer include leads until that removal commits, then steps down; a peer that is
+  not a voter never campaigns. CoreLog notes configuration entries' indices as it verifies records at
+  open and as it appends, so finding them never reads the log; a snapshot records the configuration in
+  effect at its index as its leading <code>raftConf</code> delta (a snapshot that does not is not adopted), and a
+  peer installing one takes it from there. Once a peer's log holds a configuration it sends a fixed
+  dynamic digest and accepts any authenticated sender of the cluster (Raft's rules and leader
+  stickiness decide what it may do); a peer still on <code>core_peers</code> accepts the dynamic digest from any
+  sender, so a new member can lead it. An older build refuses the dynamic digest and halts on the entry
+  kind, so a change waits until every member the leader has heard from in two election timeouts has
+  answered FEATURES with <code>memb1</code> and a majority of the new voters have (a down peer does not hold a
+  replacement back). <code>core.membership</code> (system-admin) drives it: op=status, op=add and op=remove as C2
+  jobs (OPERATIONS §5.2).</li>
 <li><strong>Divergent histories halt.</strong> Every append carries the leader's chain values at <code>prevIndex</code> and at
   its last entry. A follower whose term matches at an index but whose chain value differs holds a
   history written by another cluster (a peer that once ran alone, a log copied from elsewhere): it
@@ -2917,8 +2989,14 @@ kid is refused with the reason).</p>
   raft monitor is never held while the medium syncs, so heartbeats, acknowledgements and status go on during a
   slow fsync (an ingest's writes on the same disk made one take ~3 s on the HPC cluster, 2026-10-01, and the leader, its
   monitor held, sent no heartbeat, counted no acknowledgement and stepped down). Its own copy counts toward a
-  commit only once synced (<code>durable_index</code> in status). A follower still syncs before it answers; a follower's
-  stall shorter than <code>core_election_timeout_ms</code> is ridden out.
+  commit only once synced (<code>durable_index</code> in status). A follower does the same (OUT-08a): it writes the entries a
+  leader sends unforced, answers at once with what is already on its medium, and acknowledges the rest once a
+  sync on its sync thread covers it (one sync covers every append that arrived before it began;
+  <code>raft.follower_sync_acks</code>). Its monitor is free during the sync, so heartbeats, votes and the lease keep
+  flowing through a stall of any length, and the leader never counts an entry a follower has not forced.
+  Unforced appends are one group commit until a force returns (each record's group-commit start is the
+  first unforced index), so a power cut that tears an earlier one and keeps a later one, even across a
+  segment roll, is a torn tail, not refused as corruption.
   A leader that cannot reach a majority within the timeout steps down.</li>
 <li>Commit counts only entries of the current term, from a majority's fsync. A new leader serves only
   after its term's no-op is committed and applied.</li>
@@ -2938,7 +3016,10 @@ kid is refused with the reason).</p>
   consent would leave no peer able to elect a leader once the first one falls. An empty
   non-voter only consents: a consent counts toward an election that every peer joins (or the bootstrap
   majority above), never toward a majority. <code>core_raft_voter_override=&lt;its raft.state_id&gt;</code> makes a
-  non-voter vote when an operator has established that nothing committed depends on what it lost.</li>
+  non-voter vote when an operator has established that nothing committed depends on what it lost. It is armed at
+  start and applied only once no leader has been heard for two election timeouts (OUT-105: a serving leader
+  disarms it and catches the peer up instead; <code>raft.voter_override</code> reports armed, applied, ignored or forced);
+  <code>core_raft_voter_override_force=true</code> applies it at start.</li>
 <li>A follower whose log is behind the leader's snapshot (empty, new, wiped) is sent the snapshot.
   A follower that restarted (a new process incarnation) or rejects entries it had acknowledged
   (a truncated tail, a wiped directory) stops counting toward the quorum until it confirms them again.</li>
@@ -2952,6 +3033,28 @@ kid is refused with the reason).</p>
   granted or consented to this leadership. A wiped peer restarts at term 0 and follows any leader
   that reaches it, even one a newer term deposed, so its answers cannot show that no newer leader
   exists: a leader paused through an election and answered only by a wiped peer holds no lease.</li>
+<li><strong>Leadership transfer (<code>xfer1</code>, Raft thesis §3.10).</strong> A leader that steps down while it can still send (check-quorum
+  when its followers' answers are lost one way, as in the 2026-10-15 04:23 incident; removal from the voters; a held
+  candidacy; a fenced engine) hands its leadership to its most caught-up voter at once: it picks, among the voters that
+  vote (N18) and whose current process answered FEATURES with <code>xfer1</code>, the one with the highest match index (then the
+  latest answer), steps down (lease 0), then sends <code>TIMEOUT_NOW</code> (message type 16, format unchanged) to the other
+  capable voters and last to the candidate. The candidate, if it may lead (a voter with a log, candidacy not held, chain
+  kid known), campaigns for the next term at once: no pre-vote, no timer, its vote requests resent each heartbeat to
+  voters that have not granted. A voter told of the hand-over does not refuse that candidate's vote request for the next
+  term as sticky; its log comparison and its one vote per term apply as always, so a candidate whose log is short is
+  simply not elected and safety is Raft's (at most one leader per term, checked in every simulated run). A <code>TIMEOUT_NOW</code>
+  of an older term, or from a peer that is not the leader this peer follows, is ignored. A graceful stop
+  (<code>CoreService.stop</code>, so every plugin stop and rolling upgrade) hands over first: the leader takes no new proposals,
+  waits until the chosen voter holds its whole log and it is committed (at most half an election timeout; then it
+  hands over anyway and the vote decides), steps down, sends <code>TIMEOUT_NOW</code>, and waits until it hears the new leader
+  (one election timeout in all) before its transport stops. <strong>Gate:</strong> the leader asks each voter's features once per
+  process and keeps the answering incarnation; it sends <code>TIMEOUT_NOW</code> only to a peer whose current process (the
+  incarnation its appends come from) advertised <code>xfer1</code>, so an older build never receives the type (it would refuse
+  it, counted in <code>refused_messages</code>, not halt). <code>core_raft_transfer=false</code> turns it off on a peer: it neither advertises
+  nor sends it. Status: <code>raft.transfers_sent</code>, <code>transfers_taken</code>, <code>transfers_declined</code>, <code>transfer_votes</code>,
+  <code>last_transfer</code>, and <code>handoff</code> while one is in progress. Measured at a tenth of the standing timing (600 ms
+  elections): leaderless after a one-way-loss check-quorum step-down 786 ms mean without transfer, 13 ms (max 34) with
+  it; at a leader stop 868 ms without, 19 ms (max 37) with (<code>RaftSimTest</code>, 20 seeds each).</li>
 <li><strong>Destructive maintenance asks the lease.</strong> The live leader's engine checks, before each copy it
   destroys (gc, withdrawal, trim, scrub, intent cleanup), that it still holds its lease; otherwise
   the operation stops. A withdrawal is committed before the copies it frees are destroyed. The
@@ -2989,9 +3092,44 @@ kid is refused with the reason).</p>
   term, leader and commit index. A follower answers anything else with status <code>12</code> and <code>core_leader</code>.
   <code>eval/gkt.py:call_leader</code> follows that redirect, one retry per redirect, bounded.</li>
 </ul>
+<h2 id="at-rest-encryption-lc-enc-out-07">At-rest encryption (LC-ENC, OUT-07)<a class="headerlink" href="#at-rest-encryption-lc-enc-out-07" title="Permanent link">&para;</a></h2>
+<p><code>core_at_rest_encryption</code> (default <code>false</code>; local to each peer) encrypts the log's files at rest:</p>
+<ul>
+<li><strong>Epochs.</strong> An at-rest epoch has a random 32-byte file key, AES-KWP-wrapped (SP 800-38F) under
+  <code>HKDF(master[kid], "gfs/core/at-rest-kek/v1")</code> then <code>HKDF(·, "gfs/core/at-rest-epoch/v1", "core-log", epoch)</code>, in
+  <code>epoch-&lt;n&gt;.key</code> (MAC'd under that kid's <code>k_log</code>). The epoch rolls at every snapshot (a compaction or an installed
+  snapshot) and at a master-key re-key; <code>adopt</code> rewrites every segment the compaction keeps under the new epoch (in
+  place: temp, fsync, rename over, the replaced file overwritten through its still-open channel) and destroys every
+  epoch key file no file, writer or new write needs. <code>kidsInUse</code> names the key files' kids, so an old kid retires only
+  once its epochs are gone.</li>
+<li><strong>Segments (fmt 2).</strong> The header adds the epoch and the segment's own random key, AES-KWP-wrapped under the epoch
+  key (bound to the segment's first index). Each record's stored payload is <code>iv ‖ ciphertext ‖ tag</code>: AES-256-GCM
+  under the segment key, the IV generated by the cryptographic module (<code>GfsCrypto.gcmSeal</code>), the record header (before
+  its MAC) as AAD. The record format stays 1 and its chain MAC is over the plaintext, so an encrypting peer and a
+  plain one have equal chain values. A segment key seals at most 2^24 records (the segment rolls).</li>
+<li><strong>Snapshots (fmt 2).</strong> The header adds the epoch and the file's own key (AES-KWP under the epoch key, bound to the
+  last index); the payload is 1 MiB plaintext chunks, each <code>iv ‖ ct ‖ tag</code> (module IV, the chunk index as AAD). The
+  length, SHA-384 and MAC are over the plaintext, so the payload a leader sends a follower is unchanged; each peer
+  stores what it receives in its own format.</li>
+<li><strong>Recovery</strong> opens every fmt-2 file only with its epoch's key file; a missing key file, a key that does not unwrap,
+  a chunk or record that does not decrypt are refusals (a record in the tail of the last segment that does not
+  decrypt is a torn tail, as a bad MAC is).</li>
+<li><strong>Off again</strong> writes new files in the clear and decrypts at the next compaction, after which the build can be
+  downgraded. An older build refuses fmt 2 by its format number.</li>
+<li>Remanence: secure delete stays best effort on SSD and copy-on-write filesystems; a remanent copy of a deleted file
+  needs its epoch key file, and a remanent copy of that needs its master kid: retiring the kid (LIFECYCLE.md, kid
+  census) is what makes the copies unreadable.</li>
+</ul>
 <h2 id="compaction">Compaction<a class="headerlink" href="#compaction" title="Permanent link">&para;</a></h2>
 <p>At a consistent cut the engine's snapshot deltas are written as a snapshot and the segments it
-covers are deleted. The cut holds the engine's lock and the policy and key-ring locks (their changes
+covers are deleted. <strong>Streamed (OUT-26):</strong> the leader takes its cut copy-on-write inside the consistent cut (policy,
+versions and holds copied, the block table cut by pages) and streams it after the cut is released: the delta count is
+declared first (a sealed cut is walked once dry to count its envelopes), then each delta and each phase's envelopes go
+straight into the file through <code>CoreLog.writeSnapshot(PayloadWriter)</code>; memory is the sealer's per-partition buffers
+(<code>core_meta_snapshot_group_bytes</code>) and one at-rest chunk, never a list. The install reads the file twice, one delta at
+a time: a first pass authenticates it (head, count, check, splice, context, MAC, the anti-rollback check) with nothing
+applied; the second applies it in order, sealed envelopes opened ahead by <code>core_meta_install_threads</code> workers in a
+bounded window, each opening used only while its partition's key is unchanged. The cut holds the engine's lock and the policy and key-ring locks (their changes
 are made outside the engine's lock and journaled by hooks), and a cut is discarded if anything
 reached the log meanwhile (<code>log.cuts_discarded</code>). A follower does not snapshot its engine under the
 raft lock: it replays its snapshot and committed log into a scratch engine off the lock and
@@ -3022,6 +3160,8 @@ peer a non-voter, below) forms once every peer is up: empty peers consent to an 
 joins. With <code>core_raft_bootstrap=true</code> on the first listed peer's first start it forms with a
 majority; remove the setting once the core has formed.</p>
 <h2 id="config-keys">Config keys<a class="headerlink" href="#config-keys" title="Permanent link">&para;</a></h2>
+<p><code>core_at_rest_encryption</code> (LC-ENC, above) and <code>core_meta_install_threads</code> (the install's decrypt pool) are in the
+README's metadata-crypto table.</p>
 <table>
 <thead>
 <tr>
@@ -3102,14 +3242,39 @@ majority; remove the setting once the core has formed.</p>
 <td>the first listed peer's first start forms a new core with a majority of empty peers (N18)</td>
 </tr>
 <tr>
+<td><code>core_raft_transfer</code></td>
+<td><code>true</code></td>
+<td>leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (<code>xfer1</code>); off: neither advertised nor sent</td>
+</tr>
+<tr>
 <td><code>core_raft_voter_override</code></td>
 <td>none</td>
-<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3)</td>
+<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3); armed until no leader is heard for two election timeouts (OUT-105)</td>
+</tr>
+<tr>
+<td><code>core_raft_voter_override_force</code></td>
+<td>false</td>
+<td>apply <code>core_raft_voter_override</code> at start, not armed (owner sign-off; <code>gaiakeep op raft override --force</code> prints it)</td>
 </tr>
 <tr>
 <td><code>core_snapshot_min_interval_ms</code></td>
 <td>60000</td>
 <td>least time between two on-demand snapshots taken</td>
+</tr>
+<tr>
+<td><code>core_membership_enabled</code></td>
+<td><code>true</code></td>
+<td><code>core.membership</code> op=add and op=remove may change the configuration (OUT-08c)</td>
+</tr>
+<tr>
+<td><code>core_membership_catchup_ms</code></td>
+<td>600000</td>
+<td>how long an add waits for its learner to catch up before it fails, retryable</td>
+</tr>
+<tr>
+<td><code>core_identity_reanchor</code></td>
+<td>none</td>
+<td>the journaled core identity's public key: this peer starts with that identity parked so an operator can re-anchor it (gfs#23, OPERATIONS §6.7); remove it afterwards</td>
 </tr>
 </tbody>
 </table>
@@ -3120,7 +3285,10 @@ simulation: elections, majority commit, failover, partitioned old leader, catch-
 chunked snapshot, and randomized faults over 300 and 200 rounds checking election safety, log
 matching, leader completeness, state machine safety and that every acknowledged entry reaches every
 peer, with power losses in the middle of writes that tear the unforced bytes of a group commit in any
-order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link),
+order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link; leadership transfer
+after a one-way-loss check-quorum step-down and at a graceful stop, measured with and without, an older build never
+sent TIMEOUT_NOW, and randomized faults with hand-overs, one-way losses and mixed builds),
+<code>LeadershipTransferClusterTest</code> (three <code>CoreService</code> peers: a stopped leader hands over),
 <code>CrescoRaftTransportTest</code> (lanes, byte bound, done reporting), <code>ReplicatedCoreTest</code> (real engines: failover byte-identical, rejoin, compaction across
 restarts, fencing, legacy import on one and three peers, apply refusal, policy and key-ring changes
 racing compaction, rebuild off the raft lock, lease and read barrier), <code>CoreServiceTest</code> (serving,
@@ -3128,7 +3296,8 @@ redirects, refusals), <code>CoreServiceClusterTest</code> (three <code>CoreServi
 transport's encoding on an in-process fabric: election, redirect, a 1.5 MB entry in frames, failover
 within the randomized election timeout, rejoin, a wiped peer caught up by snapshot frames, forged,
 replayed and malformed <code>core.raft.msg</code>). The live harness <code>eval/core_failover_check.py</code> (three
-peers, five storage nodes) is written and not yet run on the fabric.</p>
+peers, five storage nodes) is not yet run on the fabric; its scenarios run, signed and sealed, against three real core
+peers in one JVM (<code>eval/tests/test_core_failover.py</code>, <code>RealClusterServer</code>, in CI's <code>evaltests</code>).</p>
 
 
 

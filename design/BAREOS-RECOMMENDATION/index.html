@@ -3730,8 +3730,8 @@ cartridge, because it cannot be corrected afterwards.</strong></p>
    are <code>sid = HMAC(K_mac, chunk)</code> and <code>xid = HMAC(K_mac, sid_0‖…)</code> with <code>K_mac = HKDF(K_L, "sid")</code>
    (<code>STORAGE-DIRECTION.md</code>, <em>Structures → Keys</em> and the xorb wire format), while crypto-shredding
    destroys <strong>the object's key</strong> and <strong>never</strong> <code>K_L</code> <em>(2026-09-19: was "destroys <code>K_rdom</code>"; <code>K_rdom</code>
-   is retired by <code>eval/results/ckpt_dedup_results.json</code>. <strong>The conclusion is unchanged and the nonce
-   filename remains non-optional</strong>, because the shred never destroys <code>K_mac</code> or <code>K_L</code>, so any
+   is retired by <code>eval/results/ckpt_dedup_results.json</code>. </em><em>The conclusion is unchanged and the nonce
+   filename remains non-optional</em><em>, because the shred never destroys <code>K_mac</code> or <code>K_L</code>, so any
    content-derived name remains computable by anyone who ever holds <code>K_L</code>. The reasoning is
    granularity-independent. Line-number citations into <code>STORAGE-DIRECTION.md</code> are replaced by section
    names, because that file has been edited and the numbers no longer resolve.)</em>. A content-addressed
@@ -4079,7 +4079,7 @@ mechanism.</p>
 <li><strong>A-δ — Zero-depth queueing forfeits pipelining.</strong> Precision over <strong>GB per drive-hour</strong>, chosen
   deliberately; the tax is the inter-job dead time charged against a <strong>78,840 drive-hour
   plant-year</strong>, measured at R-9 and re-opened if it is large. <em>(RESTATED 2026-09-19: this line
-  previously read "precision over <strong>utilisation</strong>", which concedes something that is not a good —
+  previously read "precision over </em><em>utilisation</em><em>", which concedes something that is not a good —
   utilisation is an inverted objective, and the reactive plant shows higher utilisation precisely
   because it burns drive-seconds on mounts; <code>eval/results/plant_sim.json</code>.)</em></li>
 <li><strong>A-ε — Three processes plus a database, not one.</strong> The architecture is less tidy than
