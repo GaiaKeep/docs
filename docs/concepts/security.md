@@ -2,56 +2,58 @@
 
 ## Model
 
-- **Encrypt at the origin.** Data is encrypted before it leaves the writer. Storage sites hold
-  ciphertext and no content keys.
-- **Keys follow the data's policy.** Sealed data uses unique, tenant-protected keys. Shared and
-  public domains derive a key per block so that identical blocks can deduplicate (see
-  [Tenants, collections and deduplication](tenancy-and-dedup.md), **Proposed**).
-- **Approved algorithms only.** AES-256-GCM, SHA-256, HMAC-SHA-384 and HKDF, with the platform's
-  secure random generator. The DoD/DoW hardening direction requires FIPS/CNSA, and CNSA calls for
-  SHA-384 as the hash; switching is an [open decision](../roadmap/open-questions.md).
-- **Tenant isolation comes from Cresco**: tenant-namespaced messaging, broker authorization, and
-  named cross-tenant flows (W-GFS-1, shipped in the Cresco 1.3 controller).
+- **Encrypted end to end.** Bytes travel from a client to the core in transfers encrypted per request,
+  and the core encrypts every block before it reaches a storage node. Storage nodes hold ciphertext and no
+  tenant keys; repair, re-encoding and scrub never need a key.
+- **Keys follow the data's policy.** Sealed data uses unique, tenant-protected keys. Shared and public
+  domains derive a key per block so that identical blocks can deduplicate (see
+  [Tenants, collections and deduplication](tenancy-and-dedup.md), **Built** in 1.3). Tenant roots are
+  journaled only wrapped under the master key.
+- **Approved algorithms, one policy.** AES-256-GCM, HMAC-SHA-384, HKDF-SHA-384, ECDSA and ECDH P-384, and
+  SHA-384 for new formats (a few existing formats keep SHA-256 until a versioned format moves them). Since
+  2026-10-16 one fabric-wide crypto policy covers GaiaKeep and Cresco: `cnsa1` by default, or `fips140-3`,
+  with any exception allowed explicitly.
+- **Zero trust, fail closed.** Every request is signed by a principal, authorised against tenant-scoped
+  roles (the system administrator has no data access) and recorded in a tamper-evident audit log before
+  its reply is released.
+- **Tenant isolation comes from Cresco** as well: tenant-namespaced messaging, broker authorisation, and
+  named cross-tenant flows.
 
-## Proven in the prototype
+## Built
 
-| Mechanism | Evidence |
-|---|---|
-| Per-object data key, AES-256-GCM per stripe, wrapped under the site key | E6: fragments on disk are ciphertext, no key material on holders |
-| A holder with manifest access but no key cannot restore | E6.13 |
-| Repair needs no keys | E7, E8 |
-| Site key held in **Shamir t-of-n custody** at other sites; reconstruction needs an approver quorum; approvals are single-use | E9 (3-of-5; 2 holders dead still reconstructs, 3 dead fails closed) |
-| Access grants signed and enforced **at the origin**; forged, tampered, expired and garbage grants refused | E5.6–E5.9 |
+Release 1.3 (2026-10-01), **Proven** on the HPC fabric check:
 
-## Built since
+- signed requests (ECDSA P-384), tenant-scoped roles and a tamper-evident audit log;
+- signed and encrypted storage-node traffic, with pinned node keys and fencing of a deposed leader by its
+  Raft term;
+- client transfers keyed per request, with the key exchange signed by the core and bound to the request;
+- key custody from a file, the environment or PKCS#11, and master-key rotation behind an operator window;
+- metadata encryption: sealed partitions, keyed identifiers and sealed snapshots.
 
-**The counter discipline for per-object keys** (`SegmentCipher`, **Built**, 14/14 checks). AES-GCM
-fails catastrophically if one key ever encrypts two different messages under the same IV: the
-authentication key can be recovered and tags forged, and on write-once media that can't be
-repaired. One large object puts **184,044 encryptions** under a single key, so uniqueness has to be
-guaranteed by construction:
+Built since, each tested:
 
-```
-K_seg = HKDF(K_obj, length-prefixed("gfs/seg/v1", write_id))
-iv    = xorb_seq (64 bits) ‖ chunk_ordinal (32 bits)
-```
+- **One IV discipline for every encryption** (2026-10-15). Every AES-GCM IV is made inside one crypto
+  module, by a construction recorded for each call site (a counter, a sequence, or a key that seals once),
+  and a lint fails the build on any other. The per-object counter discipline for sealed data
+  (`SegmentCipher`) is the construction for `NONE` blocks.
+- **At-rest encryption of the core log and the audit log** (2026-10-08), under per-epoch file keys wrapped
+  under the master key; off by default (`core_at_rest_encryption`).
+- **Sealed requests** (2026-10-15): a client can seal every parameter of a core request to the peer, and the
+  peer seals its reply. Whether sealing becomes mandatory is an open owner decision.
+- **The fabric-wide crypto policy** (2026-10-16), and the drive-encryption setting for tape (refused by
+  default).
+- **WORM classes and legal orders** (2026-10-02, extended 2026-10-08): a legal order needs two approvers,
+  one a system administrator, and a 24-hour lock, and reaches write-once data by destroying its key where
+  the key is destroyable.
 
-The IV is built from two counters the writer owns before any data leaves. It needs no random
-generator and never has to be stored. Each write gets its own derived key, so a resumed upload
-can't replay counters. A retry with different content at a spent counter is **refused**, never
-re-encrypted. This becomes the implementation for sealed data. It has no production caller yet.
+## History: what the prototype proved
 
-**The confirmation-oracle rule** (`OracleLint`, **Built**). A field written to shared or
-write-once storage is safe only if someone holding a guessed plaintext **and no key** cannot
-reproduce it. Hashes over ciphertext pass; an unkeyed hash of plaintext fails, because it lets
-anyone confirm a guess. Under the proposed dedup model the rule is **mandatory for sealed domains**
-and **relaxed for the global domain**, where plain content hashes are the point.
-
-## Verified safe
-
-The live encode path (`DurabilityEngine`) makes a **fresh data key for every encode** and uses the
-stripe index as the counter. It reads each file sequentially, so each (key, stripe) pair is used
-exactly once. Repair rebuilds fragments from ciphertext and never re-encrypts.
+The September prototype's storage path was retired on 2026-10-08. What it proved remains on record
+([The prototype](../built/prototype.md)): fragments on disk were ciphertext with no key material on the
+holders (E6); repair needed no keys (E7, E8); a site key in Shamir 3-of-5 custody reconstructed with two
+holders dead and failed closed with three (E9); and forged, tampered, expired and garbage access grants
+were refused at the origin (E5.6–E5.9). Its site key, which wrapped every object's key with a random IV,
+went with it.
 
 ## The live tier: plaintext by decision
 
@@ -87,17 +89,16 @@ per-tenant keys held by the node, is a deployment option and is not built.
 boot; a notice from an earlier boot, delayed or replayed, is ignored
 ([Stops, restarts and slow disks](stops-and-restarts.md#a-storage-node-restarted-under-writes)).
 
-## Known issues and open items
+## Open items
 
-| Item | Severity | Status |
+| Item | When it is needed | Status |
 |---|---|---|
-| **Site key wraps every object's key with a random IV**, is never rotated, and nothing counts wraps against the NIST 2³² limit for random IVs. The wrap's authenticated data is the key id only, so a wrapped key can be moved into another object's manifest; stripe authentication then fails, so it confuses rather than leaks | Minor | Fix proposed: derive a one-time wrapping key per object from the site key and object id, and bind the object id |
-| Metadata key (`K_meta`) and catalogue nodes need an IV discipline; many concurrent writers share one long-lived key | Blocking before media | **Open**; the proposal was withdrawn because it assumed deduplication was retired. To be redone under the dedup model (S1) |
-| Idempotency keys should carry a lease, so two writers can never share a counter space | Before media | Open (S2) |
-| Direct calls to the low-level encrypt function should fail a lint | Minor | Open (S3); the benchmark reuses IVs across threads under a throwaway key |
-| Hardware key custody (HSM) for key destruction | Before production | Open (S4) |
-| Whether file names and sizes must be hidden from site operators | Before production | Open (S11) |
-| Per-request, audited credentials for agents: scope and issuer | Before production | Open (S8) |
+| Metadata-key IV discipline (S1) and idempotency-key leases (S2) | Before media | **Built**: the IV discipline above; a `NONE` object is sealed only under its idempotency lease |
+| Direct calls to the low-level encrypt function fail a lint (S3) | | **Built** (2026-10-15) |
+| Hardware key custody (HSM) (S4) | Before production | **Decided** (owner 2026-10-02): software keys behind a swappable interface in phase one, an HSM later; PKCS#11 is built |
+| Whether file names and sizes must be hidden from site operators (S11) | Before production | **Built** in part: sealed metadata partitions and keyed identifiers; the rest of metadata encryption is open |
+| Per-request, audited credentials for agents: scope and issuer (S8) | Before production | **Open** |
+| A FIPS 140-3 validated module for fielding | Before fielding | **Open**: the `fips140-3` policy and a FIPS test profile exist; validation does not |
 
-Library-level (BlueScale) drive encryption is **declined**. The data is already ciphertext, and a
-second layer would only add a key-custody dependency.
+Library-level (BlueScale) drive encryption is **declined** by default (owner 2026-10-02): the data is
+already ciphertext. It is a setting that a deployment's compliance rules can switch on.

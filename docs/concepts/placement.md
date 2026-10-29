@@ -19,9 +19,11 @@ Every locus implements `ExtentBinding`. Its omissions are deliberate:
 |---|---|
 | `ExtentBinding` interface, `LocusDescriptor` | **Built** |
 | `FsBinding` (filesystem) with retention floors that survive restarts | **Built**; 23/23 checks |
-| New storage engine does all I/O through the interface | **Built** (the prototype plugin's own path still calls the store directly) |
+| The storage engine does all I/O through the interface | **Built**; the prototype's path, which called the store directly, was retired on 2026-10-08 |
+| Storage nodes reached through the same interface (`RemoteBinding`); pack containers | **Built** (1.3) |
 | RAM binding (`MemBinding`) | **Built**, contract-tested |
-| Tape, raw NVMe and raw disk bindings | **Designed** |
+| Tape binding: deferred reads, archive, stage, verify | **Built** and tested on a simulator and on virtual drives (mhVTL); real drives need hardware |
+| Raw NVMe and raw disk bindings | **Designed** |
 
 ## Measure, don't declare
 
@@ -80,7 +82,10 @@ test can show that.
 
 ## Where placement is heading
 
-**Proposed** (awaiting owner decision, [questions A1–A14](../roadmap/open-questions.md)):
+**Decided in part, not built.** The owner answered A1–A4 and A8 on 2026-10-02: record the basis of every
+property, make media labels illegal as placement inputs, use measured latency rather than buckets, never
+count RAM toward durability, and refuse a policy that cannot be satisfied. The other questions of
+[A1–A14](../roadmap/open-questions.md) still await the owner:
 
 - **Record how every property was obtained.** Every value carries its basis: `MEASURED`,
   `ATTESTED`, `MODELLED`, `DEFAULT` or `UNMEASURED`.

@@ -19,12 +19,13 @@ This changes the design:
 
 ## What the system does
 
-1. **Stores versioned datasets durably**: copies across independent sites, integrity checked,
-   repaired without human action.
+1. **Stores versioned datasets durably**: erasure-coded shares or copies across independent sites,
+   integrity checked, repaired without human action.
 2. **Streams any version wherever it is needed**, as a byte stream from whichever copy is cheapest
    at the moment of the request.
 3. **Keeps live copies as caches.** A working copy on a GPU node or at a partner site is a cache of
    a version, not a second source of truth. The durable, versioned store is the source of truth.
+   See [The live tier](live-tier.md).
 4. **Deduplicates at the block level** within whatever scope policy allows, so that a new version
    or a combined dataset stores only what is actually new.
 

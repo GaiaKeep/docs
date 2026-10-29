@@ -1,10 +1,11 @@
 # Tenants, collections and deduplication
 
-!!! success "Status: design of record (2026-09-23)"
+!!! success "Status: built (release 1.3, 2026-10-01)"
     The owner set the definitions and the requirement. The mechanism below is the design of record
-    ([TENANCY-AND-DEDUP.md](../design/TENANCY-AND-DEDUP.md)). Every choice the owner has not made
-    explicitly is a **policy setting with a default**, never a constant, so no point on the spectrum
-    is closed off. It is **not built yet**.
+    ([TENANCY-AND-DEDUP.md](../design/TENANCY-AND-DEDUP.md)), and it is **built**: the four modes, sealed
+    tenants, grants with withdrawal terms and per-block hashing ship in release 1.3, and the live fabric
+    check exercises every deduplication mode. Every choice the owner has not made explicitly is a
+    **policy setting with a default**, never a constant, so no point on the spectrum is closed off.
 
 ## Definitions (owner)
 
@@ -63,7 +64,7 @@ counter discipline (`SegmentCipher`).
 |---|---|
 | Mode for a new collection | COLLECTION |
 | Hash algorithm (fixed per domain) | SHA-384 |
-| Chunker (fixed per domain) | content-defined; keyed to the tenant for sealed tenants; fixed 64 KiB for NONE |
+| Chunker (fixed per domain) | content-defined, blocks of at least 1 MiB (owner 2026-09-26), with audited format adapters for DICOM, NIfTI and TIFF; keyed to the tenant for sealed tenants |
 | On withdrawal of referenced data | `PIN` for public data, `COPY` for cross-tenant grants, `BREAK` on request |
 | Sealed tenant reading public data | copy only (can be opted into reference) |
 | Withdrawal-sensitive tenants (consent-governed clinical data) | NONE or COLLECTION only |
@@ -90,8 +91,8 @@ deduplicate. See the [Decision log](../roadmap/decisions.md).
 
 ## Still open
 
-- The metadata-key IV discipline (S1), to be redone on this model before any media is written.
 - How a grant delivers per-block keys at scale.
-- Where reference counts live at 10⁹ blocks.
+- Reference counts at 10⁹ blocks: the counted block table has been run to 10⁸ blocks, and its on-disk
+  form, behind a page cache, to 10⁷.
 - Whether a GROUP can span tenants by agreement (a consortium), or only through grants.
 - Chunker parameters, measured on real imaging and text.

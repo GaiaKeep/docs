@@ -14,13 +14,13 @@ is rewritable and repacked over time.
 | Works on | Any medium | Depends on the medium |
 | How fast | About **75 s** | Milliseconds on NVMe; **years** on tape (the repack or migration cycle) |
 | What it does | Makes the data unreadable everywhere, in every version | Returns the capacity |
-| Status | **Designed**; per-object keys proven in the prototype (E9) | Retention and reclaim **Built** in the binding |
+| Status | **Built** (1.3): per-object and per-domain keys, `core.destroykey`, forget, destroying a domain or a tenant | Retention and reclaim **Built** in the binding; deep delete overwrites pack containers before unlinking (**Built**, 2026-10-02) |
 
 The two differ in speed by about six orders of magnitude, so they are separate operations with
 separate records. Key destruction is the forget for privacy. Physical erasure is how capacity comes
 back. Neither replaces the other.
 
-Under the proposed deduplication model, a block in a shared domain can be referenced by several
+Under the deduplication model, a block in a shared domain can be referenced by several
 objects, so destroying one object's key can't remove it. Forgetting in a shared domain means
 **reference counting**, then physically removing blocks nobody references.
 
@@ -78,26 +78,31 @@ cartridge. The cost depends almost entirely on how much of it is still live:
 That is an **18× swing** (Modelled). Data that expires together must therefore be written together.
 The write path needs a **retention class** alongside the read-affinity hint it already carries.
 
-## Two tensions that must be decided before any data is written
+## Two tensions, both decided by the owner (2026-10-02)
 
 **Privacy interleaving works against reclamation grouping.** Mixing different subjects' data in
 each container hides who is in a cohort, but then nothing ever expires as a whole unit. At a 1 %
 yearly withdrawal rate, an interleaved container takes **39 to 98 years** to reach the point where
-repacking pays. Grouping lets containers expire whole but reveals the cohort. This is a
-per-data-class decision ([D2](../roadmap/open-questions.md)).
+repacking pays. **Decided (D2): group.** Data that dies together goes onto the same cartridge, so volumes
+die whole; privacy rests on encryption, keyed block ids and sealed metadata, and interleaving is kept only
+for a class whose regulation requires it. **Built** (2026-10-02): a tape volume holds one retention cohort
+(the class and a year bucket of its floor), and a fully dead volume is recycled from the beginning of the
+tape.
 
 **Rewrites must preserve the encryption inputs.** The IV is rebuilt by the reader from the block's
 position counters. A repack that renumbers blocks without re-keying makes every block fail
-authentication, and the read path would report that failure as a **lawful redaction**. The rule a
-rewrite must follow: either preserve the counters and copy ciphertext bit-for-bit, or issue a fresh
-epoch key. Never one without the other ([D4](../roadmap/open-questions.md)).
+authentication, and the read path would report that failure as a **lawful redaction**. **Decided (D4),
+normative:** a rewrite is either a bit-identical move of the ciphertext or uses a fresh epoch key, never a
+mix. The repack unit is the deduplication block, never finer (D3).
 
-## Other open items
+## Other items
 
-- Repack at whole-fragment granularity or finer. Finer renumbers positions and breaks pinned
-  citations unless designed for.
-- Whether tape drives can usefully skip dead regions. The repack cost model differs 3.77× between
-  the two answers, and it is unmeasured.
-- Destroying write-once cartridges is an attested two-person act. At a 10 % yearly removal rate on
-  240 cartridges, that is one every 15 days. Who performs it?
-- Garbage collection as a budgeted, refusable standing obligation: **Proposed**.
+- **Repack granularity:** decided (D3): the deduplication block, never finer, so pinned citations keep
+  their positions.
+- **Whether tape drives can usefully skip dead regions:** a test-bed parameter (D9). The repack cost
+  model differs 3.77× between the two answers; plan for the worst case until it is measured.
+- **Destroying write-once cartridges** is an attested two-person act. At a 10 % yearly removal rate on
+  240 cartridges, that is one every 15 days. Who performs it is open (D7), and physically destroying real
+  cartridges is not built.
+- **Garbage collection** as a budgeted, refusable standing obligation: decided (D8: on by default, and
+  repack refused for a volume more than 50 % live) and built with the scheduled maintenance passes.
