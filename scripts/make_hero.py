@@ -6,12 +6,13 @@ Generate the home-page architecture graphic: docs/assets/gaiakeep-architecture.s
 
 External AI agents on the left reach the GaiaKeep core through the Cresco mesh in the middle; every
 block is chunked, hashed, deduplicated and encrypted at the origin, then erasure coded across three
-sites whose durable tier is tape. The SVG is self-contained (no scripts, no external fonts) so it
-works as an <img>; its motion stops for readers who ask for reduced motion.
+sites whose durable tier is tape. Below, the live tier: committed versions realised as native files on
+live nodes near compute, never counted toward durability. The SVG is self-contained (no scripts, no
+external fonts) so it works as an <img>; its motion stops for readers who ask for reduced motion.
 """
 from pathlib import Path
 
-W, H = 1600, 900
+W, H = 1600, 1010
 OUT = Path(__file__).resolve().parent.parent / "docs" / "assets" / "gaiakeep-architecture.svg"
 
 TEXT, MUTED, DIM = "#e8f4f6", "#93b6c1", "#5f8794"
@@ -62,7 +63,8 @@ add(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" 
 add('<title id="t">GaiaKeep GFS: how the distributed system fits together</title>')
 add('<desc id="d">External AI agents send signed requests through the Cresco mesh to the replicated GaiaKeep core, '
     'which chunks, hashes, deduplicates and encrypts every block at the origin and erasure codes it across three '
-    'sites whose durable tier is a tape library. Versions stream back out to agents, GPU pipelines and partners.</desc>')
+    'sites whose durable tier is a tape library. Once a version commits, the core can realise it on live nodes near '
+    'compute as ordinary files, which the core keeps in a journaled inventory and never counts toward durability.</desc>')
 add(f'''<defs>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#051019"/><stop offset="0.55" stop-color="#0a1f2e"/><stop offset="1" stop-color="#071824"/>
@@ -110,12 +112,15 @@ text(48, 66, "GaiaKeep GFS", 34, TEXT, 700)
 text(48, 98, "A global file system for AI agents: versioned datasets, durable on tape, streamed anywhere over the Cresco mesh",
      17, MUTED)
 # legend
-lx, ly = 1186, 52
-add(f'<rect x="{lx-18}" y="{ly-26}" width="392" height="80" rx="12" fill="#ffffff" fill-opacity="0.03" stroke="#8fd3dc" stroke-opacity="0.15"/>')
+lx, ly = 1186, 46
+add(f'<rect x="{lx-18}" y="{ly-24}" width="392" height="100" rx="12" fill="#ffffff" fill-opacity="0.03" stroke="#8fd3dc" stroke-opacity="0.15"/>')
 add(f'<path d="M{lx} {ly}h46" stroke="{TEAL2}" stroke-width="1.6" class="flow slow"/>')
 text(lx + 58, ly + 5, "control plane: signed requests and events", 12.5, MUTED)
-add(f'<path d="M{lx} {ly+30}h46" stroke="{BLUE}" stroke-width="4" stroke-linecap="round"/>')
-text(lx + 58, ly + 35, "dataplane: encrypted blocks on many flows", 12.5, MUTED)
+add(f'<path d="M{lx} {ly+26}h46" stroke="{BLUE}" stroke-width="4" stroke-linecap="round"/>')
+text(lx + 58, ly + 31, "dataplane: encrypted blocks on many flows", 12.5, MUTED)
+add(f'<path d="M{lx} {ly+52}h46" stroke="{CYAN}" stroke-width="4" stroke-linecap="round"/>')
+add(f'<path d="M{lx} {ly+52}h46" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.6" class="flow"/>')
+text(lx + 58, ly + 57, "realise: a committed version to a live node", 12.5, MUTED)
 
 # ---------------------------------------------------------------- column headers
 for x, s in ((48, "EXTERNAL AI AGENTS"), (492, "CRESCO MESH"), (1110, "DURABLE TIER · THREE SITES")):
@@ -151,7 +156,7 @@ for k in ("G", "n2", "n3", "n5", "n8", "n10"):
 # ---------------------------------------------------------------- agents column
 agents = [
     ("spark", VIOLET, "Language-model agents", "call the core's verbs as tools"),
-    ("chip", CYAN, "Training and inference", "stream any version to GPUs"),
+    ("chip", CYAN, "Training and inference", "stream a version, or read it live"),
     ("scan", PINK, "Clinical imaging pipelines", "DICOM · whole-slide · NIfTI"),
     ("campus", GREEN, "Partner institutions", "federated tenants and grants"),
     ("shield", AMBER, "Compliance agents", "retention · legal orders · audit"),
@@ -277,16 +282,53 @@ for i, (d, color) in enumerate(paths):
             f'<animateMotion dur="3.4s" begin="{i*0.45 + k*1.7:.2f}s" repeatCount="indefinite" path="{d}" rotate="0"/></rect>')
 add('</g>')
 
+# ---------------------------------------------------------------- the live tier (native copies near compute)
+by0, bh = 790, 112
+add(f'<rect x="48" y="{by0}" width="1512" height="{bh}" rx="18" fill="{CYAN}" fill-opacity="0.045" stroke="{CYAN}" stroke-opacity="0.45"/>')
+text(72, by0 + 30, "LIVE TIER · NATIVE COPIES NEAR COMPUTE", 12.5, CYAN, 700, spacing=2.2)
+text(72, by0 + 56, "Committed versions as ordinary files on live nodes,", 14, TEXT)
+text(72, by0 + 76, "read in place at local-disk speed by GPU jobs and tools", 14, MUTED)
+text(72, by0 + 96, "plaintext by owner decision · never counted toward durability", 12, DIM)
+# the core realises a committed version down through the regional controller to the live nodes
+lx0, ly0 = cx0, core[1] + core[3]
+lpath = f"M{lx0} {ly0}L{nodes['n8'][0]} {nodes['n8'][1]}L{nodes['n8'][0]+1} {by0+14}"
+add(f'<path d="{lpath}" stroke="{CYAN}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.85"/>')
+add(f'<path d="{lpath}" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.8" fill="none" class="flow"/>')
+add(f'<rect x="{lx0+16}" y="{ly0+38}" width="150" height="44" rx="10" fill="#06141d" fill-opacity="0.85" stroke="{CYAN}" stroke-opacity="0.5"/>')
+text(lx0 + 30, ly0 + 56, "realise, only after", 12, CYAN, 600)
+text(lx0 + 30, ly0 + 73, "the version commits", 12, CYAN, 600)
+# three live-node tiles
+tiles = [("live node · GPU host", "copy, leased"), ("live node · GPU host", "copy, pinned"),
+         ("live node · workspace", "edit, then publish")]
+for i, (t1, t2) in enumerate(tiles):
+    tx = 484 + i * 204
+    add(f'<rect x="{tx}" y="{by0+18}" width="194" height="76" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="{CYAN}" stroke-opacity="0.55"/>')
+    for k in range(3):
+        add(f'<rect x="{tx+14+k*4}" y="{by0+32+k*4}" width="24" height="30" rx="3" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="{0.45+0.2*k}"/>')
+    add(f'<path d="M{tx+26} {by0+50}h12M{tx+26} {by0+56}h12M{tx+26} {by0+62}h8" stroke="{CYAN}" stroke-opacity="0.8" stroke-width="1.4"/>')
+    text(tx + 54, by0 + 50, t1, 12.5, TEXT, 650)
+    text(tx + 54, by0 + 70, t2, 12.5, MUTED)
+# what the core guarantees about them
+facts = ["every copy in the core's journaled inventory first", "no copy before the version commits, writer included",
+         "deletion ends on the node's signed attestation"]
+for i, f in enumerate(facts):
+    add(f'<circle cx="{1130}" cy="{by0+37+i*26}" r="3.5" fill="{CYAN}"/>')
+    text(1144, by0 + 42 + i * 26, f, 13, "#cfe9ee")
+add('<g class="motion">')
+add(f'<rect x="-5" y="-5" width="10" height="10" rx="2" fill="{CYAN}" filter="url(#glow)">'
+    f'<animateMotion dur="2.6s" repeatCount="indefinite" path="{lpath}" rotate="0"/></rect>')
+add('</g>')
+
 # ---------------------------------------------------------------- the five properties
 props = [("Programmatic", "no filesystem: agents call tools", VIOLET), ("Versioned", "every read names a version", CYAN),
          ("Resilient", "erasure coded, tape primary", TEAL2), ("Secure", "encrypted at origin, zero trust", AMBER),
          ("Distributed", "federated over the Cresco mesh", GREEN)]
 for i, (t, s, color) in enumerate(props):
     px = 48 + i * 304
-    add(f'<rect x="{px}" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="{color}" stroke-opacity="0.4"/>')
-    add(f'<rect x="{px}" y="806" width="4" height="46" rx="2" fill="{color}"/>')
-    text(px + 22, 824, t, 16, TEXT, 700)
-    text(px + 22, 847, s, 12.8, MUTED)
+    add(f'<rect x="{px}" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="{color}" stroke-opacity="0.4"/>')
+    add(f'<rect x="{px}" y="932" width="4" height="46" rx="2" fill="{color}"/>')
+    text(px + 22, 950, t, 16, TEXT, 700)
+    text(px + 22, 973, s, 12.8, MUTED)
 
 add('</g>')
 add(f'<rect x="0.75" y="0.75" width="{W-1.5}" height="{H-1.5}" rx="22" fill="none" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.5"/>')

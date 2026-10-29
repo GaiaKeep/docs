@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="1200" height="860" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">The live tier: from a write to a native copy, and back out</title>
+<desc id="d">An agent publishes a version to the replicated core, which writes encrypted blocks to the durable tier. Only when the tape copies are verified does the version commit; a realise asked earlier waits, the writer's included. The core then registers a row in its journaled inventory, decrypts the version and pushes it over AES-256-GCM node streams to a live node, which verifies every file, places it as ordinary files and signs an attestation; the row becomes LIVE. Holds (lease, extend, pin) keep a copy; a legal deletion is journaled with its cause, sent to every node holding a copy as a signed drop, and ends only on the node's signed attestation that the files are gone.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#051019"/><stop offset="0.55" stop-color="#0a1f2e"/><stop offset="1" stop-color="#071824"/></linearGradient>
+  <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#6fb9c6" fill-opacity="0.10"/></pattern>
+  <linearGradient id="core" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f3a44"/><stop offset="1" stop-color="#0a2530"/></linearGradient>
+  <marker id="ah-ctl" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#5eead4"/></marker>
+  <marker id="ah-data" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#38bdf8"/></marker>
+  <marker id="ah-sig" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#fbbf24"/></marker>
+  <marker id="ah-drop" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#f472b6"/></marker>
+  <marker id="ah-refuse" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#f472b6"/></marker>
+  <marker id="ah-ok" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5L10 5L0 9.5z" fill="#4ade80"/></marker>
+</defs>
+<rect width="1200" height="860" rx="22" fill="url(#bg)"/>
+<rect width="1200" height="860" rx="22" fill="url(#dots)"/>
+<text x="40.0" y="56.0" font-size="26" fill="#e8f4f6" font-weight="700" text-anchor="start">The live tier: from a write to a native copy, and back out</text>
+<text x="40.0" y="86.0" font-size="15.5" fill="#93b6c1" font-weight="400" text-anchor="start">Every copy is registered before a byte moves, made only after the version commits, and deleted on the node's signed word.</text>
+<rect x="40.0" y="128.0" width="290.0" height="98.0" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#a78bfa" stroke-opacity="0.45" stroke-width="1.4"/>
+<text x="62.0" y="162.0" font-size="17" fill="#e8f4f6" font-weight="700" text-anchor="start">Agent</text>
+<text x="62.0" y="188.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">writes a version; asks for a</text>
+<text x="62.0" y="207.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">copy at a live node</text>
+<rect x="40.0" y="254.0" width="290.0" height="116.0" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#5eead4" stroke-opacity="0.45" stroke-width="1.4"/>
+<text x="62.0" y="286.0" font-size="17" fill="#e8f4f6" font-weight="700" text-anchor="start">Holds</text>
+<text x="62.0" y="311.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">a lease (7 days by default),</text>
+<text x="62.0" y="330.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">extend, pin, unpin; a pin also</text>
+<text x="62.0" y="349.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">keeps the version from pruning</text>
+<rect x="40.0" y="396.0" width="290.0" height="108.0" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#f472b6" stroke-opacity="0.6" stroke-width="1.4"/>
+<text x="62.0" y="430.0" font-size="17" fill="#e8f4f6" font-weight="700" text-anchor="start">Deletion reaches every copy</text>
+<text x="62.0" y="456.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">FORGET · legal order · withdraw ·</text>
+<text x="62.0" y="475.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">destroy · grant end · expiry · release</text>
+<rect x="420" y="120" width="380" height="384" rx="20" fill="url(#core)" stroke="#5eead4" stroke-width="1.8"/>
+<text x="610.0" y="152.0" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="middle" letter-spacing="2.2">REPLICATED CORE</text>
+<text x="610.0" y="180.0" font-size="19" fill="#e8f4f6" font-weight="700" text-anchor="middle">Versions and the live inventory</text>
+<text x="444.0" y="222.0" font-size="14" fill="#93b6c1" font-weight="600" text-anchor="start">version v7</text>
+<rect x="553.7" y="204.0" width="104.6" height="26" rx="13" fill="#fbbf24" fill-opacity="0.16" stroke="#fbbf24" stroke-opacity="0.75"/>
+<text x="606.0" y="221.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">COMMITTING</text>
+<path d="M672 217h22" stroke="#5eead4" stroke-width="1.8" marker-end="url(#ah-ctl)"/>
+<rect x="689.7" y="204.0" width="96.5" height="26" rx="13" fill="#4ade80" fill-opacity="0.16" stroke="#4ade80" stroke-opacity="0.75"/>
+<text x="738.0" y="221.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">committed</text>
+<rect x="442" y="244" width="336" height="52" rx="10" fill="#fbbf24" fill-opacity="0.08" stroke="#fbbf24" stroke-opacity="0.45"/>
+<text x="458.0" y="265.0" font-size="13.5" fill="#f5deb0" font-weight="400" text-anchor="start">No early copy: no row and no byte before</text>
+<text x="458.0" y="283.0" font-size="13.5" fill="#f5deb0" font-weight="400" text-anchor="start">the commit, for anyone, the writer included</text>
+<text x="444.0" y="330.0" font-size="14" fill="#93b6c1" font-weight="600" text-anchor="start">a row per copy, journaled</text>
+<rect x="444.0" y="347.0" width="92.5" height="26" rx="13" fill="#38bdf8" fill-opacity="0.16" stroke="#38bdf8" stroke-opacity="0.75"/>
+<text x="490.3" y="364.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">REALISING</text>
+<path d="M539.54 360h12" stroke="#5eead4" stroke-width="1.6" marker-end="url(#ah-ctl)"/>
+<rect x="556.5" y="347.0" width="52.2" height="26" rx="13" fill="#4ade80" fill-opacity="0.16" stroke="#4ade80" stroke-opacity="0.75"/>
+<text x="582.7" y="364.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">LIVE</text>
+<path d="M611.78 360h12" stroke="#5eead4" stroke-width="1.6" marker-end="url(#ah-ctl)"/>
+<rect x="628.8" y="347.0" width="84.5" height="26" rx="13" fill="#f472b6" fill-opacity="0.16" stroke="#f472b6" stroke-opacity="0.75"/>
+<text x="671.0" y="364.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">DROPPING</text>
+<path d="M716.26 360h12" stroke="#5eead4" stroke-width="1.6" marker-end="url(#ah-ctl)"/>
+<rect x="733.3" y="347.0" width="52.2" height="26" rx="13" fill="#6f97a4" fill-opacity="0.16" stroke="#6f97a4" stroke-opacity="0.75"/>
+<text x="759.4" y="364.7" font-size="13" fill="#e8f4f6" font-weight="650" text-anchor="middle">gone</text>
+<text x="444.0" y="402.0" font-size="13.5" fill="#cfe3e8" font-weight="400" text-anchor="start">REALISING: registered before any byte moves</text>
+<text x="444.0" y="423.0" font-size="13.5" fill="#cfe3e8" font-weight="400" text-anchor="start">LIVE: the node's signed root matches the core's</text>
+<text x="444.0" y="444.0" font-size="13.5" fill="#cfe3e8" font-weight="400" text-anchor="start">DROPPING: journaled with its cause; gone only</text>
+<text x="444.0" y="465.0" font-size="13.5" fill="#cfe3e8" font-weight="400" text-anchor="start">on the node's signed attestation</text>
+<text x="610.0" y="488.0" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="middle">decrypted only here · never counted toward durability</text>
+<rect x="890.0" y="128.0" width="270.0" height="112.0" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#fbbf24" stroke-opacity="0.55" stroke-width="1.4"/>
+<text x="912.0" y="162.0" font-size="17" fill="#e8f4f6" font-weight="700" text-anchor="start">Durable tier</text>
+<text x="912.0" y="188.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">three sites · disk and tape</text>
+<text x="912.0" y="207.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">encrypted; the only non-native tier</text>
+<rect x="890.0" y="292.0" width="270.0" height="132.0" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#8fd3dc" stroke-opacity="0.25" stroke-width="1.4"/>
+<text x="912.0" y="324.0" font-size="15" fill="#e8f4f6" font-weight="650" text-anchor="start">What the live tier is not</text>
+<text x="912.0" y="350.0" font-size="13.5" fill="#93b6c1" font-weight="400" text-anchor="start">not durable: a live node is never</text>
+<text x="912.0" y="370.0" font-size="13.5" fill="#93b6c1" font-weight="400" text-anchor="start">a site, and losing every live copy</text>
+<text x="912.0" y="390.0" font-size="13.5" fill="#93b6c1" font-weight="400" text-anchor="start">loses nothing; not a server: copies</text>
+<text x="912.0" y="410.0" font-size="13.5" fill="#93b6c1" font-weight="400" text-anchor="start">are read where they sit</text>
+<rect x="250.0" y="600.0" width="330.0" height="150.0" rx="14" fill="#ffffff" fill-opacity="0.06" stroke="#38bdf8" stroke-opacity="0.6" stroke-width="1.4"/>
+<text x="272.0" y="632.0" font-size="13" fill="#38bdf8" font-weight="700" text-anchor="start" letter-spacing="1.6">LIVE NODE A · GPU HOST</text>
+<rect x="272" y="652" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.45"/>
+<rect x="277" y="657" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.65"/>
+<rect x="282" y="662" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.8500000000000001"/>
+<path d="M290 672h18M290 680h18M290 688h12" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.6"/>
+<text x="334.0" y="668.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">v7/  copy, leased</text>
+<text x="334.0" y="689.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">ws/  workspace: edit, then</text>
+<text x="334.0" y="710.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">      publish a new version</text>
+<rect x="640.0" y="600.0" width="330.0" height="150.0" rx="14" fill="#ffffff" fill-opacity="0.06" stroke="#38bdf8" stroke-opacity="0.6" stroke-width="1.4"/>
+<text x="662.0" y="632.0" font-size="13" fill="#38bdf8" font-weight="700" text-anchor="start" letter-spacing="1.6">LIVE NODE B · SITE COMPUTE</text>
+<rect x="662" y="652" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.45"/>
+<rect x="667" y="657" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.65"/>
+<rect x="672" y="662" width="34" height="42" rx="4" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.8500000000000001"/>
+<path d="M680 672h18M680 680h18M680 688h12" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.6"/>
+<text x="724.0" y="668.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">v7/  copy, pinned</text>
+<text x="724.0" y="689.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">read in place by jobs and</text>
+<text x="724.0" y="710.0" font-size="14" fill="#cfe3e8" font-weight="400" text-anchor="start">tools at local-disk speed</text>
+<text x="40.0" y="640.0" font-size="15" fill="#e8f4f6" font-weight="650" text-anchor="start">Plaintext</text>
+<text x="40.0" y="664.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">native files, by</text>
+<text x="40.0" y="684.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">owner decision</text>
+<text x="40.0" y="704.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">(2026-10-27)</text>
+<text x="1000.0" y="640.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">The operating</text>
+<text x="1000.0" y="660.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">system is the</text>
+<text x="1000.0" y="680.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">boundary on the</text>
+<text x="1000.0" y="700.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">node; reads there</text>
+<text x="1000.0" y="720.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">are not audited</text>
+<path d="M332 158H416" stroke="#5eead4" stroke-width="2.0" fill="none" stroke-linecap="round" marker-end="url(#ah-ctl)"/>
+<circle cx="374.0" cy="146.0" r="12" fill="#06141d" stroke="#5eead4" stroke-width="1.8"/>
+<text x="374.0" y="150.8" font-size="13" fill="#5eead4" font-weight="700" text-anchor="middle">1</text>
+<path d="M804 158H884" stroke="#38bdf8" stroke-width="4.0" fill="none" stroke-linecap="round" marker-end="url(#ah-data)"/>
+<circle cx="846.0" cy="144.0" r="12" fill="#06141d" stroke="#38bdf8" stroke-width="1.8"/>
+<text x="846.0" y="148.8" font-size="13" fill="#38bdf8" font-weight="700" text-anchor="middle">2</text>
+<path d="M886 210H808" stroke="#5eead4" stroke-width="2.0" fill="none" stroke-linecap="round" marker-end="url(#ah-ctl)"/>
+<circle cx="846.0" cy="222.0" r="12" fill="#06141d" stroke="#5eead4" stroke-width="1.8"/>
+<text x="846.0" y="226.8" font-size="13" fill="#5eead4" font-weight="700" text-anchor="middle">3</text>
+<text x="846.0" y="256.0" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="middle">tape copies</text>
+<text x="846.0" y="272.0" font-size="12.5" fill="#fbbf24" font-weight="700" text-anchor="middle">VERIFIED</text>
+<path d="M332 311H416" stroke="#5eead4" stroke-width="2.0" fill="none" stroke-linecap="round" marker-end="url(#ah-ctl)"/>
+<circle cx="374.0" cy="299.0" r="12" fill="#06141d" stroke="#5eead4" stroke-width="1.8"/>
+<text x="374.0" y="303.8" font-size="13" fill="#5eead4" font-weight="700" text-anchor="middle">6</text>
+<path d="M332 450H416" stroke="#f472b6" stroke-width="2.4" fill="none" stroke-linecap="round" marker-end="url(#ah-drop)" stroke-dasharray="7 5"/>
+<circle cx="374.0" cy="438.0" r="12" fill="#06141d" stroke="#f472b6" stroke-width="1.8"/>
+<text x="374.0" y="442.8" font-size="13" fill="#f472b6" font-weight="700" text-anchor="middle">7</text>
+<path d="M444 508 L389 594" stroke="#38bdf8" stroke-width="4.0" fill="none" stroke-linecap="round" marker-end="url(#ah-data)"/>
+<path d="M415 596 L470 510" stroke="#fbbf24" stroke-width="2.2" fill="none" stroke-linecap="round" marker-end="url(#ah-sig)"/>
+<path d="M496 508 L441 594" stroke="#f472b6" stroke-width="2.4" fill="none" stroke-linecap="round" marker-end="url(#ah-drop)" stroke-dasharray="7 5"/>
+<path d="M724 508 L779 594" stroke="#38bdf8" stroke-width="4.0" fill="none" stroke-linecap="round" marker-end="url(#ah-data)"/>
+<path d="M805 596 L750 510" stroke="#fbbf24" stroke-width="2.2" fill="none" stroke-linecap="round" marker-end="url(#ah-sig)"/>
+<path d="M776 508 L831 594" stroke="#f472b6" stroke-width="2.4" fill="none" stroke-linecap="round" marker-end="url(#ah-drop)" stroke-dasharray="7 5"/>
+<circle cx="430.0" cy="552.0" r="12" fill="#06141d" stroke="#38bdf8" stroke-width="1.8"/>
+<text x="430.0" y="556.8" font-size="13" fill="#38bdf8" font-weight="700" text-anchor="middle">4</text>
+<circle cx="470.0" cy="552.0" r="12" fill="#06141d" stroke="#fbbf24" stroke-width="1.8"/>
+<text x="470.0" y="556.8" font-size="13" fill="#fbbf24" font-weight="700" text-anchor="middle">5</text>
+<circle cx="512.0" cy="552.0" r="12" fill="#06141d" stroke="#f472b6" stroke-width="1.8"/>
+<text x="512.0" y="556.8" font-size="13" fill="#f472b6" font-weight="700" text-anchor="middle">8</text>
+<text x="560.0" y="536.0" font-size="13" fill="#93b6c1" font-weight="400" text-anchor="start">4 push · 5 attest · 8 drop</text>
+<text x="560.0" y="556.0" font-size="13" fill="#93b6c1" font-weight="400" text-anchor="start">AES-256-GCM node streams;</text>
+<text x="560.0" y="574.0" font-size="13" fill="#93b6c1" font-weight="400" text-anchor="start">no path or byte in clear</text>
+<path d="M40 786h44" stroke="#5eead4" stroke-width="2.0" stroke-linecap="round"/>
+<text x="96.0" y="791.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">request or control message (signed)</text>
+<path d="M460 786h44" stroke="#38bdf8" stroke-width="4.0" stroke-linecap="round"/>
+<text x="516.0" y="791.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">data on the dataplane (encrypted)</text>
+<path d="M40 814h44" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round"/>
+<text x="96.0" y="819.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">the node's signed attestation</text>
+<path d="M460 814h44" stroke="#f472b6" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="7 5"/>
+<text x="516.0" y="819.0" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">deletion: a signed drop</text>
+<text x="1160.0" y="846.0" font-size="12.5" fill="#6f97a4" font-weight="400" text-anchor="end">1 publish · 2 blocks to the durable tier · 3 commit · 4 register and push · 5 LIVE · 6 holds · 7 deletion · 8 drop, then attested gone</text>
+<rect x="0.75" y="0.75" width="1198.5" height="858.5" rx="22" fill="none" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.5"/>
+</svg>

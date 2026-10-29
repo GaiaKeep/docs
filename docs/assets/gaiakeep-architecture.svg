@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1010" width="1600" height="1010" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
 <title id="t">GaiaKeep GFS: how the distributed system fits together</title>
-<desc id="d">External AI agents send signed requests through the Cresco mesh to the replicated GaiaKeep core, which chunks, hashes, deduplicates and encrypts every block at the origin and erasure codes it across three sites whose durable tier is a tape library. Versions stream back out to agents, GPU pipelines and partners.</desc>
+<desc id="d">External AI agents send signed requests through the Cresco mesh to the replicated GaiaKeep core, which chunks, hashes, deduplicates and encrypts every block at the origin and erasure codes it across three sites whose durable tier is a tape library. Once a version commits, the core can realise it on live nodes near compute as ordinary files, which the core keeps in a journaled inventory and never counts toward durability.</desc>
 <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#051019"/><stop offset="0.55" stop-color="#0a1f2e"/><stop offset="1" stop-color="#071824"/>
@@ -24,7 +24,7 @@
   <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
     <feGaussianBlur stdDeviation="10"/>
   </filter>
-  <clipPath id="frame"><rect width="1600" height="900" rx="22"/></clipPath>
+  <clipPath id="frame"><rect width="1600" height="1010" rx="22"/></clipPath>
 </defs>
 <style>
   .flow { stroke-dasharray: 6 10; animation: run 1.6s linear infinite; }
@@ -39,16 +39,19 @@
   }
 </style>
 <g clip-path="url(#frame)">
-<rect width="1600" height="900" fill="url(#bg)"/>
-<rect width="1600" height="900" fill="url(#dots)"/>
+<rect width="1600" height="1010" fill="url(#bg)"/>
+<rect width="1600" height="1010" fill="url(#dots)"/>
 <ellipse cx="770" cy="440" rx="430" ry="330" fill="url(#halo)"/>
 <text x="48" y="66" font-size="34" fill="#e8f4f6" font-weight="700" text-anchor="start">GaiaKeep GFS</text>
 <text x="48" y="98" font-size="17" fill="#93b6c1" font-weight="400" text-anchor="start">A global file system for AI agents: versioned datasets, durable on tape, streamed anywhere over the Cresco mesh</text>
-<rect x="1168" y="26" width="392" height="80" rx="12" fill="#ffffff" fill-opacity="0.03" stroke="#8fd3dc" stroke-opacity="0.15"/>
-<path d="M1186 52h46" stroke="#5eead4" stroke-width="1.6" class="flow slow"/>
-<text x="1244" y="57" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">control plane: signed requests and events</text>
-<path d="M1186 82h46" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
-<text x="1244" y="87" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">dataplane: encrypted blocks on many flows</text>
+<rect x="1168" y="22" width="392" height="100" rx="12" fill="#ffffff" fill-opacity="0.03" stroke="#8fd3dc" stroke-opacity="0.15"/>
+<path d="M1186 46h46" stroke="#5eead4" stroke-width="1.6" class="flow slow"/>
+<text x="1244" y="51" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">control plane: signed requests and events</text>
+<path d="M1186 72h46" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+<text x="1244" y="77" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">dataplane: encrypted blocks on many flows</text>
+<path d="M1186 98h46" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+<path d="M1186 98h46" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.6" class="flow"/>
+<text x="1244" y="103" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">realise: a committed version to a live node</text>
 <text x="48" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">EXTERNAL AI AGENTS</text>
 <text x="492" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">CRESCO MESH</text>
 <text x="1110" y="152" font-size="12.5" fill="#5eead4" font-weight="700" text-anchor="start" letter-spacing="2.2">DURABLE TIER · THREE SITES</text>
@@ -108,7 +111,7 @@
 <path d="M88 304v-4M88 320v4M80 312h-4M96 312h4" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M92 304v-4M92 320v4M80 316h-4M96 316h4" stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="124" y="307" font-size="15.5" fill="#e8f4f6" font-weight="650" text-anchor="start">Training and inference</text>
-<text x="124" y="329" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">stream any version to GPUs</text>
+<text x="124" y="329" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">stream a version, or read it live</text>
 <path d="M338 410C410 410 430 430 506 430" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.4" fill="none"/>
 <path d="M338 410C410 410 430 430 506 430" stroke="#f472b6" stroke-opacity="0.9" stroke-width="1.6" fill="none" class="flow slow"/>
 <rect x="48" y="368" width="290" height="84" rx="14" fill="#ffffff" fill-opacity="0.045" stroke="#f472b6" stroke-opacity="0.35"/>
@@ -310,26 +313,66 @@
 <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#fbbf24" filter="url(#glow)"><animateMotion dur="3.4s" begin="0.90s" repeatCount="indefinite" path="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" rotate="0"/></rect>
 <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#fbbf24" filter="url(#glow)"><animateMotion dur="3.4s" begin="2.60s" repeatCount="indefinite" path="M921.0 461.0C986 548 1026 548 1026 548C1066 548 1060 628.0 1110 628.0" rotate="0"/></rect>
 </g>
-<rect x="48" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#a78bfa" stroke-opacity="0.4"/>
-<rect x="48" y="806" width="4" height="46" rx="2" fill="#a78bfa"/>
-<text x="70" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Programmatic</text>
-<text x="70" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">no filesystem: agents call tools</text>
-<rect x="352" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#38bdf8" stroke-opacity="0.4"/>
-<rect x="352" y="806" width="4" height="46" rx="2" fill="#38bdf8"/>
-<text x="374" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Versioned</text>
-<text x="374" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">every read names a version</text>
-<rect x="656" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#5eead4" stroke-opacity="0.4"/>
-<rect x="656" y="806" width="4" height="46" rx="2" fill="#5eead4"/>
-<text x="678" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Resilient</text>
-<text x="678" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">erasure coded, tape primary</text>
-<rect x="960" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#fbbf24" stroke-opacity="0.4"/>
-<rect x="960" y="806" width="4" height="46" rx="2" fill="#fbbf24"/>
-<text x="982" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Secure</text>
-<text x="982" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">encrypted at origin, zero trust</text>
-<rect x="1264" y="796" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#4ade80" stroke-opacity="0.4"/>
-<rect x="1264" y="806" width="4" height="46" rx="2" fill="#4ade80"/>
-<text x="1286" y="824" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Distributed</text>
-<text x="1286" y="847" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">federated over the Cresco mesh</text>
+<rect x="48" y="790" width="1512" height="112" rx="18" fill="#38bdf8" fill-opacity="0.045" stroke="#38bdf8" stroke-opacity="0.45"/>
+<text x="72" y="820" font-size="12.5" fill="#38bdf8" font-weight="700" text-anchor="start" letter-spacing="2.2">LIVE TIER · NATIVE COPIES NEAR COMPUTE</text>
+<text x="72" y="846" font-size="14" fill="#e8f4f6" font-weight="400" text-anchor="start">Committed versions as ordinary files on live nodes,</text>
+<text x="72" y="866" font-size="14" fill="#93b6c1" font-weight="400" text-anchor="start">read in place at local-disk speed by GPU jobs and tools</text>
+<text x="72" y="886" font-size="12" fill="#5f8794" font-weight="400" text-anchor="start">plaintext by owner decision · never counted toward durability</text>
+<path d="M770.0 572L772 706L773 804" stroke="#38bdf8" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.85"/>
+<path d="M770.0 572L772 706L773 804" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.8" fill="none" class="flow"/>
+<rect x="786.0" y="610" width="150" height="44" rx="10" fill="#06141d" fill-opacity="0.85" stroke="#38bdf8" stroke-opacity="0.5"/>
+<text x="800.0" y="628" font-size="12" fill="#38bdf8" font-weight="600" text-anchor="start">realise, only after</text>
+<text x="800.0" y="645" font-size="12" fill="#38bdf8" font-weight="600" text-anchor="start">the version commits</text>
+<rect x="484" y="808" width="194" height="76" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#38bdf8" stroke-opacity="0.55"/>
+<rect x="498" y="822" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.45"/>
+<rect x="502" y="826" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.65"/>
+<rect x="506" y="830" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.8500000000000001"/>
+<path d="M510 840h12M510 846h12M510 852h8" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.4"/>
+<text x="538" y="840" font-size="12.5" fill="#e8f4f6" font-weight="650" text-anchor="start">live node · GPU host</text>
+<text x="538" y="860" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">copy, leased</text>
+<rect x="688" y="808" width="194" height="76" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#38bdf8" stroke-opacity="0.55"/>
+<rect x="702" y="822" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.45"/>
+<rect x="706" y="826" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.65"/>
+<rect x="710" y="830" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.8500000000000001"/>
+<path d="M714 840h12M714 846h12M714 852h8" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.4"/>
+<text x="742" y="840" font-size="12.5" fill="#e8f4f6" font-weight="650" text-anchor="start">live node · GPU host</text>
+<text x="742" y="860" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">copy, pinned</text>
+<rect x="892" y="808" width="194" height="76" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#38bdf8" stroke-opacity="0.55"/>
+<rect x="906" y="822" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.45"/>
+<rect x="910" y="826" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.65"/>
+<rect x="914" y="830" width="24" height="30" rx="3" fill="#0b2a36" stroke="#38bdf8" stroke-opacity="0.8500000000000001"/>
+<path d="M918 840h12M918 846h12M918 852h8" stroke="#38bdf8" stroke-opacity="0.8" stroke-width="1.4"/>
+<text x="946" y="840" font-size="12.5" fill="#e8f4f6" font-weight="650" text-anchor="start">live node · workspace</text>
+<text x="946" y="860" font-size="12.5" fill="#93b6c1" font-weight="400" text-anchor="start">edit, then publish</text>
+<circle cx="1130" cy="827" r="3.5" fill="#38bdf8"/>
+<text x="1144" y="832" font-size="13" fill="#cfe9ee" font-weight="400" text-anchor="start">every copy in the core's journaled inventory first</text>
+<circle cx="1130" cy="853" r="3.5" fill="#38bdf8"/>
+<text x="1144" y="858" font-size="13" fill="#cfe9ee" font-weight="400" text-anchor="start">no copy before the version commits, writer included</text>
+<circle cx="1130" cy="879" r="3.5" fill="#38bdf8"/>
+<text x="1144" y="884" font-size="13" fill="#cfe9ee" font-weight="400" text-anchor="start">deletion ends on the node's signed attestation</text>
+<g class="motion">
+<rect x="-5" y="-5" width="10" height="10" rx="2" fill="#38bdf8" filter="url(#glow)"><animateMotion dur="2.6s" repeatCount="indefinite" path="M770.0 572L772 706L773 804" rotate="0"/></rect>
 </g>
-<rect x="0.75" y="0.75" width="1598.5" height="898.5" rx="22" fill="none" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.5"/>
+<rect x="48" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#a78bfa" stroke-opacity="0.4"/>
+<rect x="48" y="932" width="4" height="46" rx="2" fill="#a78bfa"/>
+<text x="70" y="950" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Programmatic</text>
+<text x="70" y="973" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">no filesystem: agents call tools</text>
+<rect x="352" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#38bdf8" stroke-opacity="0.4"/>
+<rect x="352" y="932" width="4" height="46" rx="2" fill="#38bdf8"/>
+<text x="374" y="950" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Versioned</text>
+<text x="374" y="973" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">every read names a version</text>
+<rect x="656" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#5eead4" stroke-opacity="0.4"/>
+<rect x="656" y="932" width="4" height="46" rx="2" fill="#5eead4"/>
+<text x="678" y="950" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Resilient</text>
+<text x="678" y="973" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">erasure coded, tape primary</text>
+<rect x="960" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#fbbf24" stroke-opacity="0.4"/>
+<rect x="960" y="932" width="4" height="46" rx="2" fill="#fbbf24"/>
+<text x="982" y="950" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Secure</text>
+<text x="982" y="973" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">encrypted at origin, zero trust</text>
+<rect x="1264" y="922" width="288" height="66" rx="14" fill="#ffffff" fill-opacity="0.04" stroke="#4ade80" stroke-opacity="0.4"/>
+<rect x="1264" y="932" width="4" height="46" rx="2" fill="#4ade80"/>
+<text x="1286" y="950" font-size="16" fill="#e8f4f6" font-weight="700" text-anchor="start">Distributed</text>
+<text x="1286" y="973" font-size="12.8" fill="#93b6c1" font-weight="400" text-anchor="start">federated over the Cresco mesh</text>
+</g>
+<rect x="0.75" y="0.75" width="1598.5" height="1008.5" rx="22" fill="none" stroke="#5eead4" stroke-opacity="0.25" stroke-width="1.5"/>
 </svg>
