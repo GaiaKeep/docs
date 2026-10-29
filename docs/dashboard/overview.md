@@ -32,6 +32,10 @@ leadership move and why it happened, bookkeeping. A core peer that stopped on pu
 restarts, and becomes an alarm only if it is not back within the dashboard's grace (180 s). While the leader
 hands over in a planned stop, the status bar says *leader hand-over (planned stop)* rather than *stale*.
 
+![The Overview during a rolling restart: healthy, with notes for a core peer stopping, a store departing, a planned AT_RISK quorum, the leadership move and writes placed on other stores](../assets/dashboard/overview-rolling-restart.png)
+
+![The Overview with a stuck disk: one alarm (the log made nothing durable), the hand-over and the leader change as notes, and the Core log card in red](../assets/dashboard/overview-stuck-disk.png)
+
 ## Core peers (Raft)
 
 One row per core peer, from unsigned `core.status` of each peer; lag and last-ack come from the leader's follower
