@@ -353,18 +353,30 @@ README's metadata-crypto table.
 | `core_election_timeout_ms` | 6000 | randomized to up to twice this; the leader's check-quorum window; lease = 3/4 of it |
 | `core_heartbeat_ms` | 250 | |
 | `core_raft_batch_bytes` | 4194304 (4 MiB) | bound on one append and one snapshot chunk |
+| `core_raft_max_unsynced_bytes` | 67108864 (64 MiB) | most bytes the log holds staged, not yet written to its disk (reserved under the raft lock; one larger entry alone when nothing else is); beyond it a proposal waits for the sync up to `core_raft_stuck_sync_ms` (then is refused, retryable) and new writes are answered busy (11); 0: no cap (OPERATIONS §5) |
+| `core_raft_stuck_sync_ms` | 30000 | a leader calls its disk stuck only when one write or fsync of its log has not returned for this long; it then hands over only to followers shown to make entries durable without it (a quorum of them), else rides the stall out; a slow disk never costs the leadership; 0: never (OPERATIONS §5) |
 | `core_site_probe_ms` | 3000 | the leader's own liveness probe of each storage node |
 | `core_site_probe_timeout_ms` | 5000 | a site that does not answer by then is quarantined |
 | `core_legacy_import` | `auto` | `skip` starts without the one-time import (`auto` or `skip`) |
 | `core_raft_freshness_ms` | 120000 | largest tolerated clock skew between core hosts; older messages are refused |
 | `core_raft_bootstrap` | `false` | the first listed peer's first start forms a new core with a majority of empty peers (N18) |
 | `core_raft_transfer` | `true` | leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (`xfer1`); off: neither advertised nor sent |
+| `core_stop_drain_ms` | 3000 | a stopping peer refuses new requests at once (12, `stopping=true`) and lets those it admitted finish for at most this long before it hands over (OUT-111) |
+| `core_stop_max_ms` | 10000 | the stop's drain, hand-over and waits (passes, archives, jobs, probes, the replicated core's hooks, the raft log's sync) share one budget, at most this long and inside the plugin's `gfs_stop_max_ms` (25000); a sync still running then is left to the log's close, which keeps the directory held until it returns (OUT-111) |
 | `core_raft_voter_override` | none | this peer's own `raft.state_id`: vote although it lost its raft state (N18, OPERATIONS §5.3); armed until no leader is heard for two election timeouts (OUT-105) |
 | `core_raft_voter_override_force` | false | apply `core_raft_voter_override` at start, not armed (owner sign-off; `gaiakeep op raft override --force` prints it) |
 | `core_snapshot_min_interval_ms` | 60000 | least time between two on-demand snapshots taken |
 | `core_membership_enabled` | `true` | `core.membership` op=add and op=remove may change the configuration (OUT-08c) |
 | `core_membership_catchup_ms` | 600000 | how long an add waits for its learner to catch up before it fails, retryable |
 | `core_identity_reanchor` | none | the journaled core identity's public key: this peer starts with that identity parked so an operator can re-anchor it (gfs#23, OPERATIONS §6.7); remove it afterwards |
+
+**One instance per log directory.** A log directory is held from `CoreLog.open` until the instance's files are really
+closed (its close's closer, after a write the medium stalled has returned): in the JVM, and on the real filesystem with an
+OS lock on `core-log.lock` in the directory. A second open waits for the holder at most `reopenWaitMs` (60 s) and
+refuses (`CoreLogRefusal`: the core's start fails closed). Review of fix/clean-stop (2026-10-28): a plugin stop past its
+bound left the old instance's log open with staged records; a new instance opened it and acknowledged entries, and the
+old sync's late write replaced them with a valid chain (CleanStopReviewTest). A simulated medium (CrashFs) holds the
+directory only from a close until its files are closed, as an instance abandoned at a simulated power cut never closes.
 
 ## Evidence
 

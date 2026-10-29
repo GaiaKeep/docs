@@ -470,7 +470,7 @@ though it uses paths and sidecar files?
 
 ## 12. The agent interface
 
-**I1 [NOW] — Confirm the verbs:** **ANSWERED 2026-10-02:** a cache-tier concern, deferred to phase two. `prospect` (what would it cost to get this version here, by which
+**I1 [NOW] — Confirm the verbs:** **ANSWERED 2026-10-02:** a live-tier concern (then called the cache tier), deferred to phase two. `prospect` (what would it cost to get this version here, by which
 strategy) and `realise` (the only verb that moves bytes).
 
 **I2 — Should agents be able to move compute to data**, not just data to compute? That requires
@@ -497,19 +497,23 @@ decides priority?** At 100 TB/day scattered the plant is oversubscribed 2.75×.
 
 ## 13. filerepo
 
-**F1 — Confirm filerepo's role:** **ANSWERED 2026-09-23:** filerepo = local copies, cache, and publishing new versions; the advanced caching tier comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
+**F1 — Confirm filerepo's role:** **ANSWERED 2026-09-23:** filerepo = local copies, cache, and publishing new versions; the advanced caching tier, now the live tier, comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
 versions, but is no longer primary storage.
 
 **F2 — Should filerepo's `phase0-crypto-baseline` branch (`repostate`, `clearRepo(force)`) merge to
-1.3?**
+1.3?** **ANSWERED 2026-10-27 (default, under the owner's delegation):** not as written: the commit is inert,
+refuses every non-empty repository and misses edits in place. Its idea (never wipe the only copy; report a
+repository's state by comparison) is rebuilt on `main` with the live tier (docs/LIVE-TIER.md §12).
 
-**F3 — Does filerepo become a GFS binding, a GFS client, or both?**
+**F3 — Does filerepo become a GFS binding, a GFS client, or both?** **ANSWERED 2026-10-27 (default):** a
+client, through the live node on its own agent; never a binding (docs/LIVE-TIER.md §12). The owner decided the
+same day that live copies are unencrypted native files and that the writer gets no early copy (docs/LIVE-TIER.md).
 
 ---
 
 ## 14. Operations
 
-**O1 [NOW] — Fix the HPC cluster mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under `~/cresco/nodes` are on a network
+**O1 [NOW] — Fix the HPC cluster mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two live tier (node-local store_dir remains the expected answer). Nodes under `~/cresco/nodes` are on a network
 filesystem and are now refused durable copies. Point `store_dir` at node-local storage, or attest?
 **Rec:** node-local; it is also 40× faster.
 

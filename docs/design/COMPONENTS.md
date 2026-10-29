@@ -107,7 +107,7 @@ These are deliberately deferred, with the reason:
   compare-and-set; wiring into the Cresco index is the next stage.
 - **`prospect` cost model.**
 - **Packing blocks into containers**, and with it pin amplification.
-- **The caching tier** (after durable storage).
+- **The live tier** (after durable storage): copies readable byte by byte near compute, never counted.
 - **Erasure coding** (later, by repack).
 - **The metadata-key IV discipline (S1).** Version roots and manifests are in-process objects here and
   are not yet written to media.

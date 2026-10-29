@@ -1,5 +1,5 @@
-!!! info "Status: Proven (prototype)"
-    Every evaluation check with its method, pass criterion and status.
+!!! success "Status: Current"
+    Every evaluation check with its method, pass criterion and status, from the prototype's E1-E16 to E18, the live tier and stability gate before the FABRIC test (2026-10-28).
 
 # Cresco GFS — Exhaustive Evaluation Plan
 
@@ -346,6 +346,62 @@ F1–F9, S1 (0.0 % errors), R1, J1 (5/5 at 393–395 MB/s), I1 (same id back in 
 GFS + index auto-detected, not-DURABLE objects visible 16.2 s after the kill, 8 stores LOST at 26.2 s, all DURABLE again at 36.3 s,
 8 tabs / 0 render errors), G1 (12/12 geometries complete and verified after defect 19 was fixed) and C1
 (**59 of 59 claims proven**) all pass; functional E1–E11 99/99 on the same build.
+
+## E18 — Live tier and stability on the HPC cluster (the gate for the FABRIC national test)
+
+*Owner, 2026-10-28: "Make sure this is highly tested and there are good test and evaluation and chaos testing and cases.
+This system must be stable. Once we prove it on the HPC cluster, we will move to a much larger scale FABRIC test." Every tool
+below runs unchanged on the FABRIC slice (`project-gaiakeep-fabric-national-test`): it takes a deployment's endpoints,
+never a HPC path. Status: CI = every HPC CI run; RUN = executed on the standing deployment with results recorded;
+LOCAL = the tool is built and was run on a private local fabric with a live node (`eval/chaos.py local --live-node`)
+with results recorded in `eval/results/chaos/`, not yet on the standing deployment; PLAN.*
+
+**Invariants** (checked after every step of LT-M1, every chaos cycle of LT-C*, and hourly in LT-S1; any violation fails
+the run):
+- **I1 inventory = disk.** Every file under a live root belongs to a row the core's inventory lists at that node, with
+  the size and keyed hash the row's attestation proved; every LIVE row's files are all there. No plaintext without a row.
+- **I2 no early copy.** No row of a version leaves REALISING, and no byte of it lands on a node, before the version
+  commits, for anyone, the writer included.
+- **I3 every end is attested.** Every drop request (withdraw, FORGET, LEGAL_ORDER, grant or authority end, eviction,
+  node un-admit) ends in a node-signed drop attestation within its bound, or the row stays listed as unconfirmed with
+  its cause; never silently gone.
+- **I4 legal deletion reaches copies.** After a FORGET or LEGAL_ORDER of a path, no live copy and no audit record names
+  it in clear.
+- **I5 budgets.** No node holds more than its budget; no tenant more than its admission.
+- **I6 core health.** One serving leader; quorum OK; every acknowledged write reads back byte for byte; the state hash
+  agrees across peers.
+
+| id | check | pass | status |
+|---|---|---|---|
+| LT-U1 | live-tier unit and cluster tests (about 250: inventory, triggers, push, attestation, eviction, hostile workspaces, publish, client conformance) | 0 failures | CI |
+| LT-M1 | model-based random test (`LiveModelTest`): seeded sequences of publish and derived publish, tape copies recorded and lost, realise (copy and workspace, prefix and whole, reader, tenant-admin and node principal), hold, pin, drop, workspace edit, livepublish, ingest and rebase, withdraw, FORGET, LEGAL_ORDER, audited reads, grants issued, revoked and expiring, admissions and bindings ended, node partition and restart, leader kill, step-down and hand-over, and crash points (`livetier.core.*`, `livetier.node.*`, `publish.block`, `publish.committed`) against a 3-peer cluster with two live nodes; I1–I6 and the authority invariants after every step | I1–I6 hold for 24 seeds x 100 steps in every CI run (4–5 min) and for the nightly and weekly sizes below; a failing seed's operations replay exactly | CI |
+| LT-X1 | crash matrix live cells (`livetier.node.write/.synced/.drop`, `livetier.core.registered/.push/.attested`) on a validation deployment beside the standing one (`GK_NAME=val`: the matrix halts JVMs and needs fault injection, which the standing deployment never runs; STANDING-DEPLOYMENT §9b "Crash cells") | each cell recovers to I1–I6 with no operator action | RUN 2026-10-28 on build 88f086d6 (validation deployment `val`: index vala-core, stores vala/valb/valc, live node livev on cluster node 11): all six cells halted at their point and recovered with no operator action, 8 of 8 checks each (acked, agree, census, intents, live_settled, live_partial, live_complete, live_orphan) in 34-69 s; node.write/.synced: the cut realise dropped, nothing left at the node; node.drop: the drop finished after the restart; core.registered/.push/.attested: the realise finished under the recovered core, one LIVE row with its whole tree. `eval/results/HPC/live/crash-live-20261028.json`. To repeat on the final build. |
+| LT-C1 | chaos with live load (`eval/chaos.py attach`, live realise/hold/drop/publish churn beside the write/read load): hub restart, agent restart, site roll, live node kill | every cycle recovers within its bound; I1–I6 hold | LOCAL (2026-10-28, seed 18, `chaos-20261028-094829`: live node kill x2 recovered in 39-45 s, hub restart 38 s, core follower restart, tape restarts x2 PASS, I1-I6 held in all 19 checks; the site roll, store restart and the core leader restart after it FAILED on this host's fsync-barrier probe (a restarted store stays INDETERMINATE on a 99 %-full disk), not on the live tier) |
+| LT-C2 | stall injection: SIGSTOP the leader (and a follower, and the live node) for 2–20 s | a stall below the election timeout causes no election; above it, one election and recovery within its bound; the stall watchdog logs the cause | LOCAL (follower stalls 2.8-17.7 s: 0 elections; leader stall 13.2 s: 1 election; live node stalls 3.8-15.6 s: no effect beyond their window; the stall watchdog is not on this branch (fix/raft-stall), so its log line is counted, not required) |
+| LT-C3 | planned restart hands leadership off: stop the leader with jobs running | no HALTED; the next leader serves within 2 s; no client call fails | LOCAL PASS (2026-10-28, branch fix/clean-stop, seed 4, `--attest --live-node`, `chaos-20261028-194747`: 10 planned stops of the leader, every JVM out by itself in 3.34-3.86 s, the next leader serving 0.726-0.740 s after the signal, no HALTED, 0 failed client calls counting every call that overlapped a stop; before, f493de8e: every JVM killed at 60 s and 5-36 failed calls per stop, `chaos-20261028-161435`; the earlier PASS runs `-165155` and `-184425` each had one failed call the stage then missed, fixed since; OUT-111). Standing deployment: to run |
+| LT-C4 | memory pressure on a core node (a co-located memory hog within the job's own allocation) | no election from it, or the stall watchdog names it | LOCAL (768 MiB for 31-86 s beside a leader or a follower, 3 cycles: 0 elections) |
+| LT-C5 | live node disk full / budget exhausted mid-realise; live root removed underneath; node clock skew | the realise fails cleanly or evicts by policy; I1, I5 hold | LOCAL (budget: the tenant's admission lowered below a 24 MiB realise, FAILED `quota` with its arithmetic in 3 s, x2; fill: the live root's own filesystem filled to 16.5 MB free, the 24 MiB realise FAILED retryable in 3 s (`the node gave the stream up (nospace)`), x4, `chaos-20261028-123536` PASS; I1 and I5 held after every cycle. The root removed underneath and clock skew are not injected yet: PLAN) |
+| LT-S1 | soak: 72 h, chaos every 2–4 h, live churn throughout | canary success ≥ 99.9 % of rounds outside injection windows; 0 spontaneous elections; 0 invariant violations; RSS and open-file counts flat | LOCAL mini-soak (58 min, chaos every 15-20 min, `chaos-20261028-112331`): 0 spontaneous elections, 0 violations in 14 invariant checks, RSS and open files flat; canary 34 of 35 rounds (a tape commit past 180 s): FAIL. The 72 h soak: PLAN |
+| LT-B1 | `livebench.py`: cold realise from disk and from tape at 1, 4, 8 flows, warm hit, cross-host | recorded with the build and configuration; regressions flagged by the bench gate | RUN 2026-10-28 on build 88f086d6, standing deployment, livea on cluster node 11, 4 GB in 8 files from the disk stores (on shared project storage), bytes SHA-384 verified: 1 flow 84.5 MB/s (47.3 s, twice), 4 flows 191.8 and 205.7 MB/s, a warm hit 0.41 s with nothing moved; 8 flows not driven (core_livetier_flows=4). Tape-sourced realise not measured (the disk copies were present). OPEN: the 4-flow rate is well under the node leg measured 2026-09-26 (733-1208 MB/s per flow); where it goes (the shared project storage read, the node's decrypt and write, the push) is not yet measured. `eval/results/HPC/live/livebench-lt-b1-88f086d6-20261028-134014.json` |
+| LT-E1 | `standing_live_check.py` a–i end to end on the standing deployment | all PASS (f2 once a second tenant-admin has been bound 7 days) | RUN 2026-10-28 on build 88f086d6 (livea re-added with the filerepo guard fix): 14 PASS, 0 FAIL, f2 SKIP (its approver smoke-approver was enrolled 2026-10-28T15:23Z: usable from 2026-11-04), in 1820 s, including i (siteb down during a realise: DONE, canary green, core healthy again). `eval/results/HPC/live/live-check-20261028-130325.json` |
+
+**LT-M1 as built (2026-10-28).** A seed determines its operations exactly; they name no version, row or job but
+small integers resolved against the model when they run, so any sub-list is itself a sequence: a failure is written
+(`target/live-model-failures/<seed>.json`), shrunk by delta debugging, and replayed with `-Dgfs.livemodel.replay=<file>`
+or `seed:<n>[:<steps>]`; the cluster's own thread interleaving under the sequence is not replayed, so a timing-sensitive
+failure may need its replay run more than once (`-Dgfs.livemodel.replay.times`). The model holds every version's entries
+per path (bytes, origin domain, the grant epoch a reference was made under), the roles and admissions it set, workspace
+files as it wrote them, and the erasures it asked for; it reads the system only to compare. A step costs about 0.8
+thread-seconds, mostly waiting (realise jobs poll at 200 ms; the live tier's 10 s link timeout after a node heals), and a
+cluster about 8 s to start, so 200 seeds x 200 steps (the size first planned for CI) is about 9 thread-hours: CI runs
+24 x 100; the nightly runs `-Dgfs.livemodel.seeds=300` (200 steps, about 1.6 h at 8 threads); the 10 000-seed run is
+weekly on the HPC cluster, sharded by `-Dgfs.livemodel.first` across forks (about 450 thread-hours). `-Dgfs.livemodel.loss=0.05`
+makes the core-to-live-node protocol lose, duplicate and reorder messages and frames (safety only, no liveness
+expected). Product bugs it found are listed in LIVE-TIER §21 and in the commits that fix them, each with a regression
+test.
+
+**FABRIC gate:** LT-U1, LT-M1, LT-X1, LT-C1–C5 and LT-E1 pass on the same build, and LT-S1 completes its 72 h with the
+pass criteria above. That build and its configuration are what the FABRIC test deploys.
 
 ## Phase exit criteria
 - **Phase 0 (this prototype):** all RUN checks pass; perf recorded; codec UNIT tests pass.
