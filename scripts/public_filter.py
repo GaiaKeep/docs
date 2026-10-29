@@ -45,6 +45,9 @@ SCRUB = [
     (re.compile(r"\bmodules/dgx/"), "modules/cluster/"),
     (re.compile(r"_dgx_"), "_cluster_"),
     (re.compile(r"\bdgx\b", re.IGNORECASE), "HPC"),
+    # the FABRIC testbed project id (owner request 2026-10-28): the testbed is named, the project is not
+    (re.compile(r"\s*\(`project-gaiakeep-fabric-national-test`\)"), ""),
+    (re.compile(r"`?project-gaiakeep-fabric-national-test`?"), "the FABRIC project"),
     # partner sites and institutional identifiers
     (re.compile(r"\buky-pub\b"), "site-a-pub"),
     (re.compile(r"\buky\b"), "site-a"),

@@ -7,6 +7,7 @@ The engineering documents behind this site, copied from `GaiaKeep/gfs` `docs/` w
 | [Format-aware dedup adapters](FORMAT-ADAPTERS.md) | Current | Audited DICOM, NIfTI and TIFF cut adapters: metadata edits do not rewrite bulk data (shipped in 1.3, 2026-10-01). |
 | [Jobs and the API](JOBS-AND-API.md) | Current | Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01). |
 | [The replicated core log](CORE-LOG.md) | Current | The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01). |
+| [Durability modes and erasure coding](DURABILITY-MODES.md) | Current | Erasure coding (ec:2+1, the default for new collections since 2026-10-14), replicas and a single copy, with tape as the primary tier: the design, its milestones and what is built. |
 | [Pack container format](PACK-FORMAT.md) | Current | The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01). |
 | [Tape simulation](TAPE-SIMULATION.md) | Current | The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks. |
 | [From-scratch decision](FROM-SCRATCH-DECISION.md) | Current | The statement of purpose and the decision to remove Bareos (2026-09-20) |

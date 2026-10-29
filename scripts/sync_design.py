@@ -32,6 +32,9 @@ DOCS = [
      "Async jobs, striped ingest with a short commit, history, have-checks, extracts and profiles (shipped in 1.3, 2026-10-01)."),
     ("CORE-LOG.md", "The replicated core log", "Current",
      "The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01)."),
+    ("DURABILITY-MODES.md", "Durability modes and erasure coding", "Current",
+     "Erasure coding (ec:2+1, the default for new collections since 2026-10-14), replicas and a single copy, with "
+     "tape as the primary tier: the design, its milestones and what is built."),
     ("PACK-FORMAT.md", "Pack container format", "Current",
      "The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01)."),
     # TAPE-FORMAT.md is not published: it is private until the owner decides B4 (the document says so)
