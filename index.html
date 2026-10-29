@@ -2841,7 +2841,7 @@ to go. This once again is not for humans, it is for agents and to be used by age
 <tbody>
 <tr>
 <td><strong>Programmatic</strong></td>
-<td>No filesystem and no human interface. Agents ask what something would cost, then ask for it.</td>
+<td>Agents call the core's verbs as tools: they ask what something would cost, then ask for it. Jobs and tools get a real file system: on a live node a committed version is an ordinary directory tree of its files, any type, read in place.</td>
 </tr>
 <tr>
 <td><strong>Versioned</strong></td>
@@ -2882,7 +2882,7 @@ the HPC cluster. See <a href="built/release-1-3/">Release 1.3</a>, <a href="buil
   <a href="concepts/durability/">Erasure coding</a> <code>ec:2+1</code> across three sites, the default for new collections
   since 2026-10-14. See <a href="built/status/">Status at a glance</a>.</li>
 <li><strong>What is new (2026-10-28, development branch, not yet released).</strong><ul>
-<li><strong><a href="concepts/live-tier/">The live tier</a>:</strong> committed versions as plaintext native files on live nodes
+<li><strong><a href="concepts/live-tier/">The live tier</a>:</strong> committed versions as unencrypted native files (any type, byte for byte) on live nodes
   near compute, in a journaled inventory, never counted toward durability. No copy before a version
   commits, and every deletion reaches every copy and ends on the node's signed attestation. On the HPC
   test bed: end-to-end checks 14 PASS, 0 FAIL, 1 SKIP, and the six live-tier crash cells pass.</li>

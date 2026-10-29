@@ -2789,7 +2789,7 @@
 <dd>The directory a live node keeps its copies in: local disk (node scope) or a shared, authenticated
   filesystem (site scope).</dd>
 <dt><strong>Live tier</strong></dt>
-<dd>Every copy of committed data held as plaintext native files on live nodes near compute, in a journaled
+<dd>Every copy of committed data held as unencrypted native files (the version's real files, any type, byte for byte) on live nodes near compute, in a journaled
   inventory, never counted toward durability. Formerly called the caching tier.</dd>
 <dt><strong>Locus</strong></dt>
 <dd>Any place a copy can live: RAM, NVMe, disk, tape, a shared filesystem. Described by measured

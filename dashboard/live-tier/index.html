@@ -2845,8 +2845,8 @@
 <h1 id="live-tier">Live tier<a class="headerlink" href="#live-tier" title="Permanent link">&para;</a></h1>
 <p><em>Added 2026-10-28. The page works against a core built with the live tier (the gfs development branch; see
 <a href="../../concepts/live-tier/">The live tier</a>).</em></p>
-<p>The live tier's copies, the live nodes that hold them and the rows of the core's inventory: plaintext copies
-of committed versions near compute, which never count toward durability. Like every page, it is read-only and
+<p>The live tier's copies, the live nodes that hold them and the rows of the core's inventory: unencrypted copies
+of the files of committed versions (any type, byte for byte) near compute, which never count toward durability. Like every page, it is read-only and
 every datum comes from a signed core verb under a named profile's role.</p>
 <p><img alt="The Live tier page: tiles for live nodes, copies, bytes held, realising, drops overdue, shared-user nodes, realise jobs and live-tier alarms; the live-node table with the core's probe, what a new realise would be answered, host checks (one node still settling after a restart), budgets and host classes; one page of the core's inventory of live rows" src="../../assets/dashboard/live-tier.png" /></p>
 <p>A core whose <code>core.status</code> has no <code>livetier</code> block shows <strong>"live tier not enabled"</strong> and is asked nothing more.</p>
@@ -2878,7 +2878,7 @@ every datum comes from a signed core verb under a named profile's role.</p>
 </tr>
 <tr>
 <td><strong>Drops overdue</strong></td>
-<td>Drops not attested within the overdue bound (10 minutes by default), with the number of <strong>unconfirmed</strong> rows. Red when either is not zero: these are plaintext copies the core cannot yet prove gone.</td>
+<td>Drops not attested within the overdue bound (10 minutes by default), with the number of <strong>unconfirmed</strong> rows. Red when either is not zero: these are unencrypted copies the core cannot yet prove gone.</td>
 </tr>
 <tr>
 <td><strong>Shared-user nodes</strong></td>

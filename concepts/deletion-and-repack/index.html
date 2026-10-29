@@ -882,10 +882,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#live-copies-deletion-has-to-reach-plaintext" class="md-nav__link">
+  <a href="#live-copies-deletion-has-to-reach-unencrypted-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Live copies: deletion has to reach plaintext
+        Live copies: deletion has to reach unencrypted files
       
     </span>
   </a>
@@ -2815,10 +2815,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#live-copies-deletion-has-to-reach-plaintext" class="md-nav__link">
+  <a href="#live-copies-deletion-has-to-reach-unencrypted-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Live copies: deletion has to reach plaintext
+        Live copies: deletion has to reach unencrypted files
       
     </span>
   </a>
@@ -2932,9 +2932,9 @@ back. Neither replaces the other.</p>
 <p>Under the deduplication model, a block in a shared domain can be referenced by several
 objects, so destroying one object's key can't remove it. Forgetting in a shared domain means
 <strong>reference counting</strong>, then physically removing blocks nobody references.</p>
-<h2 id="live-copies-deletion-has-to-reach-plaintext">Live copies: deletion has to reach plaintext<a class="headerlink" href="#live-copies-deletion-has-to-reach-plaintext" title="Permanent link">&para;</a></h2>
+<h2 id="live-copies-deletion-has-to-reach-unencrypted-files">Live copies: deletion has to reach unencrypted files<a class="headerlink" href="#live-copies-deletion-has-to-reach-unencrypted-files" title="Permanent link">&para;</a></h2>
 <p>A key destruction makes durable data unreadable everywhere, but it cannot reach a file on a
-<a href="../live-tier/">live node</a>: live copies are plaintext by owner decision (2026-10-27). So the core keeps a
+<a href="../live-tier/">live node</a>: live copies are the version's files, unencrypted, by owner decision (2026-10-27). So the core keeps a
 journaled inventory of every live copy, and every deletion becomes a <strong>drop</strong> journaled in the same batch as
 its cause: FORGET, a legal order, a withdrawal, a destroy, a pruned version, the end of a grant or of the
 authority that made the copy, lease expiry, eviction or release.</p>

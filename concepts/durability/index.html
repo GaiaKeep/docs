@@ -3059,7 +3059,7 @@ deduplication block so that repack stays within a site. The modelled cost of mig
 replicas to a code by tape repack (8–13 PB of tape movement, about 19–32 days on 3 drives at each of 4
 sites) no longer applies to new data, which is coded on write.</p>
 <h2 id="live-copies-never-count">Live copies never count<a class="headerlink" href="#live-copies-never-count" title="Permanent link">&para;</a></h2>
-<p>A copy on a <a href="../live-tier/">live node</a> is plaintext near compute, made for speed, and it is never a
+<p>A copy on a <a href="../live-tier/">live node</a> is an unencrypted copy of the version's files near compute, made for speed, and it is never a
 durable copy:</p>
 <ul>
 <li>A live node never becomes a site, so no live copy is ever recorded as a copy of a block, and no census,

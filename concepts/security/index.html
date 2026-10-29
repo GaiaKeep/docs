@@ -820,10 +820,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-live-tier-plaintext-by-decision" class="md-nav__link">
+  <a href="#the-live-tier-unencrypted-files-by-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The live tier: plaintext by decision
+        The live tier: unencrypted files by decision
       
     </span>
   </a>
@@ -2826,10 +2826,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-live-tier-plaintext-by-decision" class="md-nav__link">
+  <a href="#the-live-tier-unencrypted-files-by-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The live tier: plaintext by decision
+        The live tier: unencrypted files by decision
       
     </span>
   </a>
@@ -2917,21 +2917,21 @@ holders (E6); repair needed no keys (E7, E8); a site key in Shamir 3-of-5 custod
 holders dead and failed closed with three (E9); and forged, tampered, expired and garbage access grants
 were refused at the origin (E5.6–E5.9). Its site key, which wrapped every object's key with a random IV,
 went with it.</p>
-<h2 id="the-live-tier-plaintext-by-decision">The live tier: plaintext by decision<a class="headerlink" href="#the-live-tier-plaintext-by-decision" title="Permanent link">&para;</a></h2>
-<p>The <a href="../live-tier/">live tier</a> puts committed versions on live nodes near compute as <strong>plaintext native
-files</strong> (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
+<h2 id="the-live-tier-unencrypted-files-by-decision">The live tier: unencrypted files by decision<a class="headerlink" href="#the-live-tier-unencrypted-files-by-decision" title="Permanent link">&para;</a></h2>
+<p>The <a href="../live-tier/">live tier</a> puts committed versions on live nodes near compute as <strong>unencrypted native
+files</strong> (the version's real files, any type, byte for byte, in an ordinary directory tree) (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
 part of the security boundary, so the rest of the design is built around it. <strong>Built</strong> and tested
 (2026-10-28, development branch).</p>
 <ul>
 <li><strong>Decryption stays in the core.</strong> Storage nodes stay blind and hold ciphertext only. The core decrypts a
   committed version and sends it to the live node over node streams sealed with AES-256-GCM per frame, under
   keys from a signed ECDH P-384 exchange (HKDF-SHA-384), with an HMAC-SHA-384 per file. <strong>No file byte, path
-  or digest of plaintext crosses a message broker</strong>; a test captures every frame and message during a
+  or digest of file content crosses a message broker</strong>; a test captures every frame and message during a
   realise and a workspace publish and finds none.</li>
 <li><strong>Signed both ways, sealed end to end.</strong> Every live verb is a signed, sealed request. Every request to a
   live node is signed by the core's leader, and every reply by the node's pinned key, including the
   attestations that end a deletion.</li>
-<li><strong>Who decides where plaintext may go.</strong> Only a tenant administrator may admit a collection at a node; a
+<li><strong>Who decides where unencrypted copies may go.</strong> Only a tenant administrator may admit a collection at a node; a
   system administrator may only withdraw an admission, since that role grants no data access. An admission
   is tied to the node's pinned key and lapses if the key changes.</li>
 <li><strong>A narrow node principal.</strong> A live node may hold a principal of its own whose only right is to realise, at

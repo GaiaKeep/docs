@@ -2849,9 +2849,11 @@ Cresco dashboard's Storage tab) and nothing else.</p>
    or a combined dataset stores only what is actually new.</li>
 </ol>
 <h2 id="the-principles">The principles<a class="headerlink" href="#the-principles" title="Permanent link">&para;</a></h2>
-<p><strong>The data is raw.</strong> Storage holds raw blocks. There is no filesystem underneath and no LTFS
-layer, because a filesystem adds a second catalogue, a second failure mode, and metadata written in
-the clear. The system manages its own blocks.</p>
+<p><strong>The durable data is raw.</strong> The durable tier (disk and tape at the sites) holds raw, encrypted blocks.
+There is no filesystem on that media and no LTFS layer, because a filesystem there adds a second catalogue,
+a second failure mode, and metadata written in the clear. The system manages its own blocks. Where programs
+need files, the <a href="../live-tier/">live tier</a> gives them a real file system: a committed version's files, any
+type, byte for byte, on a live node near compute (owner decision, 2026-10-27).</p>
 <p><strong>The medium does not matter to callers.</strong> Memory, NVMe, spinning disk and tape are one continuum.
 They differ in measured properties: how fast the first byte arrives, how fast bytes stream, what
 each access costs to set up, whether the medium survives power loss, whether it can be removed and
