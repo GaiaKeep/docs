@@ -351,7 +351,7 @@ GFS + index auto-detected, not-DURABLE objects visible 16.2 s after the kill, 8 
 
 *Owner, 2026-10-28: "Make sure this is highly tested and there are good test and evaluation and chaos testing and cases.
 This system must be stable. Once we prove it on the HPC cluster, we will move to a much larger scale FABRIC test." Every tool
-below runs unchanged on the FABRIC slice (`project-gaiakeep-fabric-national-test`): it takes a deployment's endpoints,
+below runs unchanged on the FABRIC slice: it takes a deployment's endpoints,
 never a HPC path. Status: CI = every HPC CI run; RUN = executed on the standing deployment with results recorded;
 LOCAL = the tool is built and was run on a private local fabric with a live node (`eval/chaos.py local --live-node`)
 with results recorded in `eval/results/chaos/`, not yet on the standing deployment; PLAN.*
