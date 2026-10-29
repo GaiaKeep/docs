@@ -13,6 +13,8 @@ this page shows, including how many nodes are waiting for admission.
 
 One row per node, from the paged registry (`core.node op=list`, 500 per page, read as system-admin or auditor):
 
+![Storage media while a store restarts on purpose: the store shows DEPARTING (it announced its stop), not DOWN](../assets/dashboard/media-store-restart.png)
+
 | Column | Meaning |
 |---|---|
 | Node / Domain / Class | Address; failure domain (the site); `nfs`, `tape` or `pack`. |

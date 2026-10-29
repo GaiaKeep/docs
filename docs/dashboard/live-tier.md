@@ -7,6 +7,8 @@ The live tier's copies, the live nodes that hold them and the rows of the core's
 of committed versions near compute, which never count toward durability. Like every page, it is read-only and
 every datum comes from a signed core verb under a named profile's role.
 
+![The Live tier page: tiles for live nodes, copies, bytes held, realising, drops overdue, shared-user nodes, realise jobs and live-tier alarms; the live-node table with the core's probe, what a new realise would be answered, host checks (one node still settling after a restart), budgets and host classes; one page of the core's inventory of live rows](../assets/dashboard/live-tier.png)
+
 A core whose `core.status` has no `livetier` block shows **"live tier not enabled"** and is asked nothing more.
 
 ## The tiles

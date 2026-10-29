@@ -5,6 +5,8 @@
 What an operator watches besides the storage itself: the core's own gauges on every agent, and how much
 memory each message broker needs for the traffic that crosses it. Like every page it is read-only.
 
+![The Operations page: the core's gauges per agent (Raft role, term, commit, lags, quorum, audit state, key mismatches, frame drops, heap) and the broker sizing model for a hub and for regional brokers](../assets/dashboard/operations.png)
+
 ## Core gauges per agent
 
 One row per Cresco agent whose metric inventory carries the storage core's `gfs.core.*` gauges, read
