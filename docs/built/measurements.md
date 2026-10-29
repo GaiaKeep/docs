@@ -44,7 +44,7 @@ simulation or arithmetic). Artifacts are in `GaiaKeep/gfs` under `eval/results/`
 | Sustainable over ten years of media life | 6.4–40.4 PB/yr: load-cycle wear caps scattered workloads below the drive-time figure | Modelled |
 | Media wear at petabyte scale | 100 PB clustered: ~4.8 % of the ten-year load-cycle rating | Modelled; `media_life.json` |
 | Robot limit | A single accessor saturates at ~14 drives per site on scattered work | Modelled |
-| Moving 3 PB from replication to erasure coding | 5,556 drive-hours, ~19 days on 12 drives | Modelled |
+| Moving 3 PB from replication to erasure coding | 5,556 drive-hours, ~19 days on 12 drives | Modelled (for the first plan; since 2026-10-14 new data is coded on write, so it applies only to collections moved from replicas) |
 
 ## panAtlas
 

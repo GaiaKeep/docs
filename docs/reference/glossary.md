@@ -43,8 +43,8 @@
   recover with no operator action.
 
 **Dedup domain**
-: *(Proposed.)* The set of data whose identical blocks may be stored once: sealed, collection,
-  tenant or group, or global.
+: The set of data whose identical blocks may be stored once: NONE, COLLECTION, GROUP or GLOBAL
+  (built in release 1.3).
 
 **Departure notice**
 : A storage node's signed message that it is stopping on purpose, bound to its current boot. The core then
@@ -65,6 +65,10 @@
 **Early copy**
 : A copy of a version made before the version commits. The live tier never makes one, for anyone, the
   writer included (owner decision 2026-10-27).
+
+**`ec:2+1`**
+: The default redundancy for new collections since 2026-10-14: Reed–Solomon RS(2,1), each block's
+  ciphertext split into two data shares and one parity share, one per site. Any one site can be lost.
 
 **Extract**
 : A frozen, deterministic, citable selection from one or more versions. It is the unit of
@@ -90,8 +94,9 @@
   early copy, every end attested, legal deletion reaches copies, budgets hold, the core is healthy.
 
 **KEK / DEK**
-: Key-encryption key (per site) and data-encryption key (per object). The site key is held in
-  Shamir t-of-n custody.
+: Key-encryption key and data-encryption key. In the storage core, tenant roots and domain seeds are
+  journaled only wrapped under the master key, and block keys derive from them per domain. (The retired
+  prototype wrapped each object's key under a site key held in Shamir t-of-n custody.)
 
 **Live copy**
 : A committed version, or a path prefix of it, held as read-only native files on a live node.

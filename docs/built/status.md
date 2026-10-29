@@ -1,10 +1,11 @@
 # Status at a glance
 
 Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or **Open**; the
-[home page](../index.md) defines them. Updated **2026-10-01**, after [release 1.3](release-1-3.md):
-`GaiaKeep/gfs` `1.3` at `8461e1a`, with CI green on 2,188 core tests. The [live tier](#live-tier) and
-[core stability](#core-stability) sections are updated to **2026-10-28**: that work is on the development
-branch, not yet merged or released. Details are in [Test results](tests.md) and [Benchmarks](benchmarks.md).
+[home page](../index.md) defines them. The base is [release 1.3](release-1-3.md) (2026-10-01:
+`GaiaKeep/gfs` `1.3` at `8461e1a`, CI green on 2,188 core tests). Rows changed since carry their date:
+erasure coding became the default on 2026-10-14, and the [live tier](#live-tier) and
+[core stability](#core-stability) sections are as of **2026-10-28**, on the development branch, not yet merged
+or released. Details are in [Test results](tests.md) and [Benchmarks](benchmarks.md).
 
 !!! success "Release 1.3: the durable storage core, validated on the HPC cluster"
     The secured build passes the live fabric check **88/88** on the HPC cluster. That build has
@@ -35,7 +36,10 @@ branch, not yet merged or released. Details are in [Test results](tests.md) and 
 | Pack containers on storage nodes | **Built** and measured | 8× publish, sub-second start-up at 10⁶ extents; 1,500-round power-cut campaign |
 | Scrub by container: each sealed container verified whole in one sequential read, rate-limited and resumable; the core's content check answered from a fresh pass | **Built** and tested | a damaged container is named, and its bad copies are still found and repaired one by one |
 | Lifecycle: forget, prune, destroy, retention, legal hold | **Built** and tested | 70 lifecycle tests |
-| Erasure coding reached by repack | **Designed** | |
+| Erasure coding `ec:2+1` (RS(2,1), one share per site, one stripe per dedup block), the default for new collections since 2026-10-14; `replicas:R` and `single` per dataset | **Built** and tested | integration-matrix cells for every dedup mode, model and linearizability tests with modes, a three-peer cluster test; all 15 erasure-coding crash cells pass on a live local fabric (2026-10-16) |
+| Changing a collection's mode in place (`core.redundancy op=set`: repair re-encodes, trim reclaims) | **Built** and tested | existing collections keep their mode on upgrade |
+| Coded blocks with tape as the primary tier: each site's share archived, a coded version commits on VERIFIED | **Built** and tested on simulated tape | read back byte for byte from any two of the three tapes with every disk copy gone (2026-10-14) |
+| Erasure coding still open | **Open** | codec and read measurements on the HPC cluster; crash cells with three core peers and on packed stores; a lost site rebuilt from tape with coded blocks; codes for a fourth site |
 
 ## Placement and media
 
@@ -64,7 +68,7 @@ branch, not yet merged or released. Details are in [Test results](tests.md) and 
 | Item | Status |
 |---|---|
 | Tape library: Spectra Stack first, Cube later | **Decided** (owner) |
-| Sites: three, 3-way replication | **Decided** (owner, sites chosen later) |
+| Sites: three identical sites; erasure coding `ec:2+1` by default (about 1.5×, survives any one site) | **Decided** (owner 2026-10-02, sites chosen later); the default since 2026-10-14 |
 | WAN hosts: BBR congestion control | **Recommended** (measured: 37 vs 0.5 MB/s at 1 % loss) |
 | LTO-10 media | **Decided** (owner, 2026-10-01: LTO-10 only, no older media) |
 | Per-site hosts | **Proposed** |
