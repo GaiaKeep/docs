@@ -40,7 +40,15 @@ it, `exported`, `absent`) and whether a **mount** is needed to read it:
 
 ![The same file with tape copies located: each tape chip names its cartridge and presence](../assets/dashboard/placements-file-tape.png)
 
+### Tape position and type
+
+A third choice above the blocks table, *+ tape position and type* (`core.placement tape=detail`, added
+2026-10-08), adds where each tape copy sits on its cartridge (tape file number and block) and the cartridge
+type (LTO-10, or the simulator's profile). A card, **Tape copies on this page**, then groups the page's tape
+copies by cartridge: library, failure domain, tape files and block range, how many are verified, claimed or
+otherwise, and how many need a mount. The barcode stays visible to system-admin only. A core without
+`tape=detail` is detected and asked for presence only.
+
 !!! note "What placement does not show (yet)"
-    Where on the cartridge the copy sits (file number and block): the design record's open item S-3. And a
-    whole-version placement summary (copies per site for every block at once) would be a data-proportional job —
-    open item S-8.
+    A whole-version placement summary (copies per site for every block at once) would be a data-proportional job —
+    the design record's open item S-8.

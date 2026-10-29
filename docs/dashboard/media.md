@@ -59,5 +59,14 @@ An empty library is stated plainly: *no cartridge has been written in this libra
 
 ## Disk and pack stores
 
-Per-container detail for the packed stores (containers and live fraction) is not served by the core yet — the
-design record's open item S-4. Free bytes, copies and barrier evidence per node are in the registry above.
+Per site, the packed stores' containers (`core.site op=containers`, 200 per page, observer, auditor or
+system-admin; added 2026-10-08): each container with its live bytes and live copies as the core's references
+record them. Free bytes, copies and barrier evidence per node are in the registry above.
+
+## Site history
+
+The leader journals every state and up/down change of each storage node; the page lists them newest first
+(`core.site op=events`), and the [Overview](overview.md) shows the latest eight.
+
+With more storage nodes than the inline limit (64), the core reports counts only and this page pages the
+node list.
