@@ -265,14 +265,17 @@ def live_tier_flow():
     for x, lab, rows in nodes:
         s.box(x, 600, 330, 150, CYAN, fill_op=0.06, stroke_op=0.6)
         s.text(x + 22, 632, lab, 13, CYAN, 700, spacing=1.6)
-        # a small file stack
+        # a folder holding a tree of files: a live copy is a file system, any file type
+        fx, fy = x + 22, 652
+        s.add(f'<rect x="{fx}" y="{fy}" width="18" height="10" rx="2" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="0.75"/>')
+        s.add(f'<rect x="{fx}" y="{fy + 5}" width="46" height="40" rx="4" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="0.9"/>')
+        s.add(f'<path d="M{fx + 11} {fy + 15}V{fy + 37}M{fx + 11} {fy + 20}h8M{fx + 11} {fy + 28}h8M{fx + 11} {fy + 37}h8" '
+              f'stroke="{CYAN}" stroke-opacity="0.8" stroke-width="1.6" fill="none"/>')
         for k in range(3):
-            s.add(f'<rect x="{x + 22 + k * 5}" y="{652 + k * 5}" width="34" height="42" rx="4" fill="#0b2a36" '
-                  f'stroke="{CYAN}" stroke-opacity="{0.45 + 0.2 * k}"/>')
-        s.add(f'<path d="M{x + 40} {672}h18M{x + 40} {680}h18M{x + 40} {688}h12" stroke="{CYAN}" stroke-opacity="0.8" stroke-width="1.6"/>')
+            s.add(f'<rect x="{fx + 21}" y="{fy + 17 + k * 8.5}" width="14" height="6" rx="1.5" fill="{CYAN}" fill-opacity="{0.35 + 0.2 * k}"/>')
         s.lines(x + 84, 668, rows, 14, "#cfe3e8", lh=21)
-    s.text(40, 640, "Plaintext", 15, TEXT, 650)
-    s.lines(40, 664, ["native files, by", "owner decision", "(2026-10-27)"], 14, MUTED, lh=20)
+    s.text(40, 640, "Unencrypted", 15, TEXT, 650)
+    s.lines(40, 664, ["native files, any", "type, by owner", "decision (2026-10-27)"], 14, MUTED, lh=20)
     s.lines(1000, 640, ["The operating", "system is the", "boundary on the", "node; reads there", "are not audited"], 14, MUTED, lh=20)
 
     # ---- arrows: write path

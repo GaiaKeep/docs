@@ -24,10 +24,10 @@ Under the deduplication model, a block in a shared domain can be referenced by s
 objects, so destroying one object's key can't remove it. Forgetting in a shared domain means
 **reference counting**, then physically removing blocks nobody references.
 
-## Live copies: deletion has to reach plaintext
+## Live copies: deletion has to reach unencrypted files
 
 A key destruction makes durable data unreadable everywhere, but it cannot reach a file on a
-[live node](live-tier.md): live copies are plaintext by owner decision (2026-10-27). So the core keeps a
+[live node](live-tier.md): live copies are the version's files, unencrypted, by owner decision (2026-10-27). So the core keeps a
 journaled inventory of every live copy, and every deletion becomes a **drop** journaled in the same batch as
 its cause: FORGET, a legal order, a withdrawal, a destroy, a pruned version, the end of a grant or of the
 authority that made the copy, lease expiry, eviction or release.

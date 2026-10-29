@@ -91,7 +91,7 @@ they exist.
 
 | | Invariant |
 |---|---|
-| **I1** | Inventory = disk: every file under a live root belongs to a row the core lists there, and every `LIVE` row's files are all there. No plaintext without a row. |
+| **I1** | Inventory = disk: every file under a live root belongs to a row the core lists there, and every `LIVE` row's files are all there. No unencrypted file without a row. |
 | **I2** | No early copy: no row of a version leaves `REALISING`, and no byte lands on a node, before the version commits, for anyone. |
 | **I3** | Every end is attested: every drop ends in a node-signed attestation within its bound, or the row stays listed as unconfirmed with its cause. Never silently gone. |
 | **I4** | Legal deletion reaches copies: after a FORGET or a legal order of a path, no live copy and no audit record names it in clear. |

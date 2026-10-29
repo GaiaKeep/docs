@@ -81,7 +81,7 @@ sites) no longer applies to new data, which is coded on write.
 
 ## Live copies never count
 
-A copy on a [live node](live-tier.md) is plaintext near compute, made for speed, and it is never a
+A copy on a [live node](live-tier.md) is an unencrypted copy of the version's files near compute, made for speed, and it is never a
 durable copy:
 
 - A live node never becomes a site, so no live copy is ever recorded as a copy of a block, and no census,

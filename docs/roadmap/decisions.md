@@ -12,7 +12,7 @@ what changed and why.
 | 2026-09-18 | Reads versioned, writes quorum-confirmed; extracts are point-in-time versions | Owner | In force |
 | 2026-09-19 | Do not adopt the Hugging Face protocol: its client can't represent offline data (measured) | Design | In force |
 | 2026-09-19 | Not for humans: built for agents to store, version and protect data | Owner | **Refined** 2026-10-02: agents stay primary; rich human dashboards wanted |
-| 2026-09-19 | No filesystem, no LTFS: the system manages its own blocks | Owner | In force |
+| 2026-09-19 | No filesystem, no LTFS: the system manages its own blocks | Owner | In force for the durable media; **refined** 2026-10-27: the live tier gives programs a real file system of a committed version's files near compute |
 | 2026-09-19 | Bareos adopted as the tape volume manager | Design | **Superseded** 2026-09-20 |
 | 2026-09-19 | Deduplication and content-derived block ids retired (checkpoints share no blocks) | Design | **Superseded**: never owner-approved; reversed 2026-09-23 |
 | 2026-09-19 | Content chunking at fixed 64 KiB | Design | **Superseded** 2026-09-23: per-domain chunker |

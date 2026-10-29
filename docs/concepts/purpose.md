@@ -31,9 +31,11 @@ This changes the design:
 
 ## The principles
 
-**The data is raw.** Storage holds raw blocks. There is no filesystem underneath and no LTFS
-layer, because a filesystem adds a second catalogue, a second failure mode, and metadata written in
-the clear. The system manages its own blocks.
+**The durable data is raw.** The durable tier (disk and tape at the sites) holds raw, encrypted blocks.
+There is no filesystem on that media and no LTFS layer, because a filesystem there adds a second catalogue,
+a second failure mode, and metadata written in the clear. The system manages its own blocks. Where programs
+need files, the [live tier](live-tier.md) gives them a real file system: a committed version's files, any
+type, byte for byte, on a live node near compute (owner decision, 2026-10-27).
 
 **The medium does not matter to callers.** Memory, NVMe, spinning disk and tape are one continuum.
 They differ in measured properties: how fast the first byte arrives, how fast bytes stream, what

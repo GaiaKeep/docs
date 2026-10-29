@@ -359,7 +359,7 @@ with results recorded in `eval/results/chaos/`, not yet on the standing deployme
 **Invariants** (checked after every step of LT-M1, every chaos cycle of LT-C*, and hourly in LT-S1; any violation fails
 the run):
 - **I1 inventory = disk.** Every file under a live root belongs to a row the core's inventory lists at that node, with
-  the size and keyed hash the row's attestation proved; every LIVE row's files are all there. No plaintext without a row.
+  the size and keyed hash the row's attestation proved; every LIVE row's files are all there. No unencrypted file without a row.
 - **I2 no early copy.** No row of a version leaves REALISING, and no byte of it lands on a node, before the version
   commits, for anyone, the writer included.
 - **I3 every end is attested.** Every drop request (withdraw, FORGET, LEGAL_ORDER, grant or authority end, eviction,

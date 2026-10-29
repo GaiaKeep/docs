@@ -55,22 +55,22 @@ holders dead and failed closed with three (E9); and forged, tampered, expired an
 were refused at the origin (E5.6–E5.9). Its site key, which wrapped every object's key with a random IV,
 went with it.
 
-## The live tier: plaintext by decision
+## The live tier: unencrypted files by decision
 
-The [live tier](live-tier.md) puts committed versions on live nodes near compute as **plaintext native
-files** (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
+The [live tier](live-tier.md) puts committed versions on live nodes near compute as **unencrypted native
+files** (the version's real files, any type, byte for byte, in an ordinary directory tree) (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
 part of the security boundary, so the rest of the design is built around it. **Built** and tested
 (2026-10-28, development branch).
 
 - **Decryption stays in the core.** Storage nodes stay blind and hold ciphertext only. The core decrypts a
   committed version and sends it to the live node over node streams sealed with AES-256-GCM per frame, under
   keys from a signed ECDH P-384 exchange (HKDF-SHA-384), with an HMAC-SHA-384 per file. **No file byte, path
-  or digest of plaintext crosses a message broker**; a test captures every frame and message during a
+  or digest of file content crosses a message broker**; a test captures every frame and message during a
   realise and a workspace publish and finds none.
 - **Signed both ways, sealed end to end.** Every live verb is a signed, sealed request. Every request to a
   live node is signed by the core's leader, and every reply by the node's pinned key, including the
   attestations that end a deletion.
-- **Who decides where plaintext may go.** Only a tenant administrator may admit a collection at a node; a
+- **Who decides where unencrypted copies may go.** Only a tenant administrator may admit a collection at a node; a
   system administrator may only withdraw an admission, since that role grants no data access. An admission
   is tied to the node's pinned key and lapses if the key changes.
 - **A narrow node principal.** A live node may hold a principal of its own whose only right is to realise, at
