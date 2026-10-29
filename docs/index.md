@@ -4,8 +4,8 @@ hide:
   - toc
 ---
 
-[![GaiaKeep GFS architecture: external AI agents connect through the Cresco mesh to the replicated GaiaKeep core, which seals every block at the origin and erasure codes it across three sites whose durable tier is tape](assets/gaiakeep-architecture.svg){ .gk-hero }](assets/gaiakeep-architecture.svg)
-<span class="gk-hero-caption">The target architecture. Erasure coding, tape as the counted primary tier and the caching tier are still being built: see [Status at a glance](built/status.md) for what runs today.</span>
+[![GaiaKeep GFS architecture: external AI agents connect through the Cresco mesh to the replicated GaiaKeep core, which seals every block at the origin and erasure codes it across three sites whose durable tier is tape; below, the live tier realises committed versions as native files on live nodes near compute](assets/gaiakeep-architecture.svg){ .gk-hero }](assets/gaiakeep-architecture.svg)
+<span class="gk-hero-caption">The architecture, with the live tier near compute. What runs today, what is still under test and what waits on hardware is in [Status at a glance](built/status.md).</span>
 
 # GaiaKeep GFS
 
@@ -44,11 +44,24 @@ the HPC cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/t
       index. See [The prototype](built/prototype.md) and [Scale results](built/scale.md).
 - **What is built and tested on simulated hardware.** The tape software path, on a simulator and on
   virtual drives. Pack containers on storage nodes. See [Status at a glance](built/status.md).
+- **What is new (2026-10-28, development branch, not yet released).**
+    - **[The live tier](concepts/live-tier.md):** committed versions as plaintext native files on live nodes
+      near compute, in a journaled inventory, never counted toward durability. No copy before a version
+      commits, and every deletion reaches every copy and ends on the node's signed attestation. On the HPC
+      test bed: end-to-end checks 14 PASS, 0 FAIL, 1 SKIP, and the six live-tier crash cells pass.
+    - **[Stops, restarts and slow disks](concepts/stops-and-restarts.md):** a planned stop of the core's
+      leader hands over in about 0.73 s, and in 10 such stops on a local fabric no client call failed; a
+      storage node restarted under writes
+      announces its stop and the core places writes elsewhere; a slow disk never costs the leadership.
+    - **[A stability gate](built/tests.md#the-live-tier-and-stability-e18-2026-10-28)** before a much larger
+      FABRIC test: model-based testing in every CI run, a chaos stage with live load, crash cells and a
+      72-hour soak. The final-build runs and the soak are **in progress**.
 - **What you can see running.** A read-only storage control dashboard serves against the standing
   deployment, with screenshots and an exhaustive guide to everything it shows:
   [The storage control dashboard](dashboard/index.md).
 - **What is still to be decided and built.** Raw tape I/O on a real drive. Faster reads over links of
-  80 ms and more. Erasure coding. The caching tier. See [Remaining work](roadmap/remaining.md) and
+  80 ms and more. Erasure coding. Faster live-tier realises. Merging and releasing the live tier once its
+  gate passes. See [Remaining work](roadmap/remaining.md) and
   [Open questions](roadmap/open-questions.md).
 
 Every status claim on this site uses one of five labels:

@@ -32,7 +32,7 @@ what changed and why.
 | 2026-09-23 | Deduplication configurable from complete isolation to global; tenant = legal entity; collection = versioned dataset with compliance rules; hash every block before storage | Owner | In force |
 | 2026-09-23 | Design of record: four dedup modes (NONE, COLLECTION, GROUP, GLOBAL), sealed tenants, grants with withdrawal terms, per-block keys in shared modes; unmade choices become policy with defaults ([TENANCY-AND-DEDUP](../design/TENANCY-AND-DEDUP.md)) | Design, on owner direction | In force |
 | 2026-09-23 | Fixed 64 KiB content chunking | Design | **Superseded**: chunker is a per-domain setting |
-| 2026-09-23 | filerepo = local copies, cache, and publishing new versions; advanced caching tier after durable storage | Owner | In force |
+| 2026-09-23 | filerepo = local copies, cache, and publishing new versions; advanced caching tier after durable storage | Owner | In force; built as the [live tier](../concepts/live-tier.md) (2026-10-28) |
 | 2026-09-23 | Code lives in `GaiaKeep/gfs` only; `CrescoEdge/gfs` removed (archived pending deletion) | Owner | In force |
 | 2026-10-02 | Phase one is three identical sites; the default redundancy is erasure coding across them (RS(2,1)-style, 1.5x, survives any one site); durability is per-dataset policy, and all three modes (erasure-coded, three replicas, single copy for scratch or cache only) are supported and tested | Owner | In force; erasure coding to build |
 | 2026-10-02 | Tape is the primary durable tier, not a backup: the durable tier alone must recreate any dataset and survive the loss of a site; the HPC cluster copy is uncontrolled cache | Owner | In force; counting tape copies to build |
@@ -50,3 +50,11 @@ what changed and why.
 | 2026-10-02 | A legal order is proposed by a system administrator and needs at least two distinct approvers, one of them a system administrator, then a 24-hour lock | Owner | In force; built |
 | 2026-10-02 | A collection's maximum retention may be extended or removed, but only through the approved override path (tenant and system administrators), never by an ordinary change | Owner | In force; built |
 | 2026-10-02 | An ordinary deletion of data a published citation includes is allowed: the citation keeps a verifiable stub where the data was and points to an alternate version without it | Owner | In force; built |
+| 2026-10-25 | `main` is the development branch of every repository; `1.3` is the release branch and moves only by fast-forward to a `main` commit whose CI passed | Owner | In force |
+| 2026-10-27 | The caching tier is now called the live tier: committed data as native files near compute, never counted toward durability | Design, on the owner's decisions | In force; built |
+| 2026-10-27 | Live copies are unencrypted native files: "the durable tier is the only thing that is not native". The core keeps a journaled inventory so that every deletion reaches them | Owner | In force; built |
+| 2026-10-27 | No early copy: nobody, the writer included, reads a version from the live tier before it commits | Owner | In force; built |
+| 2026-10-27 | filerepo is a client of the live node, never a storage binding; its unmerged `phase0-crypto-baseline` commit is rebuilt on filerepo's main line instead of merged | Default taken under the owner's delegation | In force; built |
+| 2026-10-28 | The live tier needs only a quorum of the core: a core peer that is down counts by its last answer, so copies, extends and pins continue through a core restart or a site roll; drops are never blocked | Owner | In force; built |
+| 2026-10-28 | A live node still starting, whose host checks wait only for its own agent, answers retryable rather than refused | Owner | In force; built |
+| 2026-10-28 | Stability before scale: the system is highly tested (tests, evaluation, chaos cases) and proven stable on the HPC cluster before a much larger FABRIC scale test | Owner | In force; the E18 gate, in progress |

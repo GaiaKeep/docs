@@ -2,8 +2,9 @@
 
 Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or **Open**; the
 [home page](../index.md) defines them. Updated **2026-10-01**, after [release 1.3](release-1-3.md):
-`GaiaKeep/gfs` `1.3` at `8461e1a`, with CI green on 2,188 core tests. Details are in
-[Test results](tests.md) and [Benchmarks](benchmarks.md).
+`GaiaKeep/gfs` `1.3` at `8461e1a`, with CI green on 2,188 core tests. The [live tier](#live-tier) and
+[core stability](#core-stability) sections are updated to **2026-10-28**: that work is on the development
+branch, not yet merged or released. Details are in [Test results](tests.md) and [Benchmarks](benchmarks.md).
 
 !!! success "Release 1.3: the durable storage core, validated on the HPC cluster"
     The secured build passes the live fabric check **88/88** on the HPC cluster. That build has
@@ -68,8 +69,46 @@ Every component is labelled **Proven**, **Built**, **Designed**, **Proposed** or
 | LTO-10 media | **Decided** (owner, 2026-10-01: LTO-10 only, no older media) |
 | Per-site hosts | **Proposed** |
 
-## Caching tier
+## Live tier
 
-| Item | Status |
-|---|---|
-| Advanced caching tier | **Designed**, deliberately **after** durable storage; see [The caching tier](../roadmap/caching-tier.md) |
+The caching tier of earlier plans, built as [the live tier](../concepts/live-tier.md). Development branch,
+2026-10-28; the final-build runs of the E18 gate and the 72-hour soak are **in progress**.
+
+| Component | Status | Evidence / note |
+|---|---|---|
+| Journaled inventory of live copies; the feature gate; guards that keep live copies from ever counting | **Built** and tested | inventory, gate and never-counted tests; about 250 live-tier unit and cluster tests in CI |
+| `realise`, `prospect`, holds (lease, extend, pin), drops, admissions | **Proven** on the HPC test bed | end-to-end checks 14 PASS, 0 FAIL, 1 SKIP (build `88f086d6`, 2026-10-28) |
+| No early copy, the writer included | **Proven** on the HPC test bed | no row and no file while the version was committing (14 looks), then the committed bytes |
+| Sealed node streams (AES-256-GCM); nothing in plaintext over a broker | **Built** and tested | wire-confinement test captures every frame and message |
+| Deletion reaches every live copy and ends on a signed attestation | **Proven** for a withdrawal on the HPC test bed; FORGET tested on a local fabric | a FORGET converged in 11 s with its path in no live copy and no audit record (local, 2026-10-28); FORGET on the test bed waits for an eligible second approver |
+| Inventory matches the disk; reconciliation, orphans, adoption after a leader change | **Built** and tested | invariant I1 after every chaos cycle and every model step |
+| Crash recovery at the six live-tier crash points | **Proven** on an HPC validation deployment | 6/6 cells, 8/8 checks each, recovered in 34–69 s with no operator action (2026-10-28) |
+| Workspaces published as new versions (`core.livepublish`) | **Built** and tested | publish tests; cost follows the changed files |
+| Live host checks; filerepo's guard verb | **Proven** on the HPC test bed | check g: host checks ok, link protection attested, evidence re-gathered on the node |
+| Clients: Java, Python, command line, MCP; local copies first | **Built** and tested | conformance vectors both clients and the core check |
+| filerepo as a client of the live node | **Proven** on the HPC test bed | live-backed repository reports `LIVE`, refuses serving and files under the live root |
+| Model-based test of the live tier and the core (LT-M1) | **Built**, in every CI run | 24 seeds × 100 steps per run; a 300 × 200 nightly as a batch job on the cluster, submitted by hand so far |
+| Realise throughput | **Built**; measured, and open work | 84.5 MB/s on 1 flow, 192–206 MB/s on 4 flows, well below the node leg; see [Benchmarks](benchmarks.md#live-tier-realise-hpc-2026-10-28) |
+| The test deployment's live node | **Built**, test configuration only | it runs shared-user (compute jobs run as the agent's user) and reports itself as not production |
+
+## Core stability
+
+Development branch, 2026-10-28. See [Stops, restarts and slow disks](../concepts/stops-and-restarts.md).
+
+| Component | Status | Evidence / note |
+|---|---|---|
+| A slow disk never costs the leadership; disk work off the raft lock's hot paths | **Built** and tested | follower stalls of 2.8–17.7 s caused no election (local fabric, E18 LT-C2) |
+| A cap on the unsynced backlog (64 MiB); a stuck disk hands over only to peers shown healthy | **Built** and tested | raft stall tests; ordered waiting proposals |
+| A planned stop hands over and fails no client call; `outcome_unknown`; safe resends | **Built** and tested | 10 planned stops, 0 failed calls, hand-over 0.726–0.740 s (local fabric, E18 LT-C3, 2026-10-28); HPC test bed in progress |
+| The process exits on SIGTERM; the stop is bounded; a new instance never shares the old one's files | **Built** and tested | processes out by themselves in 3.34–3.86 s (was killed at 60 s) |
+| A write survives a store restarted under it (rolling upgrade) | **Built** and tested | store-restart tests; HPC test bed in progress |
+| A signed, boot-fenced departure notice from a stopping store | **Built** and tested | an earlier boot's notice, delayed or replayed, is ignored |
+| Memory pressure beside a core | **Built** and tested | a 768 MiB hog for 31–86 s caused no election (local fabric, E18 LT-C4) |
+| The 72-hour soak (E18 LT-S1) | **Open**: in progress | a 58-minute local mini-soak held every invariant but missed the canary criterion once (a tape commit past 180 s) |
+
+## Continuous integration
+
+CI runs on the HPC cluster as batch jobs, never on GitHub Actions (owner decision 2026-10-02): every head of
+`main` and `1.3` is tested and the result posted as a commit status. Since 2026-10-25 `main` is the development
+branch and `1.3` moves only by fast-forward to a `main` commit whose CI passed. CI on the live tier's merged
+tree (its first four milestones) ran green with 3,052 tests on 2026-10-28. See [Running the tests](harnesses.md#continuous-integration).

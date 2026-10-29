@@ -1,6 +1,7 @@
 # The storage control dashboard
 
-*2026-10-03. Documents the dashboard as it runs against the standing deployment; every screenshot is live data.*
+*2026-10-03, updated 2026-10-28 for the live tier, planned stops and the core log. Documents the dashboard as it
+runs against the standing deployment; every screenshot is live data.*
 
 The dashboard answers the owner's brief: *see your storage, where the data is and how it is working — down to
 which block, which location and which tape type.* It is a **read-only** window onto a running GaiaKeep core and the
@@ -41,6 +42,7 @@ profile. Nothing on the site writes to the core — the Controls tab is a design
 | [Collections](collections.md) | What collections exist, their policies, branches and versions | [Collections](collections.md) |
 | [Placements](placements.md) | Where a file actually is: version → file → block → each copy's site and medium | [Placements](placements.md) |
 | [Storage media](media.md) | The nodes and the media themselves: disk, pack and tape, down to drives and slots | [Storage media](media.md) |
+| [Live tier](live-tier.md) | Plaintext copies near compute: live nodes, their budgets and host checks, the core's inventory of copies | [Live tier](live-tier.md) |
 | [Lifecycle & jobs](lifecycle.md) | Retention classes, policy profiles, forget/legal-order proposals, running jobs | [Lifecycle & jobs](lifecycle.md) |
 | [Audit](audit.md) | The core's audit log: who did what, decided how, and why | [Audit](audit.md) |
 | [Controls](controls.md) | The operator controls (design only, not built) | [Controls](controls.md) |

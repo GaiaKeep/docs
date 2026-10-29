@@ -1,6 +1,7 @@
 # Remaining work
 
-The order is deliberate: **durable storage first, then the caching tier, then scale-out**. Pieces
+The order is deliberate: **durable storage first, then the live tier (the caching tier of earlier plans),
+then scale-out**, with a stability gate before the large-scale test. Pieces
 that looked finished and had never run end to end produced most of this month's defects, so each
 phase ends with an end-to-end proof rather than unit tests alone.
 
@@ -56,7 +57,7 @@ hash-verified, with no human action.
 
 - [x] Versions, runs and branches with quorum commit
 - [x] Extracts with deterministic selectors, citation ids, and pin-amplification refusal
-- [ ] Streaming `realise` with per-block verification; `prospect` with costed options
+- [x] `realise` to a live node, every file verified; `prospect` with commit state, size, tape-only bytes, fit and a strategy (the live tier, 2026-10-28, development branch)
 
 **Redundancy**
 
@@ -77,9 +78,40 @@ hash-verified, with no human action.
 - [x] Idempotency-key lease (S2); lint banning direct low-level encrypt calls (S3)
 - [ ] Per-object wrapping key for the site-key wrap
 
-## Phase 2: the advanced caching tier
+## Phase 2: the live tier
 
-After durable storage is complete. See [The caching tier](caching-tier.md).
+The advanced caching tier of earlier plans, built as [the live tier](../concepts/live-tier.md) on the
+development branch (2026-10-28). See [The caching tier, now the live tier](caching-tier.md).
+
+- [x] Journaled inventory, its feature gate, and the guards that keep live copies from ever counting
+- [x] `realise`, `prospect`, holds (lease, extend, pin), drops, admissions; sealed node streams; the live node's store
+- [x] Every deletion trigger reaches live copies and ends on a signed attestation, with evidence in the lifecycle record
+- [x] Clients (Java, Python, command line, MCP), local copies first, workspaces published as new versions
+- [x] filerepo as a client of the live node; a live node on the test deployment; the dashboard's Live tier page
+- [x] Tested: about 250 unit and cluster tests, the model-based test in every CI run, the end-to-end checks and crash cells on the HPC test bed (2026-10-28)
+- [ ] The E18 gate on the final build, and the 72-hour soak (**in progress**)
+- [ ] Merge to `main` and a release
+- [ ] Realise throughput: 192–206 MB/s on 4 flows is well below the node leg; where the time goes is not yet measured
+- [ ] A realise staged from tape, measured on the test bed
+- [ ] A FORGET end to end on the test bed (it needs a second tenant administrator bound for 7 days)
+- [ ] The two chaos faults not injected yet: a live root removed underneath a node, and node clock skew
+
+## The stability gate before the FABRIC test
+
+> "This system must be stable. Once we prove it on [the HPC cluster], we will move to a much larger scale
+> FABRIC test." (owner, 2026-10-28)
+
+The gate (evaluation plan E18): the live tier's unit tests, the model-based test, the crash cells, the chaos
+cases LT-C1 to LT-C5 and the end-to-end checks pass **on the same build**, and a 72-hour soak meets its
+criteria. That build and its configuration are what the FABRIC test deploys. See
+[Test results](../built/tests.md#the-live-tier-and-stability-e18-2026-10-28).
+
+- [x] Planned stops: a stopping peer refuses with directions and hands over; no client call fails (local, 2026-10-28)
+- [x] A slow disk never costs the leadership; a capped unsynced backlog; a stuck disk hands over only to healthy peers
+- [x] A write survives a store restarted under it; a signed departure notice fenced to the node's boot
+- [ ] The chaos stage with live load on the HPC test bed, including planned stops there (**in progress**)
+- [ ] The 72-hour soak (**in progress**)
+- [ ] A call not safe to send twice, sent to a peer at the instant its process exits, still gets no reply; a `request_id` on the remaining verbs that lack one would close it
 
 ## Phase 3: scale-out
 

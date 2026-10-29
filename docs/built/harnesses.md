@@ -77,9 +77,39 @@ is given.
 
 ## Continuous integration
 
-Every push to `GaiaKeep/gfs` runs `.github/workflows/test.yml`: the full suite (324 tests at `e3d7b46`,
-including the 180-cell integration matrix, of which 60 cells run over the remote protocol, and both smoke runs), the wire-contract lint, the
-command-line smoke test, and a small benchmark. Results are uploaded as a build artifact.
+CI runs on the HPC cluster as batch jobs, never on GitHub Actions (owner decision 2026-10-02; the workflow
+is deleted and Actions is off). A poll job every 10 minutes reads the heads of `main` and `1.3` and submits a
+run for any head that has no result yet; the run posts *pending*, then *success* or *failure* with a one-line
+summary, to GitHub as a commit status. Each run works on one compute node (CPU only) and runs every step; a
+step is skipped only when one it needs failed, so one run reports everything:
+
+| Step | What it checks |
+|---|---|
+| `core` | the module, engine, integration-matrix and conformance suite, including the live tier's model-based test at its CI size (24 seeds × 100 steps); a failing test is re-run up to twice, and one that passes only on a re-run is listed as flaky |
+| `install`, `javaclient`, `pyclient` | the Java and Python clients against the core, each with the other's interop required |
+| `lint` | the wire-contract lint |
+| `evaltests` | every evaluation-tooling test, including the chaos stage's planner, judges and invariant checks, and the real-core ones against three real core peers |
+| `docs` | the operator documentation checked against the code (configuration keys and verbs) |
+| `transport`, `smoke`, `bench`, `benchgate` | the transport defaults, the command-line smoke test, a small benchmark and its gate |
+
+**Branches.** Since 2026-10-25 `main` is the development branch of every repository. `1.3` is the release
+branch: nothing is pushed to it directly, and a release moves it by fast-forward (`eval/ci/promote.sh`) to a
+`main` commit whose CI passed.
+
+## Added for the live tier and stability (2026-10-28)
+
+All of these take a deployment's endpoints and its operator commands, never a host path, so the same tools
+run on a workstation fabric, on the HPC test deployment and on a FABRIC slice.
+
+| Harness | What it does | How to run |
+|---|---|---|
+| Live-tier model test (LT-M1) | Seeded random sequences of live-tier and core operations against a real 3-peer core with two live nodes, checking invariants I1–I6 and the authority rules after every step; a failing seed is shrunk and replays exactly. A lossy mode drops, duplicates and reorders the core-to-node protocol's messages (safety only) | `LiveModelTest`; `-Dgfs.livemodel.seeds=N`, replay with `-Dgfs.livemodel.replay=<file>` or `seed:<n>:<steps>`; `-Dgfs.livemodel.loss=0.05`; the nightly as a sharded batch job (`eval/ci/cluster/livemodel.sbatch`) |
+| Chaos stage with live load | Hours of seeded faults under write, read, archive and live-tier load: hub, core, store and tape restarts, site rolls, live node kills, stalls, planned stops, memory pressure, a full live node; judges recovery, repair, invariants I1–I6 from outside and an election ledger; a soak mode with the 72-hour criteria | `eval/chaos.py local --live-node` (a private workstation fabric) or `eval/chaos.py attach` (an existing deployment); `--kinds`, `--soak`; `eval/live_invariants.py` checks I1–I6 once |
+| Fault tools | SIGSTOP stalls whose resume is always sent, a bounded memory hog, process statistics | `eval/node_fault.py` with `stall`, `memhog` or `procstat` |
+| Live-tier crash cells (LT-X1) | The six `livetier.*` crash points, on a validation deployment beside the standing one (they halt processes) | `eval/crash_matrix.py --point livetier.node.write …` |
+| Live end-to-end checks (LT-E1) | Realise, no early copy, list and prospect, extend, drop, withdrawal and FORGET evidence, filerepo, host checks, and a site-loss drill during a realise | `standing.sh live-check` (`eval/cluster/standing_live_check.py`) |
+| Realise benchmark (LT-B1) | Cold realises at 1, 4 and 8 flows from disk (or from tape, disruptively), and a warm hit, cross-host, bytes verified | `standing.sh livebench` (`eval/cluster/livebench.py`) |
+| Planned-stop tests | A real cluster with a peer stopped under load; the clients' redirect and safe-resend rules in Java and Python | `PlannedStopClusterTest`, the clients' `PlannedStopTest` and `test_planned_stop.py` |
 
 ## Added in release 1.3
 

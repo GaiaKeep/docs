@@ -22,28 +22,28 @@ flowchart TB
       R["RAM"] --- N["NVMe"] --- D["Disk / JBOD"] --- TP["Tape"]
     end
     I["Federation index<br/><small>journaled, replicated</small>"]
-    C["Caching tier (filerepo)<br/><small>versioned and unversioned live copies</small>"]
+    C["Live tier (live nodes)<br/><small>native copies of committed versions · workspaces</small>"]
     M["Cresco mesh<br/><small>identity · tenancy · control plane · dataplane</small>"]
 
     A --> G --> V --> B --> P --> L
     V -.-> I
     P -.-> I
     A <--> C
-    C -.materialise from.-> V
+    C -.realised from committed versions.-> V
     L --- M
     I --- M
 ```
 
 | Layer | What it does | Status |
 |---|---|---|
-| Agent interface | `prospect` returns costed options for getting a version somewhere; `realise` is the only call that moves bytes; `publish` creates a version | **Designed** (Entail) |
+| Agent interface | `prospect` returns costed options for getting a version somewhere; `realise` is the only call that moves bytes; `publish` creates a version | `publish` **Built** (1.3); `prospect` and `realise` to a live node **Built** with the live tier (2026-10-28, development branch); the wider Entail interface **Designed** |
 | Governance | Tenants own collections; each collection carries compliance and deduplication policy; grants allow cross-collection and cross-tenant references | **Designed** (design of record 2026-09-23) |
 | Versioning | Immutable versions built from runs; extracts as citable, pinnable point-in-time objects | **Designed** |
 | Block layer | Split content into blocks, hash every block before storage, derive its identity and key according to the collection's domain | **Designed**; per-object counter discipline **Built** |
 | Placement engine | Chooses where copies go using measured properties and policy; repairs lost copies | **Proven** in the prototype for erasure-coded placement; measured placement and fail-closed durability **Built** (reaches the live placement path) |
 | Bindings | One interface every storage medium implements | Interface and filesystem binding **Built**; tape, raw NVMe, raw disk, RAM **Designed** |
 | Federation index | Journaled log with a read-only replica; the catalogue of versions, placements and state | **Proven** (10⁶ files) |
-| Caching tier | Live working copies materialised from versions; can publish new versions | Basic materialisation **Built** in filerepo; advanced tier **Designed**, scheduled after durable storage |
+| Live tier | Committed versions as plaintext native files on live nodes near compute, in a journaled inventory; workspaces publish new versions; never counted toward durability ([The live tier](live-tier.md)) | **Built** and tested (2026-10-28, development branch); final-build runs in progress |
 | Cresco mesh | Transport, identity, tenant isolation, QoS | **Proven** (Cresco 1.3) |
 
 ## Two paths through the system
@@ -59,7 +59,8 @@ reach durable storage. The version is committed once a quorum of the index confi
 returns the options: stream it from the nearest copy, recall it from tape first, or send the
 computation to where the data is. Each option comes with a cost interval and the constraint that
 binds it. `realise` carries out the chosen option, verifying every block against its hash as it
-streams. A live copy made at the destination is a cache of that version.
+streams. To a live node, `realise` makes the version, once committed, into ordinary files that programs read
+in place; the core registers the copy first and can delete it again ([The live tier](live-tier.md)).
 
 ## What runs today versus the design of record
 
