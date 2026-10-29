@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1396,6 +1516,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-tier-realise-hpc-2026-10-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live tier realise (HPC, 2026-10-28)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#replication-topology" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1751,7 +1882,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1867,6 +1998,8 @@
       
         
           
+        
+      
         
       
         
@@ -2042,6 +2175,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2726,6 +2887,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-tier-realise-hpc-2026-10-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live tier realise (HPC, 2026-10-28)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#replication-topology" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2837,7 +3009,8 @@
 
 
 <h1 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h1>
-<p>The measurements behind release 1.3. <strong>HPC</strong> means the multi-host runs on the HPC cluster: 4 nodes,
+<p>The measurements behind release 1.3, and the <a href="#live-tier-realise-hpc-2026-10-28">live tier's</a> first
+(2026-10-28). <strong>HPC</strong> means the multi-host runs on the HPC cluster: 4 nodes,
 the secured build, signed requests and strict node-key pinning. <strong>In-process</strong> means a single JVM on
 one Mac, which is useful for comparing before and after, not as absolute numbers. Raw results are
 under <code>eval/results/</code> in the repository.</p>
@@ -2935,6 +3108,69 @@ three sites).</p>
 <p><strong>Before 1.3,</strong> an 8 GB publish was one synchronous request that took 28–37 s. Now no request runs
 past 20 s. The 8 GB run on the shipped build used two core peers, with no leader change during the
 ingest.</p>
+<h2 id="live-tier-realise-hpc-2026-10-28">Live tier realise (HPC, 2026-10-28)<a class="headerlink" href="#live-tier-realise-hpc-2026-10-28" title="Permanent link">&para;</a></h2>
+<p>A <a href="../../concepts/live-tier/">realise</a> moves a committed version from the durable tier to a live node: each
+block is read from a storage node, decrypted in the core's leader, and pushed to the live node over sealed
+node streams, where every file is verified and placed. Measured on the HPC test deployment, build
+<code>88f086d6</code>, with <code>livebench</code> (E18 LT-B1):</p>
+<ul>
+<li><strong>Data:</strong> 4 GB of seeded random data in 8 files, one version, durable at three copies on three sites
+  (disk and simulated tape). Before each cold run the copies at the node were dropped and attested gone, so
+  nothing was a hit or a link. Every run's bytes were checked at the node against SHA-384.</li>
+<li><strong>Path:</strong> from the disk stores (on the cluster's shared project storage), through the core leader, to a
+  live node on another host. <code>prospect</code> chose <code>copy-from-disk</code> with no tape-only bytes.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Flows</th>
+<th style="text-align: right;">Run</th>
+<th style="text-align: right;">Time</th>
+<th style="text-align: right;">Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">cold, first</td>
+<td style="text-align: right;">47.3 s</td>
+<td style="text-align: right;">84.5 MB/s</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">cold, second</td>
+<td style="text-align: right;">47.3 s</td>
+<td style="text-align: right;">84.6 MB/s</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">cold, first</td>
+<td style="text-align: right;">20.9 s</td>
+<td style="text-align: right;">191.8 MB/s</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">cold, second</td>
+<td style="text-align: right;">19.4 s</td>
+<td style="text-align: right;">205.7 MB/s</td>
+</tr>
+<tr>
+<td style="text-align: right;">any</td>
+<td style="text-align: right;">warm (a hit)</td>
+<td style="text-align: right;">0.41 s</td>
+<td style="text-align: right;">nothing moved</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Open: realise throughput</p>
+<p>192–206 MB/s on 4 flows is <strong>well below the storage-node leg</strong> measured on 2026-09-26, 733–1,208 MB/s
+per flow (see <a href="#transport-foundation-hpc">Transport foundation</a>). Where the time goes (the read from
+shared storage, the core's decryption, the push, the node's verify and write) is <strong>not yet measured</strong>.</p>
+</div>
+<p><strong>Not measured yet:</strong> 8 flows (the cores ran at the default cap of 4 flows), and a realise staged from tape
+(the disk copies were present). For context, publishing the 4 GB version took 51.8 s, and its commit, which
+waits for verified copies on the simulated tape libraries, took 32 minutes. Final-build runs: in progress.</p>
 <h2 id="replication-topology">Replication topology<a class="headerlink" href="#replication-topology" title="Permanent link">&para;</a></h2>
 <p><strong>Chain replication:</strong> the writer sends each block once, and every hop forwards it with a signed
 receipt. <strong>Star:</strong> the writer sends every copy itself.</p>

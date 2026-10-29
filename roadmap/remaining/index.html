@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1635,10 +1755,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-2-the-advanced-caching-tier" class="md-nav__link">
+  <a href="#phase-2-the-live-tier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 2: the advanced caching tier
+        Phase 2: the live tier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-stability-gate-before-the-fabric-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The stability gate before the FABRIC test
       
     </span>
   </a>
@@ -1690,7 +1821,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1806,6 +1937,8 @@
       
         
           
+        
+      
         
       
         
@@ -1981,6 +2114,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2665,10 +2826,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-2-the-advanced-caching-tier" class="md-nav__link">
+  <a href="#phase-2-the-live-tier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 2: the advanced caching tier
+        Phase 2: the live tier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-stability-gate-before-the-fabric-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The stability gate before the FABRIC test
       
     </span>
   </a>
@@ -2715,7 +2887,8 @@
 
 
 <h1 id="remaining-work">Remaining work<a class="headerlink" href="#remaining-work" title="Permanent link">&para;</a></h1>
-<p>The order is deliberate: <strong>durable storage first, then the caching tier, then scale-out</strong>. Pieces
+<p>The order is deliberate: <strong>durable storage first, then the live tier (the caching tier of earlier plans),
+then scale-out</strong>, with a stability gate before the large-scale test. Pieces
 that looked finished and had never run end to end produced most of this month's defects, so each
 phase ends with an end-to-end proof rather than unit tests alone.</p>
 <h2 id="phase-0-decisions-now">Phase 0: decisions (now)<a class="headerlink" href="#phase-0-decisions-now" title="Permanent link">&para;</a></h2>
@@ -2746,7 +2919,7 @@ chain replication, format-aware dedup and pack containers. See <a href="../../bu
 </ul>
 </div>
 <p><strong>Goal:</strong> an agent publishes a versioned dataset into a collection under policy; three sites each
-hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
+hold a verified share or copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
 hash-verified, with no human action.</p>
 <p><strong>Placement and bindings</strong></p>
 <ul>
@@ -2768,11 +2941,14 @@ hash-verified, with no human action.</p>
 <ul>
 <li>[x] Versions, runs and branches with quorum commit</li>
 <li>[x] Extracts with deterministic selectors, citation ids, and pin-amplification refusal</li>
-<li>[ ] Streaming <code>realise</code> with per-block verification; <code>prospect</code> with costed options</li>
+<li>[x] <code>realise</code> to a live node, every file verified; <code>prospect</code> with commit state, size, tape-only bytes, fit and a strategy (the live tier, 2026-10-28, development branch)</li>
 </ul>
 <p><strong>Redundancy</strong></p>
 <ul>
 <li>[x] 3-way replication across three sites, with the existing loss detection, repair, scrub and audit reused</li>
+<li>[x] Erasure coding <code>ec:2+1</code>, one stripe per dedup block, the default for new collections since 2026-10-14; <code>replicas:R</code> and <code>single</code> per dataset; mode changes in place (<code>core.redundancy op=set</code>)</li>
+<li>[x] Coded blocks with tape as the primary tier: each site's share archived, a coded version commits on VERIFIED</li>
+<li>[ ] Erasure coding measured on the HPC cluster and site hosts; its crash cells with three core peers and on packed stores; a lost site rebuilt from tape with coded blocks</li>
 <li>[x] Retention classes at write time; garbage collection as a budgeted, refusable obligation</li>
 <li>[x] Repack with the rewrite rule (preserve counters and copy bit-for-bit, or re-key)</li>
 </ul>
@@ -2787,14 +2963,47 @@ hash-verified, with no human action.</p>
 <ul>
 <li>[x] Metadata-key IV discipline (S1, redone under the dedup model)</li>
 <li>[x] Idempotency-key lease (S2); lint banning direct low-level encrypt calls (S3)</li>
-<li>[ ] Per-object wrapping key for the site-key wrap</li>
+<li>[x] ~~Per-object wrapping key for the site-key wrap~~: the site key went with the prototype path, retired 2026-10-08</li>
 </ul>
-<h2 id="phase-2-the-advanced-caching-tier">Phase 2: the advanced caching tier<a class="headerlink" href="#phase-2-the-advanced-caching-tier" title="Permanent link">&para;</a></h2>
-<p>After durable storage is complete. See <a href="../caching-tier/">The caching tier</a>.</p>
+<h2 id="phase-2-the-live-tier">Phase 2: the live tier<a class="headerlink" href="#phase-2-the-live-tier" title="Permanent link">&para;</a></h2>
+<p>The advanced caching tier of earlier plans, built as <a href="../../concepts/live-tier/">the live tier</a> on the
+development branch (2026-10-28). See <a href="../caching-tier/">The caching tier, now the live tier</a>.</p>
+<ul>
+<li>[x] Journaled inventory, its feature gate, and the guards that keep live copies from ever counting</li>
+<li>[x] <code>realise</code>, <code>prospect</code>, holds (lease, extend, pin), drops, admissions; sealed node streams; the live node's store</li>
+<li>[x] Every deletion trigger reaches live copies and ends on a signed attestation, with evidence in the lifecycle record</li>
+<li>[x] Clients (Java, Python, command line, MCP), local copies first, workspaces published as new versions</li>
+<li>[x] filerepo as a client of the live node; a live node on the test deployment; the dashboard's Live tier page</li>
+<li>[x] Tested: about 250 unit and cluster tests, the model-based test in every CI run, the end-to-end checks and crash cells on the HPC test bed (2026-10-28)</li>
+<li>[ ] The E18 gate on the final build, and the 72-hour soak (<strong>in progress</strong>)</li>
+<li>[ ] Merge to <code>main</code> and a release</li>
+<li>[ ] Realise throughput: 192–206 MB/s on 4 flows is well below the node leg; where the time goes is not yet measured</li>
+<li>[ ] A realise staged from tape, measured on the test bed</li>
+<li>[ ] A FORGET end to end on the test bed (it needs a second tenant administrator bound for 7 days)</li>
+<li>[ ] The two chaos faults not injected yet: a live root removed underneath a node, and node clock skew</li>
+</ul>
+<h2 id="the-stability-gate-before-the-fabric-test">The stability gate before the FABRIC test<a class="headerlink" href="#the-stability-gate-before-the-fabric-test" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>"This system must be stable. Once we prove it on [the HPC cluster], we will move to a much larger scale
+FABRIC test." (owner, 2026-10-28)</p>
+</blockquote>
+<p>The gate (evaluation plan E18): the live tier's unit tests, the model-based test, the crash cells, the chaos
+cases LT-C1 to LT-C5 and the end-to-end checks pass <strong>on the same build</strong>, and a 72-hour soak meets its
+criteria. That build and its configuration are what the FABRIC test deploys. See
+<a href="../../built/tests/#the-live-tier-and-stability-e18-2026-10-28">Test results</a>.</p>
+<ul>
+<li>[x] Planned stops: a stopping peer refuses with directions and hands over; no client call fails (local, 2026-10-28)</li>
+<li>[x] A slow disk never costs the leadership; a capped unsynced backlog; a stuck disk hands over only to healthy peers</li>
+<li>[x] A write survives a store restarted under it; a signed departure notice fenced to the node's boot</li>
+<li>[ ] The chaos stage with live load on the HPC test bed, including planned stops there (<strong>in progress</strong>)</li>
+<li>[ ] The 72-hour soak (<strong>in progress</strong>)</li>
+<li>[ ] A call not safe to send twice, sent to a peer at the instant its process exits, still gets no reply; a <code>request_id</code> on the remaining verbs that lack one would close it</li>
+</ul>
 <h2 id="phase-3-scale-out">Phase 3: scale-out<a class="headerlink" href="#phase-3-scale-out" title="Permanent link">&para;</a></h2>
 <ul>
-<li>[ ] Erasure coding reached by repack (RS(3,1) across four sites uses 11.1 % less media than RS(2,1) across three)</li>
-<li>[ ] Raw NVMe, raw disk and RAM bindings</li>
+<li>[ ] Codes for a fourth site (RS(3,1) across four sites uses 11.1 % less media than RS(2,1) across three), and an intra-volume code on tape</li>
+<li>[x] RAM binding (<code>MemBinding</code>)</li>
+<li>[ ] Raw NVMe and raw disk bindings</li>
 <li>[x] Global deduplication for public data across tenants</li>
 <li>[ ] Moving computation to data (<code>realise</code> with a remote locus), integrated with SLURM</li>
 <li>[ ] Hardware key custody (HSM) and a FIPS 140-3 validated module for DoD fielding</li>

@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://gaiakeep.github.io/docs/concepts/security/">
       
       
-        <link rel="prev" href="../durability/">
+        <link rel="prev" href="../stops-and-restarts/">
       
       
         <link rel="next" href="../media-and-tape/">
@@ -472,6 +472,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -692,6 +696,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -766,10 +798,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#proven-in-the-prototype" class="md-nav__link">
+  <a href="#built" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proven in the prototype
+        Built
       
     </span>
   </a>
@@ -777,10 +809,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#built-since" class="md-nav__link">
+  <a href="#history-what-the-prototype-proved" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Built since
+        History: what the prototype proved
       
     </span>
   </a>
@@ -788,10 +820,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verified-safe" class="md-nav__link">
+  <a href="#the-live-tier-plaintext-by-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verified safe
+        The live tier: plaintext by decision
       
     </span>
   </a>
@@ -799,10 +831,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-issues-and-open-items" class="md-nav__link">
+  <a href="#open-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known issues and open items
+        Open items
       
     </span>
   </a>
@@ -833,6 +865,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -920,6 +980,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1121,6 +1185,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1690,7 +1810,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1806,6 +1926,8 @@
       
         
           
+        
+      
         
       
         
@@ -1981,6 +2103,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2654,10 +2804,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#proven-in-the-prototype" class="md-nav__link">
+  <a href="#built" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proven in the prototype
+        Built
       
     </span>
   </a>
@@ -2665,10 +2815,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#built-since" class="md-nav__link">
+  <a href="#history-what-the-prototype-proved" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Built since
+        History: what the prototype proved
       
     </span>
   </a>
@@ -2676,10 +2826,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#verified-safe" class="md-nav__link">
+  <a href="#the-live-tier-plaintext-by-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verified safe
+        The live tier: plaintext by decision
       
     </span>
   </a>
@@ -2687,10 +2837,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-issues-and-open-items" class="md-nav__link">
+  <a href="#open-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known issues and open items
+        Open items
       
     </span>
   </a>
@@ -2717,119 +2867,131 @@
 <h1 id="security-and-cryptography">Security and cryptography<a class="headerlink" href="#security-and-cryptography" title="Permanent link">&para;</a></h1>
 <h2 id="model">Model<a class="headerlink" href="#model" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Encrypt at the origin.</strong> Data is encrypted before it leaves the writer. Storage sites hold
-  ciphertext and no content keys.</li>
-<li><strong>Keys follow the data's policy.</strong> Sealed data uses unique, tenant-protected keys. Shared and
-  public domains derive a key per block so that identical blocks can deduplicate (see
-  <a href="../tenancy-and-dedup/">Tenants, collections and deduplication</a>, <strong>Proposed</strong>).</li>
-<li><strong>Approved algorithms only.</strong> AES-256-GCM, SHA-256, HMAC-SHA-384 and HKDF, with the platform's
-  secure random generator. The DoD/DoW hardening direction requires FIPS/CNSA, and CNSA calls for
-  SHA-384 as the hash; switching is an <a href="../../roadmap/open-questions/">open decision</a>.</li>
-<li><strong>Tenant isolation comes from Cresco</strong>: tenant-namespaced messaging, broker authorization, and
-  named cross-tenant flows (W-GFS-1, shipped in the Cresco 1.3 controller).</li>
+<li><strong>Encrypted end to end.</strong> Bytes travel from a client to the core in transfers encrypted per request,
+  and the core encrypts every block before it reaches a storage node. Storage nodes hold ciphertext and no
+  tenant keys; repair, re-encoding and scrub never need a key.</li>
+<li><strong>Keys follow the data's policy.</strong> Sealed data uses unique, tenant-protected keys. Shared and public
+  domains derive a key per block so that identical blocks can deduplicate (see
+  <a href="../tenancy-and-dedup/">Tenants, collections and deduplication</a>, <strong>Built</strong> in 1.3). Tenant roots are
+  journaled only wrapped under the master key.</li>
+<li><strong>Approved algorithms, one policy.</strong> AES-256-GCM, HMAC-SHA-384, HKDF-SHA-384, ECDSA and ECDH P-384, and
+  SHA-384 for new formats (a few existing formats keep SHA-256 until a versioned format moves them). Since
+  2026-10-16 one fabric-wide crypto policy covers GaiaKeep and Cresco: <code>cnsa1</code> by default, or <code>fips140-3</code>,
+  with any exception allowed explicitly.</li>
+<li><strong>Zero trust, fail closed.</strong> Every request is signed by a principal, authorised against tenant-scoped
+  roles (the system administrator has no data access) and recorded in a tamper-evident audit log before
+  its reply is released.</li>
+<li><strong>Tenant isolation comes from Cresco</strong> as well: tenant-namespaced messaging, broker authorisation, and
+  named cross-tenant flows.</li>
 </ul>
-<h2 id="proven-in-the-prototype">Proven in the prototype<a class="headerlink" href="#proven-in-the-prototype" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Mechanism</th>
-<th>Evidence</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Per-object data key, AES-256-GCM per stripe, wrapped under the site key</td>
-<td>E6: fragments on disk are ciphertext, no key material on holders</td>
-</tr>
-<tr>
-<td>A holder with manifest access but no key cannot restore</td>
-<td>E6.13</td>
-</tr>
-<tr>
-<td>Repair needs no keys</td>
-<td>E7, E8</td>
-</tr>
-<tr>
-<td>Site key held in <strong>Shamir t-of-n custody</strong> at other sites; reconstruction needs an approver quorum; approvals are single-use</td>
-<td>E9 (3-of-5; 2 holders dead still reconstructs, 3 dead fails closed)</td>
-</tr>
-<tr>
-<td>Access grants signed and enforced <strong>at the origin</strong>; forged, tampered, expired and garbage grants refused</td>
-<td>E5.6–E5.9</td>
-</tr>
-</tbody>
-</table>
-<h2 id="built-since">Built since<a class="headerlink" href="#built-since" title="Permanent link">&para;</a></h2>
-<p><strong>The counter discipline for per-object keys</strong> (<code>SegmentCipher</code>, <strong>Built</strong>, 14/14 checks). AES-GCM
-fails catastrophically if one key ever encrypts two different messages under the same IV: the
-authentication key can be recovered and tags forged, and on write-once media that can't be
-repaired. One large object puts <strong>184,044 encryptions</strong> under a single key, so uniqueness has to be
-guaranteed by construction:</p>
-<div class="highlight"><pre><span></span><code>K_seg = HKDF(K_obj, length-prefixed("gfs/seg/v1", write_id))
-iv    = xorb_seq (64 bits) ‖ chunk_ordinal (32 bits)
-</code></pre></div>
-<p>The IV is built from two counters the writer owns before any data leaves. It needs no random
-generator and never has to be stored. Each write gets its own derived key, so a resumed upload
-can't replay counters. A retry with different content at a spent counter is <strong>refused</strong>, never
-re-encrypted. This becomes the implementation for sealed data. It has no production caller yet.</p>
-<p><strong>The confirmation-oracle rule</strong> (<code>OracleLint</code>, <strong>Built</strong>). A field written to shared or
-write-once storage is safe only if someone holding a guessed plaintext <strong>and no key</strong> cannot
-reproduce it. Hashes over ciphertext pass; an unkeyed hash of plaintext fails, because it lets
-anyone confirm a guess. Under the proposed dedup model the rule is <strong>mandatory for sealed domains</strong>
-and <strong>relaxed for the global domain</strong>, where plain content hashes are the point.</p>
-<h2 id="verified-safe">Verified safe<a class="headerlink" href="#verified-safe" title="Permanent link">&para;</a></h2>
-<p>The live encode path (<code>DurabilityEngine</code>) makes a <strong>fresh data key for every encode</strong> and uses the
-stripe index as the counter. It reads each file sequentially, so each (key, stripe) pair is used
-exactly once. Repair rebuilds fragments from ciphertext and never re-encrypts.</p>
-<h2 id="known-issues-and-open-items">Known issues and open items<a class="headerlink" href="#known-issues-and-open-items" title="Permanent link">&para;</a></h2>
+<h2 id="built">Built<a class="headerlink" href="#built" title="Permanent link">&para;</a></h2>
+<p>Release 1.3 (2026-10-01), <strong>Proven</strong> on the HPC fabric check:</p>
+<ul>
+<li>signed requests (ECDSA P-384), tenant-scoped roles and a tamper-evident audit log;</li>
+<li>signed and encrypted storage-node traffic, with pinned node keys and fencing of a deposed leader by its
+  Raft term;</li>
+<li>client transfers keyed per request, with the key exchange signed by the core and bound to the request;</li>
+<li>key custody from a file, the environment or PKCS#11, and master-key rotation behind an operator window;</li>
+<li>metadata encryption: sealed partitions, keyed identifiers and sealed snapshots.</li>
+</ul>
+<p>Built since, each tested:</p>
+<ul>
+<li><strong>One IV discipline for every encryption</strong> (2026-10-15). Every AES-GCM IV is made inside one crypto
+  module, by a construction recorded for each call site (a counter, a sequence, or a key that seals once),
+  and a lint fails the build on any other. The per-object counter discipline for sealed data
+  (<code>SegmentCipher</code>) is the construction for <code>NONE</code> blocks.</li>
+<li><strong>At-rest encryption of the core log and the audit log</strong> (2026-10-08), under per-epoch file keys wrapped
+  under the master key; off by default (<code>core_at_rest_encryption</code>).</li>
+<li><strong>Sealed requests</strong> (2026-10-15): a client can seal every parameter of a core request to the peer, and the
+  peer seals its reply. Whether sealing becomes mandatory is an open owner decision.</li>
+<li><strong>The fabric-wide crypto policy</strong> (2026-10-16), and the drive-encryption setting for tape (refused by
+  default).</li>
+<li><strong>WORM classes and legal orders</strong> (2026-10-02, extended 2026-10-08): a legal order needs two approvers,
+  one a system administrator, and a 24-hour lock, and reaches write-once data by destroying its key where
+  the key is destroyable.</li>
+</ul>
+<h2 id="history-what-the-prototype-proved">History: what the prototype proved<a class="headerlink" href="#history-what-the-prototype-proved" title="Permanent link">&para;</a></h2>
+<p>The September prototype's storage path was retired on 2026-10-08. What it proved remains on record
+(<a href="../../built/prototype/">The prototype</a>): fragments on disk were ciphertext with no key material on the
+holders (E6); repair needed no keys (E7, E8); a site key in Shamir 3-of-5 custody reconstructed with two
+holders dead and failed closed with three (E9); and forged, tampered, expired and garbage access grants
+were refused at the origin (E5.6–E5.9). Its site key, which wrapped every object's key with a random IV,
+went with it.</p>
+<h2 id="the-live-tier-plaintext-by-decision">The live tier: plaintext by decision<a class="headerlink" href="#the-live-tier-plaintext-by-decision" title="Permanent link">&para;</a></h2>
+<p>The <a href="../live-tier/">live tier</a> puts committed versions on live nodes near compute as <strong>plaintext native
+files</strong> (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
+part of the security boundary, so the rest of the design is built around it. <strong>Built</strong> and tested
+(2026-10-28, development branch).</p>
+<ul>
+<li><strong>Decryption stays in the core.</strong> Storage nodes stay blind and hold ciphertext only. The core decrypts a
+  committed version and sends it to the live node over node streams sealed with AES-256-GCM per frame, under
+  keys from a signed ECDH P-384 exchange (HKDF-SHA-384), with an HMAC-SHA-384 per file. <strong>No file byte, path
+  or digest of plaintext crosses a message broker</strong>; a test captures every frame and message during a
+  realise and a workspace publish and finds none.</li>
+<li><strong>Signed both ways, sealed end to end.</strong> Every live verb is a signed, sealed request. Every request to a
+  live node is signed by the core's leader, and every reply by the node's pinned key, including the
+  attestations that end a deletion.</li>
+<li><strong>Who decides where plaintext may go.</strong> Only a tenant administrator may admit a collection at a node; a
+  system administrator may only withdraw an admission, since that role grants no data access. An admission
+  is tied to the node's pinned key and lapses if the key changes.</li>
+<li><strong>A narrow node principal.</strong> A live node may hold a principal of its own whose only right is to realise, at
+  itself, the collections a tenant administrator bound it to. Every other verb refuses it.</li>
+<li><strong>File permissions fail closed.</strong> Copies are read-only, owned by the agent's user, in a group from the
+  node's mapping; with no mapping they are owner-only.</li>
+<li><strong>The node checks its host</strong> at start and every 30 s and accepts no new copy while a check fails (see
+  <a href="../live-tier/#the-node-checks-its-own-host">The live tier</a>).</li>
+</ul>
+<p>What this cannot do, stated plainly: on the node, the operating system is the boundary. Root, and anyone
+the operating system lets read the live root, can read live copies, and reads through the filesystem are not
+audited. Copies people make with their own access are beyond any deletion. An encrypted live root, with
+per-tenant keys held by the node, is a deployment option and is not built.</p>
+<p><strong>Restarts are authenticated too.</strong> A storage node's departure notice is signed and bound to its current
+boot; a notice from an earlier boot, delayed or replayed, is ignored
+(<a href="../stops-and-restarts/#a-storage-node-restarted-under-writes">Stops, restarts and slow disks</a>).</p>
+<h2 id="open-items">Open items<a class="headerlink" href="#open-items" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Item</th>
-<th>Severity</th>
+<th>When it is needed</th>
 <th>Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Site key wraps every object's key with a random IV</strong>, is never rotated, and nothing counts wraps against the NIST 2³² limit for random IVs. The wrap's authenticated data is the key id only, so a wrapped key can be moved into another object's manifest; stripe authentication then fails, so it confuses rather than leaks</td>
-<td>Minor</td>
-<td>Fix proposed: derive a one-time wrapping key per object from the site key and object id, and bind the object id</td>
-</tr>
-<tr>
-<td>Metadata key (<code>K_meta</code>) and catalogue nodes need an IV discipline; many concurrent writers share one long-lived key</td>
-<td>Blocking before media</td>
-<td><strong>Open</strong>; the proposal was withdrawn because it assumed deduplication was retired. To be redone under the dedup model (S1)</td>
-</tr>
-<tr>
-<td>Idempotency keys should carry a lease, so two writers can never share a counter space</td>
+<td>Metadata-key IV discipline (S1) and idempotency-key leases (S2)</td>
 <td>Before media</td>
-<td>Open (S2)</td>
+<td><strong>Built</strong>: the IV discipline above; a <code>NONE</code> object is sealed only under its idempotency lease</td>
 </tr>
 <tr>
-<td>Direct calls to the low-level encrypt function should fail a lint</td>
-<td>Minor</td>
-<td>Open (S3); the benchmark reuses IVs across threads under a throwaway key</td>
+<td>Direct calls to the low-level encrypt function fail a lint (S3)</td>
+<td></td>
+<td><strong>Built</strong> (2026-10-15)</td>
 </tr>
 <tr>
-<td>Hardware key custody (HSM) for key destruction</td>
+<td>Hardware key custody (HSM) (S4)</td>
 <td>Before production</td>
-<td>Open (S4)</td>
+<td><strong>Decided</strong> (owner 2026-10-02): software keys behind a swappable interface in phase one, an HSM later; PKCS#11 is built</td>
 </tr>
 <tr>
-<td>Whether file names and sizes must be hidden from site operators</td>
+<td>Whether file names and sizes must be hidden from site operators (S11)</td>
 <td>Before production</td>
-<td>Open (S11)</td>
+<td><strong>Built</strong> in part: sealed metadata partitions and keyed identifiers; the rest of metadata encryption is open</td>
 </tr>
 <tr>
-<td>Per-request, audited credentials for agents: scope and issuer</td>
+<td>Per-request, audited credentials for agents: scope and issuer (S8)</td>
 <td>Before production</td>
-<td>Open (S8)</td>
+<td><strong>Open</strong></td>
+</tr>
+<tr>
+<td>A FIPS 140-3 validated module for fielding</td>
+<td>Before fielding</td>
+<td><strong>Open</strong>: the <code>fips140-3</code> policy and a FIPS test profile exist; validation does not</td>
 </tr>
 </tbody>
 </table>
-<p>Library-level (BlueScale) drive encryption is <strong>declined</strong>. The data is already ciphertext, and a
-second layer would only add a key-custody dependency.</p>
+<p>Library-level (BlueScale) drive encryption is <strong>declined</strong> by default (owner 2026-10-02): the data is
+already ciphertext. It is a setting that a deployment's compliance rules can switch on.</p>
 
 
 

@@ -53,6 +53,10 @@
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>
+         <loc>https://gaiakeep.github.io/docs/concepts/live-tier/</loc>
+         <lastmod>2026-10-29</lastmod>
+    </url>
+    <url>
          <loc>https://gaiakeep.github.io/docs/concepts/media-and-tape/</loc>
          <lastmod>2026-10-29</lastmod>
     </url>
@@ -70,6 +74,10 @@
     </url>
     <url>
          <loc>https://gaiakeep.github.io/docs/concepts/security/</loc>
+         <lastmod>2026-10-29</lastmod>
+    </url>
+    <url>
+         <loc>https://gaiakeep.github.io/docs/concepts/stops-and-restarts/</loc>
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>
@@ -105,11 +113,19 @@
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>
+         <loc>https://gaiakeep.github.io/docs/dashboard/live-tier/</loc>
+         <lastmod>2026-10-29</lastmod>
+    </url>
+    <url>
          <loc>https://gaiakeep.github.io/docs/dashboard/media/</loc>
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://gaiakeep.github.io/docs/dashboard/mesh/</loc>
+         <lastmod>2026-10-29</lastmod>
+    </url>
+    <url>
+         <loc>https://gaiakeep.github.io/docs/dashboard/operations/</loc>
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>
@@ -142,6 +158,10 @@
     </url>
     <url>
          <loc>https://gaiakeep.github.io/docs/design/CORE-PRINCIPLES/</loc>
+         <lastmod>2026-10-29</lastmod>
+    </url>
+    <url>
+         <loc>https://gaiakeep.github.io/docs/design/DURABILITY-MODES/</loc>
          <lastmod>2026-10-29</lastmod>
     </url>
     <url>

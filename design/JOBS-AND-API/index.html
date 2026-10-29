@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1583,7 +1703,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1701,6 +1821,8 @@
       
         
           
+        
+      
         
       
         
@@ -2070,6 +2192,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2987,10 +3137,12 @@ from the page that reaches the end.</p>
   system-admin; cooperative, at safe points). Every accept is the request's own audit record; every
   end is audited (<code>core.job.end</code>).</li>
 <li>Retention: ended jobs are forgotten (<code>jobForget</code>) after <code>core_job_retain_ms</code> (7 d).</li>
-<li>Events: <code>{job_id, seq, state, progress, result | error, ts, sig}</code> on the stream the request named
+<li>Events: <code>{job_id, seq, state, progress, ts, sig}</code> on the stream the request named
   (<code>events</code>), GK-CJSON-1 canonical JSON signed ECDSA P-384 by the core identity, byte for byte the
   clients' golden (<code>clients/conformance/event-golden-v1.json</code>, copied to test resources). seq is the
-  leader's term x 10^9 plus a per-job count, so it only rises. core.job stays authoritative.</li>
+  leader's term x 10^9 plus a per-job count, so it only rises. core.job stays authoritative. An end event names
+  the job and its end state only: events cross the broker signed but unsealed, and a result or error can name a path,
+  so the client reads both from core.job (sealed) and asks again if that call times out.</li>
 <li><code>core.status</code> advertises <code>jobs-1</code> and <code>ingest-1a</code> in <code>capabilities</code>.</li>
 </ul>
 <h3 id="ingest-by-striped-parts-and-a-short-commit-opmodel-1a">Ingest by striped parts and a short commit (opmodel §1a)<a class="headerlink" href="#ingest-by-striped-parts-and-a-short-commit-opmodel-1a" title="Permanent link">&para;</a></h3>

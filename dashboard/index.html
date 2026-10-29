@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -815,6 +875,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1019,6 +1083,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1588,7 +1708,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1704,6 +1824,8 @@
       
         
           
+        
+      
         
       
         
@@ -1879,6 +2001,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2624,7 +2774,8 @@
 
 
 <h1 id="the-storage-control-dashboard">The storage control dashboard<a class="headerlink" href="#the-storage-control-dashboard" title="Permanent link">&para;</a></h1>
-<p><em>2026-10-03. Documents the dashboard as it runs against the standing deployment; every screenshot is live data.</em></p>
+<p><em>2026-10-03, updated 2026-10-28 for the Operations tab, the live tier, planned stops and the core log. Documents the dashboard as it
+runs against the standing deployment; every screenshot is live data.</em></p>
 <p>The dashboard answers the owner's brief: <em>see your storage, where the data is and how it is working — down to
 which block, which location and which tape type.</em> It is a <strong>read-only</strong> window onto a running GaiaKeep core and the
 Cresco mesh underneath it. Agents remain the primary consumers of the storage; the dashboard is for people who need
@@ -2701,6 +2852,16 @@ profile. Nothing on the site writes to the core — the Controls tab is a design
 <td><a href="media/">Storage media</a></td>
 <td>The nodes and the media themselves: disk, pack and tape, down to drives and slots</td>
 <td><a href="media/">Storage media</a></td>
+</tr>
+<tr>
+<td><a href="live-tier/">Live tier</a></td>
+<td>Plaintext copies near compute: live nodes, their budgets and host checks, the core's inventory of copies</td>
+<td><a href="live-tier/">Live tier</a></td>
+</tr>
+<tr>
+<td><a href="operations/">Operations</a></td>
+<td>The core's own gauges on every agent, and the memory each message broker needs</td>
+<td><a href="operations/">Operations</a></td>
 </tr>
 <tr>
 <td><a href="lifecycle/">Lifecycle &amp; jobs</a></td>

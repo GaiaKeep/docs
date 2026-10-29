@@ -1,0 +1,4890 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/DURABILITY-MODES/">
+      
+      
+        <link rel="prev" href="../CORE-LOG/">
+      
+      
+        <link rel="next" href="../PACK-FORMAT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Durability modes and erasure coding - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#durability-modes-erasure-coding-replicas-and-a-single-copy-with-tape-as-the-primary-tier" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Durability modes and erasure coding
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dashboard/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dashboard
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dashboard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dashboard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections and versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/placements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle and jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/mesh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cresco mesh tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier, now the live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-owners-decisions-this-implements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The owner's decisions this implements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-is-built-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What is built today
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. What is built today">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-the-engine-replication-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 The engine (replication only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-n-dc11-enforced-on-this-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 N-DC11, enforced on this branch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-three-modes-as-per-dataset-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The three modes as per-dataset policy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The three modes as per-dataset policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-the-policy-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 The policy value
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-a-block-referenced-by-collections-in-different-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 A block referenced by collections in different modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-an-ec-stripe-maps-onto-dedup-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How an EC stripe maps onto dedup blocks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How an EC stripe maps onto dedup blocks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-decision-dm-1-one-dedup-block-is-one-stripe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Decision DM-1: one dedup block is one stripe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-the-alternative-kept-open-dm-1b-stripes-re-formed-at-repack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 The alternative kept open: DM-1b (stripes re-formed at repack)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-small-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Small blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-integrity-without-per-share-digests-in-the-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Integrity without per-share digests in the index
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-encoding-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Where encoding happens
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Where encoding happens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-on-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 On write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-by-the-re-encode-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 By the re-encode job
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-which-is-the-default-for-new-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Which is the default for new writes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-behaviour-per-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Behaviour per mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Behaviour per mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Repair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-trim-scrub-gc-and-forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Trim, scrub, gc and forget
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-site-loss-drain-and-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Site loss, drain and restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-recording-shares-in-the-refindex-and-blocktable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Recording shares in the RefIndex and BlockTable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-what-counts-toward-durability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. What counts toward durability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-tape-as-the-primary-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Tape as the primary tier
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Tape as the primary tier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-what-changes-from-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 What changes from today
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-containers-on-tape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 Containers on tape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-the-spool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 The spool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-commit-and-synchronously-committed-at-every-location-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 Commit, and "synchronously committed at every location" (V1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-shares-on-tape-built-2026-10-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 Shares on tape (built 2026-10-14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-migration-of-existing-replicated-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Migration of existing replicated data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-parameters-the-test-bed-decides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Parameters the test bed decides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-milestones-bottom-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Milestones, bottom-up
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Milestones, bottom-up">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-what-ms1-starts-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 What MS1 starts from
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13a-resolved-by-the-owner-2026-10-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13a. Resolved by the owner (2026-10-02)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-what-i-am-unsure-of" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. What I am unsure of
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-owners-decisions-this-implements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The owner's decisions this implements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-is-built-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What is built today
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. What is built today">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-the-engine-replication-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 The engine (replication only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-n-dc11-enforced-on-this-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 N-DC11, enforced on this branch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-three-modes-as-per-dataset-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The three modes as per-dataset policy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The three modes as per-dataset policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-the-policy-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 The policy value
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-a-block-referenced-by-collections-in-different-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 A block referenced by collections in different modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-an-ec-stripe-maps-onto-dedup-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How an EC stripe maps onto dedup blocks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How an EC stripe maps onto dedup blocks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-decision-dm-1-one-dedup-block-is-one-stripe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Decision DM-1: one dedup block is one stripe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-the-alternative-kept-open-dm-1b-stripes-re-formed-at-repack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 The alternative kept open: DM-1b (stripes re-formed at repack)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-small-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Small blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-integrity-without-per-share-digests-in-the-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Integrity without per-share digests in the index
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-encoding-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Where encoding happens
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Where encoding happens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-on-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 On write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-by-the-re-encode-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 By the re-encode job
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-which-is-the-default-for-new-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Which is the default for new writes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-behaviour-per-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Behaviour per mode
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Behaviour per mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Repair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-trim-scrub-gc-and-forget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Trim, scrub, gc and forget
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-site-loss-drain-and-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Site loss, drain and restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-recording-shares-in-the-refindex-and-blocktable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Recording shares in the RefIndex and BlockTable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-what-counts-toward-durability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. What counts toward durability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-tape-as-the-primary-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Tape as the primary tier
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Tape as the primary tier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-what-changes-from-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 What changes from today
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-containers-on-tape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 Containers on tape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-the-spool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 The spool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-commit-and-synchronously-committed-at-every-location-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 Commit, and "synchronously committed at every location" (V1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-shares-on-tape-built-2026-10-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 Shares on tape (built 2026-10-14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-migration-of-existing-replicated-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Migration of existing replicated data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-parameters-the-test-bed-decides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Parameters the test bed decides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-milestones-bottom-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Milestones, bottom-up
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Milestones, bottom-up">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-what-ms1-starts-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 What MS1 starts from
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13a-resolved-by-the-owner-2026-10-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13a. Resolved by the owner (2026-10-02)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-what-i-am-unsure-of" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. What I am unsure of
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>Erasure coding (ec:2+1, the default for new collections since 2026-10-14), replicas and a single copy, with tape as the primary tier: the design, its milestones and what is built.</p>
+</div>
+<h1 id="durability-modes-erasure-coding-replicas-and-a-single-copy-with-tape-as-the-primary-tier">Durability modes: erasure coding, replicas and a single copy, with tape as the primary tier<a class="headerlink" href="#durability-modes-erasure-coding-replicas-and-a-single-copy-with-tape-as-the-primary-tier" title="Permanent link">&para;</a></h1>
+<p><em>Design of 2026-10-02 (branch <code>wip/durability-modes</code>, merged into 1.3). It implements the owner's answers of
+2026-10-02 (docs/OWNER-ANSWERS-2026-10-02.md): R1/R2/R5/R6, N-DC11, P3/P4, D3, A4, A8 and the standing
+rules. It covers OUT-48 (erasure coding by repack) and OUT-91 (tape is the primary durable tier).</em></p>
+<p><em>Status, 2026-10-14 (branch <code>fix/ec-default</code>). </em><em><code>ec:2+1</code> is the default</em><em> (<code>core_default_redundancy</code>, and the
+built-in <code>radiology-dicom</code> and <code>pathology-wsi</code> profiles); <code>replicas:R</code> and <code>single</code> stay per-dataset choices. Built:
+N-DC11 (section 2.2); MS1 to MS5 (sections 12, the "done" notes), now including the MS5 integration matrix cells, the
+mixed-mode dedup and migration cells, the model and linearizability tests with modes, and an end-to-end cluster test
+through the core service (<code>EcDefaultClusterTest</code>); the deep scrub on the maintenance scheduler (MS4); the MS7 crash
+matrix scenarios for every erasure-coding fault point and for encode on write (section 12, MS7); and, with tape as the
+primary tier, the spool pump archiving each failure domain's share (section 9.5), so an <code>ec</code> version commits on
+VERIFIED like a replicated one. MS6 in part (e70b50a and after): with <code>core_place_on_deferred=true</code> placement targets
+tape, a VERIFIED tape copy counts, and a durable version commits on VERIFIED (<code>core_commit_verified</code>; section 9.4); the
+standing HPC deployment runs it. Existing collections keep the mode they were created with: nothing is re-encoded on
+upgrade (section 10). Not built: the test-bed decisions (sections 11 and 12, among them E-DM1 and CodecBench on the
+HPC), the rest of MS6, and MS7's rebuild of a lost site from tape alone (OUT-101).
+Section 13 lists what I am unsure of; 13a what the owner resolved.</em></p>
+<h2 id="0-summary">0. Summary<a class="headerlink" href="#0-summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Three modes, chosen per dataset.</strong> <code>ec:2+1</code> (Reed-Solomon RS(2,1), the default for durable data),
+  <code>replicas:R</code> (R ≥ 2 full copies) and <code>single</code> (one copy, only for the <code>scratch</code> and <code>cache</code> classes).
+  Each collection and profile records its mode. A block meets the strongest requirement among the
+  collections that reference it.</li>
+<li><strong>One dedup block is one stripe</strong> (decision DM-1). A block's ciphertext is split into <code>k</code> data shares
+  and <code>m</code> parity shares, one per failure domain. No stripe spans two blocks, so every lifecycle
+  operation (gc, forget, deep delete, withdrawal, repack) stays per block, as D3 requires. Repack never
+  needs another site. The cost is that a healthy read needs <code>k</code> sites, which on tape means <code>k</code>
+  mounts per small recall instead of one. The tape simulator decides whether that cost is acceptable
+  (experiment E-DM1). If it is not, the fallback (DM-1b) is coarse stripes that are re-formed at repack.</li>
+<li><strong>Encrypt, then encode.</strong> Shares are slices and parity of the sealed block ciphertext (<code>BlockCodec</code>).
+  No storage node, repair, re-encode or scrub ever needs a key. The block's AEAD tag is checked after
+  the shares are reassembled.</li>
+<li><strong>Encoding has two paths and one share format.</strong> On write, <code>publish</code> encodes each block and places its
+  shares. In the background, a re-encode job converts blocks between modes. That job is the migration
+  path and is the OUT-48 "EC by repack" job. The test bed decides whether new writes encode on write
+  or land as replicas first.</li>
+<li><strong>Durability is counted per failure domain, not per copy.</strong> A block's protection is <code>f</code>, the number of
+  whole-site losses it survives. Disk and tape copies count. RAM never counts (A4), even when attested.
+  A live-tier copy (the HPC cluster) never counts (P3/P4). A tape share counts once its container is VERIFIED.</li>
+<li><strong>The work is bottom-up</strong>, in milestones MS1-MS7: codec, then records and policy, then the engine's read
+  path, maintenance, write paths, tape counting, and finally system tests. Each has its own unit,
+  component and integration tests (section 12). MS0 (N-DC11) is done; MS8 is later work.</li>
+</ul>
+<h2 id="1-the-owners-decisions-this-implements">1. The owner's decisions this implements<a class="headerlink" href="#1-the-owners-decisions-this-implements" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>Decision (2026-10-02 unless noted)</th>
+<th>Consequence here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1/R2/R5/R6</td>
+<td>Phase one is three identical sites. The default redundancy is erasure coding across them (RS(2,1)-style, 1.5x, survives the loss of any one site). Durability is a per-dataset policy. All three modes (erasure-coded, three full replicas, single copy) must be supported and tested.</td>
+<td>Sections 3 to 6 and 12</td>
+</tr>
+<tr>
+<td>N-DC11</td>
+<td>R ≥ 2 for anything durable; R = 1 only for scratch or cache classes</td>
+<td>Enforced on this branch (2.2); restated as <code>f ≥ 1</code> (3.2)</td>
+</tr>
+<tr>
+<td>P3/P4</td>
+<td>Tape is primary, not backup. The durable tier alone must recreate any dataset and survive the loss of a whole site. The HPC cluster copy is uncontrolled cache, never counted.</td>
+<td>Sections 8 and 9</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>The atomic repack unit is the dedup block, never finer</td>
+<td>Section 4 (DM-1)</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>A rewrite is a bit-identical move, or it uses a fresh epoch key; never a mix</td>
+<td>Shares move bit-identically (4.4)</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>RAM never counts toward durability; it is a distinct, vanishing residency</td>
+<td>Section 8</td>
+</tr>
+<tr>
+<td>A8</td>
+<td>Refuse by default when a policy is unsatisfiable; the plan is accepted before bytes stream</td>
+<td>Placement refuses (6.1); writing under-protected is opt-in debt</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Group data that dies together onto the same cartridge (retention cohorts)</td>
+<td>Tape containers are cohort-pure (9.2)</td>
+</tr>
+<tr>
+<td>Standing</td>
+<td>Expensive tunables are decided by the test bed; build bottom-up</td>
+<td>Sections 11 and 12</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-what-is-built-today">2. What is built today<a class="headerlink" href="#2-what-is-built-today" title="Permanent link">&para;</a></h2>
+<h3 id="21-the-engine-replication-only">2.1 The engine (replication only)<a class="headerlink" href="#21-the-engine-replication-only" title="Permanent link">&para;</a></h3>
+<p>Facts from <code>StorageEngine</code>, <code>ReplicaPlacer</code>, <code>RefIndex</code> and <code>CompactBlockTable</code> at <code>486d774</code>, before MS6. The tape
+bullets describe <code>core_place_on_deferred=false</code>; the last bullet says what MS6 changed:</p>
+<ul>
+<li><strong>Policy.</strong> A collection has <code>replication</code> (R, 1-255) and <code>durability</code> (<code>durable</code> or <code>cache</code>).
+  A block's requirement is <code>desired</code>, a byte in its <code>BlockTable</code> record. It is the maximum R over
+  everything that ever referenced the block. It is monotone: <code>raiseDesired</code> only raises it. Derived
+  versions add floors that are computed per pass (<code>Floors</code>, OUT-34).</li>
+<li><strong>Placement</strong> (<code>ReplicaPlacer</code>). Hard constraints come first: the site is up and ACTIVE, not excluded,
+  not full, and has shown durability (<code>LocusDescriptor.countsTowardDurability()</code>: the barrier
+  measurably costs time, or the locus is attested). Copies go to distinct failure domains. Choice among
+  the admissible sites is rendezvous hashing on the block id, weighted by log10 of the measured write
+  rate. A locus with deferred reads or writes (tape) is excluded unless <code>allowDeferred</code> is set, which
+  only <code>core.archive</code> sets. An unsatisfiable request throws <code>Unsatisfiable</code> with the refusal counts.</li>
+<li><strong>Publish</strong> writes R identical ciphertext copies per block. Publishes of at least 8 MiB use a chain
+  (the writer sends once and the members forward); smaller ones use a star. It journals an intent before any
+  seal, and commits the version only after every copy is sealed.</li>
+<li><strong>Repair</strong> (<code>repairInternal</code>) counts the copies on up, ACTIVE, non-deferred sites, plus those within
+  the presume-down grace. A deficit is filled from a verified source onto new failure domains.
+  <code>placeFewer</code> places what the free domains allow. <strong>Tape copies are never counted, never a source and
+  never re-made.</strong></li>
+<li><strong>Trim</strong> removes surplus copies after a grace period. It keeps distinct domains first, then the
+  fastest sites. A tape copy is never surplus.</li>
+<li><strong>Scrub</strong> verifies each copy's content digest at its site. Bad copies are kept, uncounted, until
+  enough verified copies exist.</li>
+<li><strong>Census</strong> counts copies per <strong>site</strong> (<code>upActive &lt; want</code>), not per failure domain. Archive copies are
+  counted separately.</li>
+<li><strong>declareLost</strong> refuses when a live block would be left with no readable copy. A tape-only survivor is
+  "not readable now" and never makes the loss safe.</li>
+<li><strong>core.archive</strong> copies a collection's live blocks to a tape locus. These copies are additional to R
+  and never counted (P3/P4 as built; <code>ReplicaPlacer.Request.allowDeferred</code>, the
+  <code>core_place_on_deferred</code> row in DEFAULT-POLICIES.md).</li>
+<li><strong>Tape</strong> (<code>TapeBinding</code>, <code>TapeCatalog</code>). Containers are 1 GiB parcels and LTO-10 only.
+  <code>tape_write_verify FULL</code> (the default) reads every container back before it is VERIFIED. Under
+  SAMPLED or NONE, a container that is not read back is SYNCED, and its copies are reported as
+  <code>PRESENT_CLAIMED</code>, never verified.</li>
+<li><strong>Since MS6 (e70b50a, 2026-10-03), with <code>core_place_on_deferred=true</code>:</strong> placement may target tape; the spool pump
+  (<code>tapePumpSweep</code>, a leader job sweep, also kicked at a publish) mirrors every durable collection's blocks to its
+  sites' tape through incremental archive runs (scratch and cache classes are never pumped; since 70e3676 it walks
+  only versions past each site's watermark, since 2026-10-07 in bounded slices under a core-wide budget, one run per
+  tape site); the census counts a landed tape copy toward the block's requirement and reports a tape-only block as
+  staged-readable, not unavailable. With <code>core_commit_verified</code> (default true) a durable version is readable only once
+  every block has a VERIFIED tape copy at its site (9.4). Still as above: trim never removes a tape copy, and repair
+  takes no source from tape.</li>
+</ul>
+<h3 id="22-n-dc11-enforced-on-this-branch">2.2 N-DC11, enforced on this branch<a class="headerlink" href="#22-n-dc11-enforced-on-this-branch" title="Permanent link">&para;</a></h3>
+<p>Before this branch, a durable collection already needed R ≥ 2 (<code>R_DURABLE_REPLICATION</code>, OUT-41). R = 1 was
+admitted for <code>durability=cache</code>, but in any retention class, including <code>standard</code> (kept for ever) or
+a class with a floor or a legal hold. That is a durable promise made with one copy. Now:</p>
+<ul>
+<li><strong>One copy needs a cache in a single-copy class.</strong> <code>PolicyEngine.createCollection</code> refuses R = 1 unless
+  the durability is <code>cache</code> <strong>and</strong> the retention class is <code>scratch</code> or <code>cache</code>
+  (<code>Collection.SINGLE_COPY_CLASSES</code>, rule <code>single-copy-scratch-or-cache</code>). The message names the fix.</li>
+<li><strong>Profiles follow the same rule.</strong> <code>Profile.of</code> (<code>core.profile op=create</code>) refuses a single-copy profile
+  outside those classes. The built-in <code>scratch-cache</code> profile (R = 1, cache, class <code>scratch</code>) already
+  complies.</li>
+<li><strong>Changing the class.</strong> <code>LifecycleEngine.assignClass</code> and a <code>RETENTION_OVERRIDE</code> proposal both refuse to
+  move a one-copy collection into any other class (<code>PolicyEngine.checkClassChange</code>). This holds even
+  when the move strengthens retention. No other path changes a collection's copies or durability after
+  creation.</li>
+<li><strong>Replay is unchanged.</strong> <code>restoreCollection</code> and <code>Profile.fromRecord</code> do not re-apply the rule, so a
+  journal written before it still replays, which is the engine's standing rule.</li>
+</ul>
+<h2 id="3-the-three-modes-as-per-dataset-policy">3. The three modes as per-dataset policy<a class="headerlink" href="#3-the-three-modes-as-per-dataset-policy" title="Permanent link">&para;</a></h2>
+<h3 id="31-the-policy-value">3.1 The policy value<a class="headerlink" href="#31-the-policy-value" title="Permanent link">&para;</a></h3>
+<p>A collection's <strong>redundancy</strong> is one of:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Spelling</th>
+<th>Shares per block</th>
+<th>Overhead</th>
+<th>Site losses survived (<code>f</code>)</th>
+<th>Who may use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Erasure-coded</td>
+<td><code>ec:k+m</code>, phase one <code>ec:2+1</code></td>
+<td><code>k + m</code>, one per failure domain</td>
+<td><code>(k+m)/k</code>, 1.5x</td>
+<td><code>m</code></td>
+<td>durable (the default) or cache</td>
+</tr>
+<tr>
+<td>Replicas</td>
+<td><code>replicas:R</code>, R ≥ 2</td>
+<td>R full copies, one per domain</td>
+<td>Rx</td>
+<td><code>R − 1</code></td>
+<td>durable or cache</td>
+</tr>
+<tr>
+<td>Single copy</td>
+<td><code>single</code></td>
+<td>1</td>
+<td>1x</td>
+<td>0</td>
+<td>cache in class <code>scratch</code> or <code>cache</code> only (N-DC11)</td>
+</tr>
+</tbody>
+</table>
+<p><code>f</code> is the policy's promise: losing any <code>f</code> whole failure domains leaves every block readable. N-DC11
+in these terms is <strong>durable ⇒ f ≥ 1</strong>. The existing <code>replication</code> parameter stays as an alias:
+<code>replication=R</code> means <code>replicas:R</code>, and <code>replication=1</code> means <code>single</code>. Today's journals and clients
+are therefore unchanged.</p>
+<ul>
+<li><strong>The default.</strong> A new collection that names no redundancy (nor <code>replication</code>) gets <code>core_default_redundancy</code>,
+  <strong><code>ec:2+1</code></strong> since 2026-10-14 (it was <code>replicas:3</code> until encode on write was proven end to end). Rules in effect:</li>
+<li>A deployment with fewer than three failure domains cannot place <code>ec:2+1</code>: a write of a block that needs a share
+    per domain is refused (A8, <code>too-few-failure-domains</code>), never silently downgraded. The collection is still created
+    <code>ec:2+1</code>; such a fabric names <code>redundancy</code> per collection (<code>replicas:2</code>) or sets the key. (A block under
+    <code>core_ec_min_block_bytes</code> keeps m+1 = 2 full copies and needs two domains.)</li>
+<li>With a domain only <em>down</em> (not missing), the write continues with fewer shares as recorded debt that repair pays
+    (<code>core_place_min_shares</code>, default -1: as <code>core_place_min_copies</code>; never fewer than k). This is the owner's first
+    question of 2026-10-07, built as recommended and the default in effect.</li>
+<li>While <code>core_api_deltas</code> is off (a rolling upgrade from a build older than the ec deltas, OPERATIONS §13), an <code>ec</code>
+    default resolves to <code>replicas:3</code> (<code>CoreService.UPGRADE_DEFAULT</code>), what every earlier build gave, and the reply's
+    <code>redundancy</code> names it: an ec collection journals <code>colRedundancy</code>, which such a peer cannot apply. Collections made
+    in that window stay <code>replicas:3</code> until a <code>core.redundancy op=set</code> moves them. An explicit <code>redundancy=ec:2+1</code> is
+    refused in the window (status 7, <code>redundancy-needs-api-deltas</code>).</li>
+<li><strong>Recording.</strong> The mode is a new journaled delta, <code>colRedundancy [collection, spelling]</code>, written in the
+  same batch as the <code>collection</code> delta. The <code>collection</code> delta stays byte-identical, so existing
+  journals and their hashes are unchanged. A collection without the delta is <code>replicas:R</code> (or <code>single</code>
+  at R = 1). Profiles record a new <code>redundancy</code> key in their record JSON, and a record without it means
+  <code>replicas:&lt;replication&gt;</code>.</li>
+<li><strong>Changing the mode.</strong> <code>core.redundancy op=set</code> is journaled. It is refused when it would take a durable
+  collection below <code>f = 1</code>. It raises or lowers block requirements, and the re-encode job (5.2) does
+  the work. Every change is a change of policy, never an in-place relabel of stored shares.</li>
+<li><strong>Built-in profiles.</strong> <code>radiology-dicom</code> and <code>pathology-wsi</code> are <code>ec:2+1</code> since 2026-10-14 (owner, 13a; their
+  records carry <code>replication</code> 2, the full-copy form, and <code>redundancy</code> ec:2+1). Existing collections keep the record
+  they were created with (<code>collProfile</code>), so those made under the three-copy records stay <code>replicas:3</code>. (A profiled collection journals <code>collProfile</code>, a wave-2
+  delta, so profiles are refused while <code>core_api_deltas</code> is off, as before.)</li>
+</ul>
+<h3 id="32-a-block-referenced-by-collections-in-different-modes">3.2 A block referenced by collections in different modes<a class="headerlink" href="#32-a-block-referenced-by-collections-in-different-modes" title="Permanent link">&para;</a></h3>
+<p>Deduplication means one block can serve collections in different modes, such as a GLOBAL public block
+or a GROUP domain. The block meets the strongest requirement, under a total order:</p>
+<div class="highlight"><pre><span></span><code>single  &lt;  ec:2+1  &lt;  replicas:2  &lt;  replicas:3  &lt;  ...
+order by (f, full copies wanted): equal f, a collection that asked for full copies gets them
+</code></pre></div>
+<p><code>ec:2+1</code> and <code>replicas:2</code> both give <code>f = 1</code>. A collection that asked for full copies (for example, for
+one-site reads) pays for them and gets them. Phase one has one erasure code, so <code>ec:k+m</code> with
+different <code>k</code> never has to be compared. When R7 adds a second code, the order is extended explicitly.</p>
+<p><strong>What changes in the engine.</strong> <code>desired</code> is monotone today. Lowering a requirement, as when a
+collection moves from <code>replicas:3</code> to <code>ec:2+1</code> or when the only <code>replicas:3</code> referencer is forgotten,
+needs the requirement to be <strong>recomputed</strong> from the live referencing collections. The engine already
+does this for derived versions (<code>Floors</code>). The block record keeps the last computed requirement, and a
+policy change bumps an epoch that triggers recomputation, as <code>floorsEpoch</code> does now.</p>
+<p><em>As built:</em> a mode change recomputes by its own delta (<code>colRedundancySet</code>); a referencer withdrawn or dropped lowers
+nothing by itself, and trim lowers it only with <code>core_lower_on_drop</code> (default off), by a journaled <code>reqLower</code>
+(MS5 status, 2026-10-15).</p>
+<h2 id="4-how-an-ec-stripe-maps-onto-dedup-blocks">4. How an EC stripe maps onto dedup blocks<a class="headerlink" href="#4-how-an-ec-stripe-maps-onto-dedup-blocks" title="Permanent link">&para;</a></h2>
+<h3 id="41-decision-dm-1-one-dedup-block-is-one-stripe">4.1 Decision DM-1: one dedup block is one stripe<a class="headerlink" href="#41-decision-dm-1-one-dedup-block-is-one-stripe" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>C      = BlockCodec ciphertext of one dedup block (AEAD sealed; |C| = plaintext + 16)
+L      = ceil(|C| / k)
+D_0..D_{k-1} = C ‖ zero pad to k·L, cut into k slices of L bytes      (data shares; systematic)
+P_0..P_{m-1} = RS(k,m) parity over D                                   (parity shares)
+share i     → a distinct failure domain; extent id = extentId(domain, block) + "_s" + i
+</code></pre></div>
+<p>The padding is never stored as such. Decoding trims to <code>|C|</code>, which follows from the block record's
+length and the codec's fixed overhead. The extent id stays within the 128-character store limit:
+<code>b_</code> + a token of at most 16 + <code>_</code> + a 96-character keyed id + <code>_s</code> + 3 digits is at most 120 (as built: <code>_s</code>,
+not <code>~s</code>, because every store accepts only <code>[A-Za-z0-9_-]</code> in an extent id).</p>
+<p><strong>Why DM-1:</strong></p>
+<ol>
+<li><strong>D3 holds by construction.</strong> Every operation that decides liveness or moves bytes decides per dedup
+   block: reference counting, gc, forget, withdrawal (PIN, COPY or BREAK), deep delete and repack. No
+   stripe ties a dead block to a live one, so nothing is retained for a neighbour's parity. Nothing is
+   re-encoded because another block died.</li>
+<li><strong>Repack is local to a site.</strong> A site's tape volume holds share <code>i</code> of many blocks. Repacking it copies
+   the live share records bit-identically (D4) into new containers. No other site is mounted and no
+   bytes cross the WAN. Under stripes that span blocks or containers, every repack would have to
+   re-form stripes across all three sites.</li>
+<li><strong>Tenancy isolation needs no rule.</strong> A block's shares depend only on that block, so a sealed tenant's
+   data is never parity for anyone else's. A domain-pure container stays domain-pure.</li>
+<li><strong>It fits the engine as built.</strong> The <code>RefIndex</code> key, placement, repair, trim, scrub, intents and
+   landing are all per block today. "A copy" becomes "a share (full, or index <code>i</code>)". Encode-on-write
+   needs no accumulation buffer, no stripe-formation latency and no <code>seal_deadline</code>. That suits the
+   streaming ingest (parts processed as they land).</li>
+</ol>
+<p><strong>What it costs (stated plainly):</strong></p>
+<ul>
+<li><strong>No DIRECT read.</strong> SPECIFICATION §8.3 called the one-site, one-mount DIRECT read "the single largest
+  cost saving in the design". Under DM-1, every healthy read fetches <code>k</code> = 2 shares from 2 sites. On
+  disk, that puts about half the block on the WAN for every read. On tape, it means <strong>two mounts per
+  small recall instead of one</strong> (the drive-seconds roughly double for recalls far below a parcel). For
+  large sequential restores the drive-seconds are about equal, because each site reads half, and the
+  two sites stream in parallel.</li>
+<li><strong>More records.</strong> Each block becomes <code>k + m</code> records, each about <code>|C|/k</code> bytes. At the 1 MiB CDC target,
+  each share is about 512 KiB, which is fine. At small blocks (format adapters emit kilobyte-sized
+  header blocks), the per-record overhead dominates. The small-block rule (4.3) handles that.</li>
+<li><strong>Repair amplification.</strong> Rebuilding one share reads <code>k</code> shares, about one block's worth.</li>
+</ul>
+<h3 id="42-the-alternative-kept-open-dm-1b-stripes-re-formed-at-repack">4.2 The alternative kept open: DM-1b (stripes re-formed at repack)<a class="headerlink" href="#42-the-alternative-kept-open-dm-1b-stripes-re-formed-at-repack" title="Permanent link">&para;</a></h3>
+<p>Stripes over whole blocks, or over whole containers (1 GiB parcels), as in SPECIFICATION §3 and §8. The
+data shares are whole blocks or containers stored at one site, so DIRECT reads return. D3 can still be
+honoured, because repack decides per block and re-forms new stripes from the live blocks. The price:</p>
+<ul>
+<li>A dead block's bytes stay until its stripe is re-formed.</li>
+<li>Repack, forget and deep delete need cross-site re-encoding: WAN bytes, and mounts at every member site.</li>
+<li>Cohort and domain purity becomes a placement rule rather than a property.</li>
+<li>A stripe table is needed: stripe → members, and block → stripe.</li>
+</ul>
+<p><strong>Experiment E-DM1 decides between them.</strong> It runs on the tape simulator (TAPE-SIMULATION.md, LTO-10
+profile, three sites, several drives and cartridges) using the P2 fixtures (very many small files;
+bulk). It measures drive-seconds and mounts per recall, per whole-dataset restore and per repack, plus
+WAN bytes per read, for DM-1, DM-1b and <code>replicas:3</code>. DM-1 is built first because everything in MS1-MS5
+carries over to DM-1b: the codec, the share format, survivability and the policy. Only the mapping and
+the stripe table would change.</p>
+<h3 id="43-small-blocks">4.3 Small blocks<a class="headerlink" href="#43-small-blocks" title="Permanent link">&para;</a></h3>
+<p>A block below <code>ec_min_block_bytes</code> is stored as <code>replicas:(m+1)</code> instead of being coded. For <code>ec:2+1</code> that
+means two full copies: the same <code>f = 1</code>, at 2x on a few kilobytes rather than three records of a few
+bytes each. The block's record says which form it took. Provisional value: 64 KiB. <strong>Test bed:</strong> per-record
+overhead on disk and tape (PACK-FORMAT §12 measured 0.88 % at 64 KiB extents), against the share of
+corpus bytes held in small blocks for the P2 fixtures.</p>
+<h3 id="44-integrity-without-per-share-digests-in-the-index">4.4 Integrity without per-share digests in the index<a class="headerlink" href="#44-integrity-without-per-share-digests-in-the-index" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>At the site, without a key.</strong> Each share is appended with its own SHA-256, as copies are today
+  (<code>ExtentBinding.append(..., sha256)</code>), and the container record carries a SHA-384. Scrub verifies
+  each share where it lies.</li>
+<li><strong>End to end.</strong> Reassembled shares must open under the block's AEAD (<code>BlockCodec.open</code>). A wrong share
+  fails the tag. With more than <code>k</code> shares available, the reader tries other <code>k</code>-subsets (three at
+  most for RS(2,1)), finds the bad share, marks it bad (E4) and reports it.</li>
+<li><strong>Nothing is added to the index.</strong> Storing <code>k + m</code> digests in the <code>BlockTable</code> would cost about 96 bytes
+  more per record, more than doubling today's 75. The site digest plus the AEAD give the same
+  detection.</li>
+</ul>
+<h2 id="5-where-encoding-happens">5. Where encoding happens<a class="headerlink" href="#5-where-encoding-happens" title="Permanent link">&para;</a></h2>
+<h3 id="51-on-write">5.1 On write<a class="headerlink" href="#51-on-write" title="Permanent link">&para;</a></h3>
+<p><code>store()</code> encodes each block once and places share <code>i</code> on the domain chosen for index <code>i</code>. The
+placement request becomes indexed (5.3). Each share goes to its own site (a star of shares). The
+writer sends <code>(k+m)/k</code> = 1.5x the block, where the replicated chain sends 1x and the replicated star
+sends Rx. A chain variant is possible: forward <code>C</code> and let each member derive its own share. That
+needs no key, but it puts the encoding on the storage nodes and sends the whole block over every hop,
+so it is a test-bed variant, not the default.</p>
+<h3 id="52-by-the-re-encode-job">5.2 By the re-encode job<a class="headerlink" href="#52-by-the-re-encode-job" title="Permanent link">&para;</a></h3>
+<p>A background job converts a block between forms. Its steps are the repair path:</p>
+<ol>
+<li>Fetch one verified full copy, or any <code>k</code> verified shares.</li>
+<li>Decode and encode as needed.</li>
+<li>Write the missing shares under an intent, and land them.</li>
+<li>Trim the old form, but only once the new form meets the requirement.</li>
+</ol>
+<p>It serves:</p>
+<ul>
+<li><strong>migration</strong> of existing replicated data (section 10);</li>
+<li><strong>mode changes</strong> (<code>core.redundancy op=set</code>) in either direction;</li>
+<li><strong>GLOBAL and dedup promotions</strong>, when a block gains a referencer that wants full copies;</li>
+<li>an optional <strong>land-then-encode</strong> ingest policy: write <code>replicas:2</code> (f = 1 at commit), encode later.</li>
+</ul>
+<p>It is sliced and throttled like repair and trim (<code>Slice</code>, <code>Throttle</code>), resumable by cursor, and crash
+safe through intents and fault points (<code>FaultPoints.REENCODE_*</code>).</p>
+<h3 id="53-which-is-the-default-for-new-writes">5.3 Which is the default for new writes<a class="headerlink" href="#53-which-is-the-default-for-new-writes" title="Permanent link">&para;</a></h3>
+<p>Provisional: <strong>encode on write</strong> for <code>ec</code> collections. It writes the fewest bytes everywhere: 1.5x,
+against 2x landing + 1.5x encoding + reclaiming 2x under land-then-encode. It is never less protected
+at commit (f = 1 either way). <strong>Test bed:</strong> ingest MB/s per client at 80 ms RTT against the N-WAN target
+(150 MB/s), WAN bytes per committed byte, spool write amplification, and time until the version is
+VERIFIED on tape.</p>
+<p>Placement for shares extends <code>ReplicaPlacer.Request</code> with <code>shares = k + m</code> and an index per target, and
+keeps the same hard constraints and rendezvous weighting. Share <code>i</code> goes to the <code>i</code>-th site in
+rendezvous order, so roles rotate across blocks (SPECIFICATION §8.2), and read and degraded-mode load
+spread evenly.</p>
+<h2 id="6-behaviour-per-mode">6. Behaviour per mode<a class="headerlink" href="#6-behaviour-per-mode" title="Permanent link">&para;</a></h2>
+<h3 id="61-write">6.1 Write<a class="headerlink" href="#61-write" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>replicas:R</th>
+<th>ec:k+m</th>
+<th>single</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shares placed</td>
+<td>R full copies, distinct domains</td>
+<td><code>k + m</code> shares, distinct domains, by index</td>
+<td>1 full copy</td>
+</tr>
+<tr>
+<td>Commit</td>
+<td>every copy sealed</td>
+<td>every share sealed</td>
+<td>the copy sealed</td>
+</tr>
+<tr>
+<td>Too few domains</td>
+<td>refused (A8)</td>
+<td>refused (A8)</td>
+<td>refused if no admissible site</td>
+</tr>
+</tbody>
+</table>
+<p>Writing under-protected (fewer domains than the mode needs) is never the default (A8). It is an
+explicit caller opt-in that records a visible debt, which repair pays down. With <code>ec:2+1</code>, two of three
+shares can be decoded but survive no loss, so that is debt, not durability.</p>
+<h3 id="62-read">6.2 Read<a class="headerlink" href="#62-read" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>replicas:R</th>
+<th>ec:k+m</th>
+<th>single</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Healthy</td>
+<td>one copy, best first, one hedge (today)</td>
+<td>the <code>k</code> data shares, concatenated; no decode</td>
+<td>the copy</td>
+</tr>
+<tr>
+<td>Degraded</td>
+<td>the next copy</td>
+<td>any <code>k</code> shares, decode</td>
+<td>refused: <code>DataUnavailable</code>, never wrong bytes</td>
+</tr>
+<tr>
+<td>Bad share</td>
+<td>skipped and reported</td>
+<td>subset retry isolates it (4.4)</td>
+<td>detected by AEAD, refused</td>
+</tr>
+<tr>
+<td>Tape only</td>
+<td>staged, never a mount on a user read (today)</td>
+<td>the same, <code>k</code> sites staged in parallel</td>
+<td>the same</td>
+</tr>
+</tbody>
+</table>
+<p>Hedging on disk asks for one extra share when the slowest of the <code>k</code> is late (<code>k + 1</code> in flight at most).
+<strong>There is no hedging on tape</strong>: a cancelled tape read still costs the mount (SPECIFICATION §8.5). The
+planner picks the <code>k</code> shares deterministically: mounted volumes first, then queue depth, then WAN cost.</p>
+<h3 id="63-repair">6.3 Repair<a class="headerlink" href="#63-repair" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>replicas:R</th>
+<th>ec:k+m</th>
+<th>single</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deficit</td>
+<td><code>R − counted copies</code></td>
+<td>missing indices among counted shares</td>
+<td>none: nothing to repair from</td>
+</tr>
+<tr>
+<td>Source</td>
+<td>one verified copy</td>
+<td>any <code>k</code> verified shares (or one full copy)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Work</td>
+<td>copy</td>
+<td>decode, re-encode the missing indices</td>
+<td>report the lost or bad copy</td>
+</tr>
+<tr>
+<td>Target</td>
+<td>a free failure domain</td>
+<td>a free domain, one per index</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>A single-copy block whose copy is lost or bad is reported. Its owner regenerates it, because it is a
+cache, and repair never adds a second copy. Tape-resident shares are repaired <strong>only on positive
+evidence</strong>: a failed read check, a TapeAlert or a scrub result. Absence or a timeout is never enough,
+because a 265-1,400 s medium reads every transient as a loss (SPECIFICATION §8.6). Repair from tape is a
+staged, budgeted job (drive-seconds and WAN bytes), never inline.</p>
+<h3 id="64-trim-scrub-gc-and-forget">6.4 Trim, scrub, gc and forget<a class="headerlink" href="#64-trim-scrub-gc-and-forget" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Trim</strong> counts per failure domain. The surplus is: a second share of the same index; full copies of an
+  <code>ec</code> block once its shares meet the requirement at VERIFIED or sealed state; replicas beyond R; and,
+  once tape counts, disk shares whose tape share in the same domain is VERIFIED. That last case is
+  evicted by spool pressure, not by trim (9.3).</li>
+<li><strong>Scrub</strong> verifies every share's digest at its site. A <strong>deep scrub</strong> of <code>ec</code> blocks fetches all <code>k + m</code>
+  shares and recomputes the parity, under a budget and at a cadence the test bed sets. Tape scrub is
+  <code>core.archiveverify</code> (today).</li>
+<li><strong>gc and forget</strong> act on the block, so every share goes together. QUICK DELETE (key destruction) is
+  unchanged, because shares are ciphertext. DEEP DELETE forces reclamation of every container holding a
+  share of the block, which on tape means a repack of those volumes. That repack is local to each site
+  under DM-1.</li>
+</ul>
+<h3 id="65-site-loss-drain-and-restore">6.5 Site loss, drain and restore<a class="headerlink" href="#65-site-loss-drain-and-restore" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>declareLost</strong> counts per block whether the survivors still decode: a full copy, or at least <code>k</code>
+  distinct indices. It refuses when they do not, as today. With tape counted, a block whose surviving
+  shares are on tape is <strong>recoverable, not lost</strong>. The refusal therefore separates "no survivor"
+  (refused) from "survivors on tape only". The second is allowed with a staged repair plan and its
+  drive-second estimate attached.</li>
+<li><strong>drain</strong> moves each share to a free domain and keeps its index. <strong>restore</strong> (DEFAULT-POLICIES, decision
+  M3) is unchanged: a restored site returns LOST and holds nothing the index forgot.</li>
+<li><strong>Rebuilding a whole site (R5)</strong> under <code>ec:2+1</code> reads <code>k</code> = 2 shares per lost share, about 1x of the
+  lost site's payload from each of the two survivors. Under <code>replicas:3</code> it reads 1x from one survivor.
+  The test bed prices this (repair window, R9 is still open).</li>
+</ul>
+<h2 id="7-recording-shares-in-the-refindex-and-blocktable">7. Recording shares in the RefIndex and BlockTable<a class="headerlink" href="#7-recording-shares-in-the-refindex-and-blocktable" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Today</th>
+<th>With modes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BlockRecord.sites</code>: the sites holding a copy</td>
+<td>each entry also carries its <strong>share index</strong>: <code>FULL</code>, or <code>0..k+m−1</code></td>
+</tr>
+<tr>
+<td><code>BlockRecord.desired</code>: copies wanted (byte, monotone)</td>
+<td><code>desired</code> keeps its meaning for replicas; a new byte, <strong><code>scheme</code></strong> (0 = replicas; otherwise a code id → <code>(k, m)</code>; as built the ids are a fixed table in code, <code>Redundancy.scheme()</code>, and an <code>ec</code> requirement keeps <code>desired</code> = m+1), and the requirement is recomputable (3.2)</td>
+</tr>
+<tr>
+<td><code>locations</code>: site → opaque location</td>
+<td><code>(site, index)</code> → location (one site may hold two shares while a drain or re-encode runs)</td>
+</tr>
+<tr>
+<td><code>sites</code> delta: <code>domain \t block \t site</code> lines</td>
+<td>unchanged (full copies); a share is a line of the new split op <code>shares</code>, <code>domain \t block \t site \t index</code> (as built, 2026-10-07: an older build ignores extra columns, so a fourth <code>sites</code> column would be read as a full copy; an unknown op stops it instead)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>CompactBlockTable cost.</strong> One byte per record for <code>scheme</code> and one byte per inline site slot for the
+  index (four slots): about 5 bytes on today's ~75, so about 80. Spill handling (more than four sites,
+  named holders) is unchanged. At 10^9 blocks that is about 5 GB more heap, which strengthens the case
+  for N-DC6 (the on-disk BlockTable with a caching layer, before any core passes ~100 TB).</li>
+<li><strong>Hash and wire compatibility.</strong> A record with only <code>FULL</code> shares and scheme 0 hashes exactly as today,
+  so existing journals and snapshots keep their metaHash (pinned by <code>MetaHashGoldenTest</code>). As built, the
+  new journal records are two wave-2 ops, <code>colRedundancy</code> and <code>shares</code>, which an older build refuses
+  (it stops, fail closed), and two <code>blk</code> snapshot fields, which an older build ignores and then refuses
+  the snapshot at its hash check. None of them is written while no collection is <code>ec</code> and no block holds
+  a share, so a cluster that creates no <code>ec</code> collection journals exactly what 1.3 did. A rolling upgrade
+  keeps <code>core_api_deltas=false</code> until every peer runs this build (OPERATIONS §13), which also refuses
+  <code>ec</code> collections; the row is in DEFAULT-POLICIES.md (<code>core_default_redundancy</code>).</li>
+</ul>
+<h2 id="8-what-counts-toward-durability">8. What counts toward durability<a class="headerlink" href="#8-what-counts-toward-durability" title="Permanent link">&para;</a></h2>
+<p>A share counts toward a block's <code>f</code> when <strong>all</strong> of these hold:</p>
+<ol>
+<li><strong>Its medium is durable.</strong> The locus shows a barrier that costs time, or it is attested. The new
+   fail-closed rule: <strong>a volatile medium never counts, attested or not (A4)</strong>. RAM has barrier evidence
+   <code>ABSENT</code> today, but <code>durabilityAttested</code> overrides that. <code>countsTowardDurability()</code> will refuse any
+   locus that declares itself volatile (the A5 property "volatility on power loss"). Unit tests that use
+   <code>MemBinding</code> as a durable site will say so with a <code>simulatedDurable</code> flag, as <code>TapeBinding</code> does
+   with <code>simulated</code>, so a test fixture can never become a production loophole.</li>
+<li><strong>It is not a live-tier copy.</strong> The <strong>live tier</strong> (named 2026-10-27; earlier "the cache tier") is every
+   copy of committed data held as native files where it can be read directly, byte by byte, at local-disk
+   speed: a live node's copies near compute and the workspaces seeded from them, which filerepo presents as
+   directories (docs/LIVE-TIER.md). Live copies are plaintext: the owner decided on 2026-10-27 that the
+   durable tier is the only tier that is not native. They are never counted: the durable tier alone must
+   recreate any dataset. The HPC cluster copy is uncontrolled live tier (P3/P4). A live node registers with the
+   <code>live</code> role, never joins as a site, and a locus flagged <code>live</code> is refused by <code>countsTowardDurability()</code>
+   and by placement even when attested. The disk share a site keeps after its tape share is VERIFIED is not
+   live tier: it is durable-tier ciphertext (under <code>ec</code>, a single share) in the same failure domain as the
+   tape share (correction of 2026-10-27; 5907a88f had listed it as live tier). (Unrelated: the <code>cache</code>
+   retention class of a collection, data that can be regenerated, keeps its name.)</li>
+<li><strong>Its write is complete.</strong> On disk, the share is sealed past the barrier. On tape, its container is
+   VERIFIED under <code>tape_write_verify FULL</code> (the default). Under SAMPLED or NONE, a SYNCED container
+   counts too, because that is what choosing those modes means, but it is reported as <em>claimed</em>, never
+   <em>verified</em>. The census shows both.</li>
+<li><strong>It is not suspect</strong> (scrub found it bad), and its site is ACTIVE or DRAINING, not LOST.</li>
+</ol>
+<p><strong>Counting is per failure domain.</strong> A site's disk spool and its tape library are one failure domain.
+Two shares there survive a media fault but not a site loss. A block's <code>f</code> is the largest number of
+domains whose loss leaves it decodable: a full copy, or at least <code>k</code> distinct indices. With at most
+about eight domains per block, <code>f</code> is computed exactly by enumerating subsets and cached per share
+pattern. <strong>Census</strong> reports blocks by <code>f</code> against their requirement (under-protected, at target,
+surplus) instead of today's per-site <code>upActive &lt; want</code>. RAM residency appears as its own vanishing
+state (A4).</p>
+<h2 id="9-tape-as-the-primary-tier">9. Tape as the primary tier<a class="headerlink" href="#9-tape-as-the-primary-tier" title="Permanent link">&para;</a></h2>
+<h3 id="91-what-changes-from-today">9.1 What changes from today<a class="headerlink" href="#91-what-changes-from-today" title="Permanent link">&para;</a></h3>
+<p>Today a tape copy is an extra (<code>core.archive</code>): placement never chooses tape, repair never counts it, and
+trim never removes it. Under P3/P4 the durable tier is the tape at each of the three sites:</p>
+<ul>
+<li><strong>Placement may target tape for durable shares</strong> (<code>ReplicaPlacer.Request.allowDeferred</code> for durable
+  placement; <code>core_place_on_deferred</code> becomes <code>true</code> when MS6 lands). A share lands first on its site's
+  disk spool, which is fast, counts once sealed, and lets the publish commit. It is then written to that
+  site's tape by a spool pump.</li>
+<li><strong>Once the tape share is VERIFIED</strong>, it counts. The disk share in the same domain adds nothing to the count,
+  because a failure domain counts once (section 8), and the spool may evict it (9.3). Trim does not.</li>
+<li><strong>Reads</strong> of tape-only blocks are staged (today's <code>DeferredRead</code> and <code>stage</code>). Under <code>ec:2+1</code>, the <code>k</code>
+  shares are staged from two sites in parallel.</li>
+</ul>
+<h3 id="92-containers-on-tape">9.2 Containers on tape<a class="headerlink" href="#92-containers-on-tape" title="Permanent link">&para;</a></h3>
+<p>Each site's tape holds only that site's share index for each block, in domain-pure containers grouped
+by retention cohort (D2: volumes die whole and tape is reclaimed). Containers stay 1 GiB parcels
+(PACK-FORMAT §11). R6, the intra-volume RS(j, 4) over parcels from SPECIFICATION §3.2 and §8.1, is a
+separate, later layer (MS8). It repairs a media defect with zero WAN bytes and zero extra mounts, and it
+never counts toward site survivability.</p>
+<h3 id="93-the-spool">9.3 The spool<a class="headerlink" href="#93-the-spool" title="Permanent link">&para;</a></h3>
+<p>Spool residency after VERIFIED is a <strong>test-bed parameter</strong>: evict at once, or keep the newest versions on
+disk, which serves reads without a tape stage. Data kept usable for compute belongs in the live tier
+(docs/LIVE-TIER.md), not the spool. Eviction is refused for any share whose tape share is not VERIFIED (or
+SYNCED, under the non-default verify modes).</p>
+<h3 id="94-commit-and-synchronously-committed-at-every-location-v1">9.4 Commit, and "synchronously committed at every location" (V1)<a class="headerlink" href="#94-commit-and-synchronously-committed-at-every-location-v1" title="Permanent link">&para;</a></h3>
+<p>(For a coded block, "a VERIFIED tape copy" is the tape tier's ability to give the block back: k distinct shares on
+tape; section 9.5.)</p>
+<p>The owner decided (13a, "Commit point"): a durable dataset commits only when its copies are VERIFIED on tape; the
+disk spool is staging, never a counted copy. As built (e70b50a, 5aa7706; replicas today, shares once EC lands): the
+publish or §1a commit seals every copy on its sites' disk spools, kicks the spool pump, and answers <code>commit_job</code>, a
+job that ends when every block of the version has a VERIFIED tape copy at its site. Until then the version is
+COMMITTING: <code>core.get</code> answers status 16 before any stream opens, and reads through the engine are gated the same
+way; stage, repair and verify are not. The state is derived from the references, never journaled, so a new leader
+re-derives it. The clients await it (OUT-102: by default a read that meets 16 follows the commit job through
+<code>core.job</code>, or reads again with back-off, for up to 30 minutes; the MCP tools wait a bounded time and then answer
+<code>status: committing</code>). Commit latency is the tape write window plus verification: on the standing deployment
+(<code>tape_write_max_age_ms</code> 2 min) a version is readable about 2 minutes after its put. Measured on the simulator with
+the standing settings (LTO-9 timing, <code>tape_write_verify</code> FULL, the 60 s idle unload), a lone 4 KiB seal was VERIFIED
+170-186 s after it reached the tape node: the 120 s window, then a remount each time (robot 8 s, load 15 s, label
+check 3 s, space to EOD 2 s; the 60 s idle unload was shorter than the window, so the volume was always unloaded by
+then), the write and the read-back of its container (2 MiB: one data record and the tail; containers are not
+padded, TAPE-FORMAT §2). Since OUT-110 (2026-10-15, <code>tape_unload_hold_for_writes</code>) a drive keeps the OPEN volume of
+queued writes until their session and lingers 10 minutes (or the window, if longer) after one, so the remount is
+gone: about window + 12 s (table below).</p>
+<p><strong>The <code>tape_write_max_age_ms</code> trade-off (owner input; simulator, standing settings, <code>TapeWriteHoldTest#tapeWriteMaxAgeTradeOff</code>).</strong>
+One 4 KiB write every 3 minutes (the canary) for an hour, two drives, a clock at 40x: the latencies carry the host's
+own time 40 times (about 4-5 s here; at 200x the 120 s rows read 152 s and 180 s), so at real time expect about
+128 s with the hold and about 151 s without it for the 120 s window (extrapolated, not measured at 1x). Mounts,
+sessions and drive time do not depend on the scale.</p>
+<table>
+<thead>
+<tr>
+<th><code>tape_write_max_age_ms</code></th>
+<th>sessions/h</th>
+<th>1.3 (no hold): mounts/h, drive busy s/h, seal to VERIFIED median</th>
+<th>with the hold: mounts/h, drive busy s/h, seal to VERIFIED median</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>30 s</td>
+<td>20</td>
+<td>19, 1,080, 64 s</td>
+<td>0, 164, 43 s</td>
+</tr>
+<tr>
+<td>60 s</td>
+<td>20</td>
+<td>20, 1,144, 99 s</td>
+<td>0, 158, 73 s</td>
+</tr>
+<tr>
+<td>120 s (standing)</td>
+<td>20</td>
+<td>20, 1,138, 157 s</td>
+<td>0, 149, 133 s</td>
+</tr>
+<tr>
+<td>300 s</td>
+<td>10</td>
+<td>10, 583, 334 s</td>
+<td>0, 96, 310 s</td>
+</tr>
+<tr>
+<td>900 s (code default)</td>
+<td>4</td>
+<td>4, 256, 585 s</td>
+<td>0, 60, 558 s</td>
+</tr>
+</tbody>
+</table>
+<p>A write a minute, with the hold: 30 s window 60 sessions/h, 421 s drive busy, median 40 s; 120 s window 24
+sessions, 241 s, median 74 s; 900 s window 4 sessions, 141 s, median 520 s; 0 mounts in each.</p>
+<p>What the window buys now. Read-after-write is about the window plus one session (~12 s here: the label check's
+rewind, space to EOD, the records and a filemark, the locate back and the read-back). With the hold it no longer
+buys fewer mounts (0 at every window up to the linger), and it never buys container fill: every seal is its own
+container (2 MiB on tape for a 4 KiB write at any window; a session takes several containers but merges none). It
+buys fewer sessions, about 7.5 s of drive time each (the canary at 120 s: 149 s of drive time an hour, 4% of one
+drive; at 30 s: 164 s), and fewer label checks and filemarks. Not measured here and [HW]: the label check rewinds to
+BOT and spaces back to EOD each session, a few seconds near BOT but up to about 200 s on a nearly full LTO-10
+cartridge, which would make short windows cost far more drive time late in a volume's life (OUTSTANDING OUT-110).
+The 120 s standing value is not wrong; with the hold, 30-60 s would bring read-after-write under about a minute at
+a few minutes of drive time an hour. Defaults unchanged: the code's 900 s, the standing deployment's 120 s. Every commit route starts the pump at once and names
+the commit job (core.publish, core.compose since 2026-10-15 (inline and from its job), and the §1a core.commit both
+inline and when its job ends after the RPC answered <code>committing</code>); until 2026-10-15 the §1a commit did neither, so its versions waited for the next 60 s job sweep and
+the standing canary read each new version a near-constant 176.7 s after writing it (its 3-minute round locked to
+that sweep).</p>
+<h3 id="95-shares-on-tape-built-2026-10-14">9.5 Shares on tape (built 2026-10-14)<a class="headerlink" href="#95-shares-on-tape-built-2026-10-14" title="Permanent link">&para;</a></h3>
+<p>With <code>core_place_on_deferred=true</code>, encode on write places a coded block's shares on the sites' disk spools, one per
+failure domain of the collection's placement group, as without tape. The spool pump then archives to each site's tape
+<strong>the share its own failure domain holds</strong> (else the lowest index no tape holds yet, else any index a readable disk
+holder has: a deterministic rule, so a new leader's pump chooses the same), sourced from that disk holder (or a
+PRESENT_VERIFIED tape holder of the same index), and landed by a <code>shares</code> line: never a full copy of a coded block.
+The tape tier therefore holds one share per domain, 1.5x for <code>ec:2+1</code>, as section 9.2 asks. A version commits once
+the tape tier alone can give every block back: a full copy, or k distinct shares, on deferred sites
+(<code>mirroredOnTape</code>). The census and repair count a VERIFIED tape share per failure domain like a disk one; archive
+verification checks a tape share under its own extent id. A block under <code>core_ec_min_block_bytes</code> keeps full copies
+and is archived as one. With every disk copy gone and one site's library away, the data is staged from the other two
+tapes and read byte for byte (<code>EcTapePrimaryTest</code>). Before this, a coded block was never archived (the pump looked for
+a full copy on its disk holders, which hold shares), so an <code>ec</code> version under tape-primary stayed COMMITTING for good.</p>
+<h2 id="10-migration-of-existing-replicated-data">10. Migration of existing replicated data<a class="headerlink" href="#10-migration-of-existing-replicated-data" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Nothing changes silently.</strong> Existing collections keep their recorded policy (<code>replicas:R</code>, or <code>single</code>
+  for scratch caches), because the absence of <code>colRedundancy</code> means exactly that. Switching the default to <code>ec:2+1</code>
+  (2026-10-14) changes what <em>new</em> collections get; no existing collection, profile record or block is re-encoded by an
+  upgrade, and repair keeps their blocks as full copies (<code>EcDefaultClusterTest</code>, the replicas:3 collection beside the
+  default one). The state hashes of everything an older build journaled are unchanged (<code>MetaHashGoldenTest</code>, and the
+  cross-version replay probe <code>HashCompatProbe</code>).</li>
+<li><strong>Moving to EC</strong> is an operator action, <code>core.redundancy op=set to=ec:2+1</code>, per collection or per profile
+  cohort. It is journaled, audited, and refused if it would take durable data below <code>f = 1</code>.</li>
+<li><strong>The re-encode job</strong> (5.2) converts each block whose requirement changed. It reads one verified full
+  copy, writes the missing shares, lands them, and trims full copies <strong>only after</strong> the shares meet
+  the requirement. During conversion the block's <code>f</code> is the maximum of both forms, so protection never
+  dips.</li>
+<li><strong>Copies already on tape.</strong> Extra copies from <code>core.archive</code> become dead space once the full copies
+  are trimmed. They are reclaimed by tape repack under D8 (budgeted GC; volumes above 50 % live are
+  refused for repack).</li>
+<li><strong>Cost.</strong> Per block: read 1x, write 1.5x, reclaim Rx. T5's estimate was about three weeks of
+  background drive time at 3 PB. The test bed measures it, and it is scheduled, not a project.</li>
+</ul>
+<h2 id="11-parameters-the-test-bed-decides">11. Parameters the test bed decides<a class="headerlink" href="#11-parameters-the-test-bed-decides" title="Permanent link">&para;</a></h2>
+<p>Each has a provisional value and is resolved by measurement, never by declaration (standing rule).</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Provisional</th>
+<th>Decided by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stripe mapping: DM-1 or DM-1b</td>
+<td>DM-1</td>
+<td>E-DM1 on the tape simulator (4.2)</td>
+</tr>
+<tr>
+<td><code>ec_min_block_bytes</code></td>
+<td>64 KiB</td>
+<td>per-record overhead against the small-block byte share of the P2 fixtures</td>
+</tr>
+<tr>
+<td>Encode on write, or land as <code>replicas:2</code> and encode later</td>
+<td>encode on write</td>
+<td>ingest MB/s at 80 ms RTT, WAN bytes, spool amplification, time to VERIFIED</td>
+</tr>
+<tr>
+<td>Shares by star, or by chain with node-side encoding</td>
+<td>star</td>
+<td>the same frame and flow sweeps as <code>core_replication</code></td>
+</tr>
+<tr>
+<td>Codec implementation (GF(256) log tables; split-nibble tables; FFM or the Vector API)</td>
+<td>log tables (about 1.6 GB/s per core for RS(2,1) on an M3 Max; 13, item 8)</td>
+<td>CodecBench at 1 MiB and 4 MiB blocks on the HPC cluster and site hosts, all cores, against the rebuild rate</td>
+</tr>
+<tr>
+<td>The generator (on-media format)</td>
+<td>systematic Vandermonde as built: RS(2,1) parity is <code>3·d0 + 2·d1</code>, not XOR</td>
+<td>fixed in MS1 before any share is written: an all-ones first parity row (plain XOR for <code>m = 1</code>) is a different code and a different scheme id, chosen only if the measurement wants it</td>
+</tr>
+<tr>
+<td>Read hedging for <code>ec</code> on disk</td>
+<td>one extra share when late</td>
+<td>p99 read latency on three sites</td>
+</tr>
+<tr>
+<td>Deep-scrub cadence and budget</td>
+<td>monthly (<code>core_deep_scrub_period_ms</code>, 30 days), on the shared maintenance throttle</td>
+<td>failure campaigns</td>
+</tr>
+<tr>
+<td>Repair budgets (drive-seconds, WAN bytes)</td>
+<td>as repair today</td>
+<td>R9 (repair window) and site-loss campaigns</td>
+</tr>
+<tr>
+<td>Spool residency after VERIFIED</td>
+<td>evict under pressure only</td>
+<td>spool size against the hot set</td>
+</tr>
+<tr>
+<td>The code beyond phase one (R7: RS(3,1) at four sites, ...)</td>
+<td>RS(2,1)</td>
+<td>when a fourth domain exists</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-milestones-bottom-up">12. Milestones, bottom-up<a class="headerlink" href="#12-milestones-bottom-up" title="Permanent link">&para;</a></h2>
+<p>Every milestone ends with its tests green and its performance decision recorded, before the next one
+starts. Tests named here are new unless marked.</p>
+<p><strong>MS0. N-DC11 (done on this branch).</strong> <code>PolicyEngineTest.oneCopyOnlyForAScratchOrCacheClass</code>,
+<code>RetentionTest.aOneCopyCollectionStaysScratchOrCache</code>, <code>PolicyProfileTest</code> and <code>CoreServiceAuthTest</code>
+(the core.collection and core.profile refusals), and the model test's expectation (<code>Ops.CreateCollection</code>).</p>
+<p><strong>MS1. The codec and the share format (unit, one node).</strong>
+- <em>Build:</em> <code>BlockShares</code> (core side, <code>io.cresco.gfs.core.ec</code>) over the existing
+  <code>io.cresco.gfs.codec.ReedSolomon</code> and <code>GF256</code> (section 12.1). It splits, pads and encodes one block's
+  ciphertext, decodes from any <code>k</code> shares (trimming to the recorded length), remakes lost shares
+  bit-identically for repair, and checks a complete set for a deep scrub.
+- <em>Unit tests:</em>
+  - every erasure pattern for every <code>(k, m)</code> with <code>k + m ≤ 12</code> (the codec), and for the block codes
+    RS(2,1), RS(3,1), RS(4,2), RS(3,3), RS(5,3) and RS(1, m); RS(2,1) and RS(4,2) at dedup-block sizes
+    (256 KiB, 1 MiB, 4 MiB);
+  - every length from 0 to <code>3k</code>, and lengths around every power of two;
+  - any changed byte in any share, padding included, is detected by the consistency check;
+  - any <code>k</code> rows of the generator are invertible (exhaustive for <code>n ≤ 12</code>);
+  - field axioms for GF(256);
+  - systematic property: the data shares equal the input;
+  - a property test with seeded random inputs and erasures.
+- <em>Component performance decision:</em> CodecBench encode and decode MB/s per core at 1 MiB and 4 MiB for
+  RS(2,1), on the HPC cluster and the site hosts. Decide the generator, which is part of the on-media format: as
+  built, or one whose parity is plain XOR for <code>m = 1</code>. Decide any acceleration (licence filter: shipped
+  code must be open and commercially permissible). The generator is fixed before any share is
+  written.
+- <em>Done on this branch:</em> <code>BlockShares</code>, <code>BlockSharesTest</code> and <code>ReedSolomonTest</code>, which cover every item
+  above, plus a first single-thread measurement (13, item 8). Since 2026-10-07 (branch <code>fix/ec</code>):
+  <code>BlockSharesTest.seededPropertyTest</code> (random <code>k</code> in 1..8 and <code>m</code> in 0..4, lengths at the padding edges and
+  up to 70 KB, random erasures up to <code>m</code>, corrupted shares; <code>-Dgfs.prop.seed</code>, <code>-Dgfs.prop.cases</code>);
+  <code>everyKSubsetOfTheGeneratorIsInvertible</code>, which proves MDS on the generator matrix itself for every code with
+  <code>k + m &lt;= 16</code> (131,038 subsets) and samples codes up to 255 shares; <code>BlockShares.decodeChecked</code>, the subset
+  retry of 4.4 (a block is returned only once it authenticates, and then every present share that differs from
+  its re-encoding is named bad, exactly, whatever <code>m</code> is); and CodecBench's <code>block_shares</code> cells (RS(2,1) and
+  RS(3,1) at 1 MiB and 4 MiB blocks: encode, healthy and degraded read, parity repair, deep scrub, and encode on
+  every thread; <code>CodecBench &lt;mib&gt; &lt;threads&gt; ec</code> runs only these).
+- <em>The generator decision (2026-10-07):</em> <strong>kept as built.</strong> The systematic Vandermonde construction is MDS (proved
+  above), so no Cauchy or XOR construction is needed for correctness. Plain XOR parity for <code>m = 1</code> stays a
+  test-bed option only: it would be a different code, so it would get a new scheme id, never replace this one.
+  Still to do: CodecBench on the HPC cluster and the site hosts (<code>java -cp gfs.jar io.cresco.gfs.bench.CodecBench 256 &lt;cores&gt; ec</code>).</p>
+<p><strong>MS2. Policy, records and survivability (unit).</strong>
+- <em>Build:</em> the <code>Redundancy</code> value (parse, order, <code>f</code>); <code>colRedundancy</code> and the profile <code>redundancy</code> key
+  (journal, replay, snapshot, facts hash); <code>core_default_redundancy</code>; N-DC11 restated as <code>f ≥ 1</code>;
+  requirement recomputation (3.2); <code>BlockTable</code> share index and <code>scheme</code> (<code>CompactBlockTable</code>, spill,
+  cuts, snapshot, replay); the survivability calculator.
+- <em>Unit tests:</em>
+  - <code>PolicyEngineTest</code> and <code>PolicyProfileTest</code> cells for all three modes;
+  - <code>CompactBlockTable</code> round trips with shares, including after a cut, and copy-on-write;
+  - metaHash unchanged for <code>FULL</code>-only records (old journal goldens);
+  - the survivability calculator against brute force for every share pattern on up to 8 domains;
+  - replay of a pre-modes journal (<code>JournalReplayTest</code>).</p>
+<ul>
+<li><em>Done on branch <code>fix/ec</code> (2026-10-07):</em></li>
+<li><code>core.ec.Redundancy</code>: canonical spellings only (<code>single</code>, <code>replicas:R</code>, <code>ec:k+m</code> with k 2..8 and m 1..4;
+    <code>replicas:1</code> is spelled <code>single</code>), <code>f</code>, the 3.2 order (f, then full copies, then fewer data shares),
+    <code>strongest</code>. <strong>Scheme ids are a fixed table in code, not a journaled one:</strong> id = 1 + (k-2)*4 + (m-1) for the
+    systematic Vandermonde code as built (<code>ec:2+1</code> is 1, <code>ec:3+1</code> is 5), ids 29..255 free for another construction.
+    An <code>ec</code> requirement records its id with <code>desired</code> = m+1, its full-copy form. <code>RedundancyTest</code>.</li>
+<li>Policy: <code>PolicyEngine.createCollection(.., Redundancy, ..)</code> records the full-copy form as <code>replication</code>
+    (the <code>collection</code> delta keeps its form) and, for <code>ec</code>, a <code>colRedundancy [collection, spelling]</code> delta in the
+    <strong>same journal batch</strong> (a batch hook, <code>onChangeAll</code>); <code>replicas:R</code> and <code>single</code> record nothing new. N-DC11 is
+    <code>f &gt;= 1</code> for durable. The delta is wave-2: refused before anything changes while <code>core_api_deltas</code> is off
+    (<code>redundancy-needs-api-deltas</code>). Replay (<code>restoreRedundancy</code>) refuses a redundancy whose full-copy form is
+    not the recorded replication. The policy digest adds <code>|&lt;spelling&gt;</code> only to a recorded one. Snapshots carry
+    it in their own phase after the collections. The profile record gains <code>redundancy</code> only when the replication
+    does not say it (built-in records unchanged). <code>core.collection</code> and <code>core.profile op=create</code> take
+    <code>redundancy</code> (with <code>replication</code> as its alias; both given must agree), <code>core_default_redundancy</code> (default
+    <code>replicas:3</code>), and the collection listing and replies show it. <code>RedundancyPolicyTest</code>, <code>PartitionerTest</code>.</li>
+<li>Records: <code>BlockRecord.scheme</code> and <code>BlockRecord.shares</code> (site -&gt; index; absent is <code>FULL</code>), in
+    <code>CompactBlockTable</code> as lazily allocated page arrays (a full-copy page pays nothing) and the side maps past
+    four sites; <code>raiseRequirement</code> by the 3.2 order, <code>setRequirement</code> (a recomputation, may lower); new digest
+    facts <code>e</code> and <code>i</code> only for non-default values. The adopt paths carry the collection's requirement packed in
+    the int that carried a copies count (a count below 256 is scheme 0, so replicas collections are unchanged).
+    <strong>Shares are journaled by a new split op <code>shares</code> (lines domain, block, site, index), not a fourth column of
+    <code>sites</code>:</strong> an older build ignores extra columns and would record a share as a full copy, while an unknown op
+    makes it stop (fail closed). The <code>blk</code> snapshot delta gains fields 9 (scheme) and 10 (shares) only for
+    non-default records. One site holds one thing of a block: recording another index there is refused (the
+    "two shares at one site during a drain" case of section 7 is not built; MS4 decides it).
+    <code>CompactBlockTableShareTest</code>; <code>MetaHashGoldenTest</code> pins the block-table and engine content digests of a
+    full-copy history to the values gfs 1.3 6139767 computes, so existing data hashes and replays unchanged.</li>
+<li>The requirement through an epoch: <code>StorageEngine.requirement(domain, block)</code> is the record's requirement
+    raised by the derived-version floors, recomputed per <code>floorsEpoch</code>, which <code>colRedundancy</code> now bumps too.
+    Lowering a recorded requirement needs the referencing collections of a block; the engine keeps counts, not
+    holders, so it is MS5's re-encode job (see 13, item 9).</li>
+<li><code>core.ec.Survivability</code>: f of a block from its counted holdings (domain, full or index) and k, exact against
+    brute force (<code>SurvivabilityTest</code>, every one-holding pattern on up to 8 domains for RS(2,1), random
+    multi-share patterns), cached per share pattern, with the minimal fatal domain sets.</li>
+<li><code>core.place.PlacementGroups</code> and <code>SharePlacer</code> (13a): groups of k+m distinct domains from seeded
+    permutations of the domain set; an object is pinned to a group by rendezvous on its key, its share roles
+    fixed per object, so a healthy read of one object is k domains (k mounts) at 3, 6 and 12 sites while load
+    spreads across objects; the next whole group takes a block when a member is down; debt (<code>minCopies</code>, never
+    below k, only for "down") as <code>core_place_min_copies</code> does for replicas. <code>PlacementGroupTest</code>. Not yet
+    called by the engine: encode-on-write (MS5) is its first caller.</li>
+</ul>
+<p><strong>MS3. The engine's read path (component).</strong>
+- <em>Build:</em> <code>readBlock</code> for shares (data first, decode, AEAD, subset isolation of a bad share, hedging on
+  disk only); <code>fetchMany</code> by share; staging of <code>k</code> shares from tape.
+- <em>Component tests:</em> MemBinding and FsBinding sites with absent, corrupt, slow and tape-only shares, and
+  every subset; a bad share is never served and is always reported.
+- <em>Performance decision:</em> read MB/s and p99 for <code>ec:2+1</code> against <code>replicas:3</code> on three local sites; the
+  hedge rule.</p>
+<ul>
+<li><em>Done on branch <code>fix/ec</code> (2026-10-07), in part:</em> <code>core.ec.ShareReader</code> (engine-independent: data shares first and
+  concatenated, the next untried share on absence, failure or timeout, a k+1 hedge when the slowest is late,
+  <code>decodeChecked</code> subset isolation, every bad share named, never wrong bytes) and its wiring into
+  <code>StorageEngine.readBlock</code>: a block whose record names a code reads its full copies first (one site), then its
+  shares (<code>readShares</code>, own read pool, CORRUPT reported per bad share). Share extents are
+  <code>extentId(domain, block) + "_s" + i</code> (<code>shareExtentId</code>); the ciphertext length is the block length plus the GCM tag.
+  <code>ShareReaderTest</code> (every absent/failing/corrupt pattern for RS(2,1), RS(3,1), RS(2,2); slow shares with and without
+  a hedge; two holders of one index; random RS(4,2) mixtures) and <code>ShareReadEngineTest</code> (blocks re-encoded by hand on
+  three RAM sites: healthy, each site down, a corrupt share reported, refused when fewer than k good shares are left,
+  replay and snapshot).</li>
+<li><em>Done 2026-10-08 (the rest):</em> staging from tape: a coded block with fewer than k shares readable from disk answers
+  <code>DeferredRead</code> (never a mount on a user read), and <code>core.stage</code> plans exactly the missing shares from deferred
+  holders of other indices, data shares first, one per site; staged shares are read from the recall cache like any
+  holding. The read-ahead window asks each coded block's k data shares and concatenates them; anything missing or
+  wrong falls to the per-block path. Share extent ids are <code>&lt;extentId&gt;_s&lt;i&gt;</code> (every store accepts only
+  <code>[A-Za-z0-9_-]</code>). <code>EcReadPathTest</code>. First measurement (this Mac, three RAM sites, 32 MiB files, the engine's full
+  read path): ec:2+1 about 0.9 GB/s and replicas:3 0.8-1.1 GB/s, p99 per file 38 ms against 30-54 ms: no read cost
+  at RAM speed; the decision belongs to the HPC cluster and site hosts with real latency (hedge rule unchanged: one extra
+  share when the slowest is late).</li>
+</ul>
+<p><strong>MS4. Maintenance per share (component).</strong>
+- <em>Build:</em> repair (rebuild index <code>i</code> from any <code>k</code>; <code>placeFewer</code> by index); trim per failure domain; scrub
+  and deep scrub; census by <code>f</code>; declareLost, drain and restore for shares; fault points for re-encode and
+  share repair.
+- <em>Component tests:</em>
+  - repair after every single-share and double-share loss pattern;
+  - trim never takes a block below its requirement while a requirement rises concurrently (the existing
+    <code>MaintenanceSafetyTest</code> cases for shares);
+  - declareLost refusals with survivors on disk, on tape, and none;
+  - crash cells for every new fault point (<code>FaultPoints</code>, as <code>RecoverLiveIntentTest</code> and the power
+    harness drive them).
+- <em>Done 2026-10-08 (component level, <code>EcMaintenanceTest</code>):</em> blocks whose record names a code are maintained apart
+  from the replica paths (which count copies). Repair rebuilds every index no counted domain holds from any k
+  digest-checked shares (no key) or a full copy, onto a free domain, under an intent whose site tokens name the share
+  (<code>site~s&lt;i&gt;c&lt;code&gt;</code>), recorded by <code>shares</code>; trim removes duplicate indices and the form a requirement no longer
+  needs, each released only if what stays meets it; scrub checks each share's own extent and reclaims a bad share once
+  the rest still decode; <code>deepScrub</code> recomputes the parity (and with m &gt;= 2 locates and reclaims the bad share); the
+  census counts coded blocks by f (<code>codedBlocks</code>, <code>underReplicated</code> when f is short); declareLost counts decodable
+  survivors (<code>LastCopies</code> when they do not decode); drain moves shares; intents, gc and orphan cleanup name share
+  extents. Fault points <code>share.repair.{intent,sealed,landed}</code>, with crash cells. Every single-share loss is repaired,
+  a double loss of ec:2+1 reported unrecoverable (never wrong bytes). Not built: re-encoding between two codes; a site
+  holding two shares of one block (refused).
+- <em>Done 2026-10-14 (deep scrub on the scheduler):</em> a <code>DEEP_SCRUB</code> pass of the maintenance scheduler
+  (<code>core_deep_scrub_period_ms</code>, default 30 days, the provisional monthly cadence; <code>core.maint op=run pass=deep_scrub</code>),
+  resumable by cursor and paced by the shared maintenance throttle (each block's k+m share reads paid before any lock).
+  Its walk is the block table's <code>CODED</code> filter: a page of records holding no share is skipped whole and a full-copy
+  record is never materialized, so a pass costs the coded blocks, not the table (scale rule). Gauges
+  <code>deep_scrub.last_end_ms</code>, <code>deep_scrub.inconsistent</code>. <code>MaintenanceSchedulerTest.theSchedulerDeepScrubsTheCodedBlocksOnlyAndLocatesABadShare</code>.</p>
+<p><strong>MS5. Write paths and mode changes (integration).</strong>
+- <em>Build:</em> encode-on-write in <code>publish</code> and <code>compose</code> (star of shares; chain variant behind a flag); the
+  re-encode job (sliced, throttled, resumable); <code>core.redundancy</code>; small-block replication (4.3).
+- <em>Integration tests:</em>
+  - <code>IntegrationMatrixTest</code> cells: {NONE, COLLECTION, GROUP, GLOBAL} × chunkers × {<code>ec:2+1</code>,
+    <code>replicas:3</code>, <code>single</code>} × {RAM, filesystem};
+  - mixed-mode dedup (one GLOBAL block referenced from <code>ec</code> and <code>replicas:3</code> collections);
+  - migration of a <code>replicas:3</code> corpus to <code>ec:2+1</code> under concurrent publishes and gc;
+  - the model test (<code>EngineModel</code>) extended with modes and <code>core.redundancy</code>; the linearizability test.
+- <em>Performance decision:</em> encode on write against land-then-encode (5.3); star against chain.
+- <em>Done 2026-10-08 (component level, <code>EcMaintenanceTest</code>, <code>EcModeChangeTest</code>):</em> encode on write in <code>store()</code> (every
+  publish path) for an ec collection while <code>core_api_deltas</code> is on (<code>core_ec_encode_on_write</code>, default true): one
+  share per failure domain of the collection's placement group (the object pinned to a group is the collection), a
+  star of shares (the chain is not used for ec collections). Small blocks (<code>core_ec_min_block_bytes</code>, 64 KiB) keep
+  m+1 full copies. Owner question 1, as recommended: with sites down only, <code>core_place_min_shares</code> (default -1: as
+  <code>core_place_min_copies</code>) places at least that many shares, never fewer than k, and the rest is debt repair pays.
+  Re-encode is a repair (<code>core_ec_reencode</code>, default true): an ec block held as full copies is encoded, a coded block
+  whose requirement became full copies is decoded, and a site holding the other form is converted in place (the new
+  extent sealed, then one batch unrecords the old form and records the new, and the intent naming both reclaims the
+  old), so f never dips, also at three sites; fault points <code>reencode.{intent,sealed,landed}</code>, with crash cells.
+  <code>core.redundancy op=get|set</code> (<code>colRedundancySet</code>, wave-2): the collection's positions move class and each of its
+  blocks takes the strongest class still referencing it, raised or lowered (owner question 2, as recommended: position
+  references counted per requirement class, derived and unhashed, a map kept only for blocks referenced under two
+  classes, rebuilt from the holds at a snapshot install; named holders keep their class by name). Not built: the
+  integration matrix cells, mixed-mode GLOBAL dedup under concurrent publishes and gc, the model and linearizability
+  tests with modes, and the test-bed decisions; so the default stays <code>replicas:3</code>.
+- <em>Done 2026-10-14 (integration, branch <code>fix/ec-default</code>):</em>
+  - <code>IntegrationMatrixTest</code>: <code>lifecycleEc</code> (every dedup mode x 64 KiB chunker x locus RAM, file, packed and remote:
+    encode on write, one site holding shares lost and read around, its indices rebuilt on the fourth domain, the
+    surplus trimmed when it returns, a corrupt share read around and scrubbed, deep scrub, journal replay; dedup
+    asserted per block as for replicas), <code>lifecycleEc1M</code> (the 1 MiB default chunkers on 8-48 MB files, RAM and file),
+    <code>mixedModeDedup</code> (GROUP and GLOBAL: one block referenced from an ec:2+1 and a replicas:3 collection is three full
+    copies, the second publish writes nothing; once the replicas:3 referencer is withdrawn the block keeps three
+    copies: a dropped reference never lowers a requirement by itself, only a journaled change does (a mode change, or
+    with <code>core_lower_on_drop</code> trim's <code>reqLower</code>, below), so an old journal replays as written; over-protected, never
+    under), and <code>aReplicatedCorpusMigratesToEcUnderConcurrentPublishesAndGc</code>.
+  - The model (<code>EngineModel</code>, <code>OpGenerator</code>): every third two-copy collection is ec:2+1 (no draw of its own, so
+    collections of both modes share GROUP and GLOBAL domains), a <code>SetRedundancy</code> op (<code>core.redundancy op=set</code>), and the
+    invariants count a coded block by its distinct shares (availability from any k good shares, declareLost by what
+    still decodes, the on-disk census by share extent ids). <code>EngineLinearizabilityTest</code> runs with collection B ec:2+1 in
+    the domain it shares with A.
+  - Through the core service (<code>EcDefaultClusterTest</code>, three Raft peers, §1a ingest): the default, site loss and
+    core.repair, core.redundancy to replicas:3 and back, a leader failover, a replicas:3 collection untouched beside
+    it; the rolling-upgrade window; and a two-domain fabric refusing an ec write.
+  - The default switched: <code>core_default_redundancy=ec:2+1</code>, the imaging profiles ec:2+1 (section 3.1).
+  - Two engine fixes the model with modes found. (1) <strong>Share repair never builds on a bad share</strong>: a share drained off
+    a site was rebuilt from the first k readable shares, one of which had rotted on its medium (a direct read does not
+    check the at-rest digest), so the new share was wrong while its own digest vouched for it and no two shares decoded.
+    Repair now fetches every present share, checks the rebuild against the others, and where they disagree (or only k
+    are present) takes the k-subset whose decoding opens under the block's key (a NONE domain, which has no key at
+    the core: a two-thirds majority when m &gt;= 2, else the k present shares as they are); a share that differs is
+    reported CORRUPT, reclaimed and rebuilt in the same pass; a full-copy source must open too. (2) <strong>Placement at
+    more domains than k+m</strong>: with four domains a whole placement group could be inadmissible (one member down or
+    draining) while three domains were up, and the write was refused; <code>SharePlacer</code> now places on the object's own
+    ranking of the admissible domains before debt or refusal. (3) With the stripe disagreeing, a share that fails its
+    own site's content check is dropped before anything else (a NONE domain with m = 1 has nothing else to go on).
+    (4) A drain with no free failure domain left (k+m+1 domains, one draining) has a second holder of an index (a site
+    back after repair rebuilt its share elsewhere) take the missing index in place. (5) <strong>A read with two holders of
+    one index</strong> never tried the second after the first (rotted) one failed to open: <code>ShareReader</code> now reads one holder
+    per index at a time, keeps a second holder's share as a spare, and swaps it in after a failed open (the holder it
+    replaces is reported bad). (6) <strong>Repair with exactly k shares and no key to check them</strong> (or a key check that
+    fails) content-checks each share at its site first and never builds on one that fails; a full copy used as the
+    source of a re-encode in a domain with no key at the core is content-checked the same way (a rotted single copy
+    was encoded into consistent but wrong shares). (7) <strong>A block stored again</strong>
+    (its recorded holdings no longer give it back) avoids sites holding another form of it (a site holds one thing of
+    a block): with no domain to spare such a write is refused, never recorded over the stale holding. (8) <strong>Repair
+    against a stale page</strong>: a holding another pass converted since the page was read was taken as absent and its new
+    form unrecorded (data loss under concurrent maintenance, seen in the cluster test); repair now reads the record as
+    it is and never infers absence for an extent id it did not ask about. A dropped reference never lowers a
+    requirement by itself (only a journaled change does, so old journals replay as written): with
+    <code>core_lower_on_drop</code> off (the default) the block stays over-protected until a mode change (see the 2026-10-15
+    entry below for the gated lowering). Regressions in <code>model-regressions/ec-*.json</code>.
+  - <strong>One pass converges (fix/ec-converge, 2026-10-15).</strong> The long campaign (<code>EngineModelLongTest</code>, tag model-long,
+    1,500 seeds of 150 operations) failed about 2 % of seeds (29 to 33 of 1,500 in five runs on 1.3 f8c0e13) on <code>INV-LIFECYCLE</code> "a
+    sliced pass did not end where an unsliced one does" for SCRUB, REPAIR or TRIM: a second identical pass over coded
+    blocks still did work. The invariant already covered coded blocks (no exemption); each cause is fixed in the engine,
+    never by running a pass twice: (1) <strong>trim</strong> released the last shares of a block re-encoded to full copies and left
+    its surplus full copy to the next pass: the block is trimmed as a full-copy block in the same slice, as its record
+    now stands; (2) <strong>repair</strong> re-encoded a block to full copies and left its copy on a draining site to the next pass:
+    the converted block goes through the full-copy repair (drain) in the same slice; (3) <strong>scrub</strong> reclaimed a bad share
+    (or a bad full copy of a block being encoded) only after repair, while its site, often the only one of its failure
+    domain, was excluded as a target: a coded block's bad holdings settle before repair when the verified holdings
+    decode it, and a block settled after repair is repaired again in the same slice; (4) <strong>repair</strong> skipped a holding
+    found bad before (by a scrub or a read) but kept it recorded, blocking its domain: with the stripe in hand from
+    trusted holdings it is reclaimed and its site may take what the block owes; (5) <strong>repair</strong> read one holder per
+    index, so a bad first holder made the block unrecoverable until a later pass: second holders stand in. Two
+    data-safety faults found on the way (both on 1.3 too, rarer than the convergence ones and load-dependent, as which
+    holder a read tries first decides whether a corrupt share is already known): (6) a stripe rebuilt from a full copy
+    was never compared with the shares present, and the re-encode then replaced the full copy in place next to a
+    corrupt share, leaving a block that no longer decoded: shares that differ from the full copy's stripe are
+    condemned, targets in new domains are written first, and an in-place replacement goes ahead only if what is known
+    good, with what landed and the in-place forms, still decodes; (7) shares condemned while no stripe could be trusted
+    were reclaimed anyway, leaving a live block with no holding at all: they are kept (suspect), as a scrub keeps a bad
+    copy its block cannot do without. After: 0 failures over the 1,500 seeds in each of 12 campaign runs of the final
+    code (18,000 seed runs; two under a second campaign's load, two with <code>core_lower_on_drop</code> off), and 0 convergence failures over seeds 20001-21500 and 30001-31500 (the one
+    failure left there, seed 20344 <code>INV-REF</code> named holders of a relocation, was outside maintenance: an ended grant
+    re-checked after a restart released copies a still-active scoped grant kept, fixed 2026-10-24 on fix/known-defects;
+    the same run over seeds 10001-15000 found seeds 11927 and 14252, where the model asked k shares on ACTIVE sites
+    with fewer active failure domains than k: the invariant now counts a draining site's share as §8 does). Regressions: <code>model-regressions/ec-one-pass-*.json</code>, <code>ec-inplace-over-unchecked-share-30422.json</code>. The
+    sliced-pass invariant now names each block a second pass changed (before, after the sliced pass, after the second)
+    and what the sliced pass did; <code>-Dgfs.model.trace=true</code> prints every failed seed's trace.
+  - <strong>Over-protection, gated (<code>core_lower_on_drop</code>, 2026-10-15).</strong> A block an ec:2+1 collection shares with a
+    replicas:3 collection stayed at replicas:3 once the replicas:3 collection was withdrawn. With <code>core_lower_on_drop</code>
+    on, trim lowers such a block to the strongest class still referencing it (the per-class reference counts of §3.2:
+    O(1) per block, decided and applied under the engine's monitor, so no commit that raises it interleaves),
+    journaled by the wave-2 delta <code>reqLower</code> (domain, block, packed requirement; routed to the domain's partition);
+    repair then converts the form and trim reclaims the surplus, as after a mode change. Three gates: the key (default
+    off: an owner decision, as <code>core_audit_archive</code>), <code>core_api_deltas</code>, and every voting peer answering the feature
+    <code>rlow1</code> (an older build halts on <code>reqLower</code>; OPERATIONS §13.3). A dropped reference itself still changes nothing,
+    so older journals replay as written and every hash is unchanged while the key is off. <code>EcModeChangeTest</code>
+    covers off, api off, on, once only, re-encode, replay and snapshot install; the model runs with it on
+    (<code>-Dgfs.model.lower=false</code> for off).
+  - <strong>Left as it is: a lost block stored again over its stale share.</strong> With two sites declared lost by force and only
+    three failure domains left, storing again a coded block whose recorded holdings no longer decode it is refused
+    (UNAVAILABLE) rather than written over the stale share a third domain's site still holds (rule 7 above;
+    <code>ec-restore-lost-block-few-domains-10725.json</code>). Writing over it needs the publish path to unrecord the stale
+    holding and record the new share in the commit's batch, and a binding contract for an append over an extent id the
+    site already holds (the same index), which no binding states today. The refusal is safe (fail closed, nothing
+    recorded wrongly) and the caller can retry once a domain returns or after a drain; not built.</p>
+<p><strong>MS6. Tape counts (integration). Partly built (e70b50a and after, see the status at the top): durable placement
+onto tape through the spool pump, counting VERIFIED, and the commit-on-VERIFIED gate, with
+<code>TapeEndToEndTest#tapePrimaryPumpMirrorsCountsAndGatesCommitUntilVerified</code>. Left, as e70b50a lists them: the spool
+eviction policy, repair from tape sources, and declareLost with tape survivors; and the other items below
+(SYNCED counted as claimed, the A4 volatile-medium rule and <code>simulatedDurable</code>, the <code>cache</code> locus role).</strong>
+- <em>Build:</em> durable placement onto tape loci through the spool; counting VERIFIED (and SYNCED under the
+  non-default modes, as claimed); spool eviction; staged repair from tape on positive evidence only;
+  declareLost with tape survivors; the A4 volatile-medium rule and the <code>simulatedDurable</code> test flag; the
+  <code>cache</code> locus role.
+- <em>Integration tests:</em>
+  - the tape simulator and mhVTL (<code>TapeEndToEndTest</code>, <code>TapeFailoverTest</code>, new cells): a publish counts
+    only after VERIFIED;
+  - SYNCED counts as claimed under NONE;
+  - RAM never counts even when attested;
+  - a live-tier copy never counts;
+  - repair never fires on a tape timeout.</p>
+<p><strong>MS7. System tests (three simulated identical sites, several drives and tapes each).</strong>
+- <em>Done 2026-10-14 (crash matrix):</em> <code>CrashScenarios</code> drives <code>share.repair.{intent,sealed,landed}</code> (a site holding shares
+  down, repair rebuilding its indices) and <code>reencode.{intent,sealed,landed}</code> (replicas:3 to ec:2+1, then back, each
+  re-encode cut) in every cut mode (process kill, power loss, prefix, reorder); the <code>publish.*</code> points cut an ec:2+1
+  publish (encode on write) too; <code>trim.reclaimed</code> and <code>scrub.reclaimed</code> add a round of surplus and corrupt shares. The
+  base world of every scenario has an ec:2+1 collection (64 KiB fixed blocks coded, tails as two full copies). The
+  oracle counts a coded block by its distinct shares (O6) and the census by share extent ids (O5). Recovery leaves no
+  lost or wrong data and no open intent. <code>FaultPointsLintTest</code> lists no EC point as pending.
+- All three modes end to end, from the Java and Python clients.
+- <strong>Loss of a whole site and its rebuild from the durable tier alone (P3/P4)</strong>: every dataset recreated
+  bit-identically from tape, with no HPC copy.
+- Media defects.
+- A rolling upgrade across the wire-format change.
+- <strong>E-DM1 decided</strong> (4.2).
+- Failure campaigns as in eval/ (crash matrix, failover, chaos) with modes.
+- Then the HPC cluster runs.</p>
+<p><strong>MS8. Later.</strong> R6 intra-volume RS(j, 4) over parcels on tape; R7 codes when a fourth domain exists;
+DM-1b, if E-DM1 calls for it.</p>
+<h3 id="121-what-ms1-starts-from">12.1 What MS1 starts from<a class="headerlink" href="#121-what-ms1-starts-from" title="Permanent link">&para;</a></h3>
+<p>The repository already has a Reed-Solomon codec: <code>io.cresco.gfs.codec.ReedSolomon</code> and <code>GF256</code>, written in
+house for the prototype path (<code>DurabilityEngine</code>). It uses pure JDK code, no third-party licence, the
+primitive polynomial 0x11d, and the Backblaze construction: a Vandermonde matrix multiplied by the
+inverse of its top <code>k</code> rows, so the code is systematic. That construction is MDS for <code>k + m ≤ 255</code>,
+because any <code>k</code> rows of a Vandermonde matrix with distinct points are independent, and multiplying by an
+invertible matrix keeps them so. It had no unit tests; <code>ReedSolomonTest</code> now covers it, including the
+exhaustive erasure patterns up to twelve shards and a pinned generator. MS1 reuses it rather than writing
+another. It
+lives in a package the prototype path also uses, so retiring the prototype (N-PROTO) must leave
+<code>io.cresco.gfs.codec</code> in place.</p>
+<h2 id="13a-resolved-by-the-owner-2026-10-02">13a. Resolved by the owner (2026-10-02)<a class="headerlink" href="#13a-resolved-by-the-owner-2026-10-02" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Stripe shape (was 13.1/13.2):</strong> DM-1 is the default and is built now; the shape stays a policy knob and the
+  default is confirmed by the E-DM1 tape-sim sweep before hardware. Placement groups (an object pinned to a fixed
+  n-site subset) are built from the start so 3-&gt;6-&gt;12 sites is a config change: a read stays ~k mounts and load
+  spreads. DM-1 is required regardless, because block-level dedup needs the block to be the stripe unit.</li>
+<li><strong>Commit point (was 13.4):</strong> a durable dataset commits only when its copies are VERIFIED on tape. The disk spool
+  is staging, never a counted copy. This needs the async commit job and the two-phase client protocol (MS6 brings
+  it forward; see the milestones). Commit latency is minutes-to-hours by design.</li>
+<li><strong>Imaging profiles (was 13.3):</strong> <code>radiology-dicom</code> and <code>pathology-wsi</code> default to <code>ec:2+1</code> when EC lands.</li>
+<li><strong>Phase-one done:</strong> the acceptance sentence in OWNER-ANSWERS-2026-10-02 (recreate byte-identical from the durable
+  tier alone after a site is destroyed and rebuilt from tape, suite exhaustive).</li>
+</ul>
+<h2 id="13-what-i-am-unsure-of">13. What I am unsure of<a class="headerlink" href="#13-what-i-am-unsure-of" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>The DIRECT-read cost of DM-1.</strong> Two mounts per small tape recall instead of one is a real loss on a
+   mount-bound plant, and SPECIFICATION §8.3 rated DIRECT reads highly. I chose DM-1 for D3 and
+   operational simplicity, and E-DM1 is the gate. If the owner wants DIRECT reads regardless, DM-1b is
+   the design, and its repack and forget become cross-site operations.</li>
+<li><strong>Whether a per-site share of a block is "finer than the dedup block" under D3.</strong> I read D3 as
+   "repack never splits or partially moves a dedup block". Each site's share of a block is moved whole
+   and only together with the block's liveness decision, so I believe DM-1 honours it. If the owner
+   meant "every site holds whole dedup blocks", DM-1 is ruled out and DM-1b is forced.</li>
+<li><strong>The built-in profiles.</strong> Resolved (13a): <code>radiology-dicom</code> and <code>pathology-wsi</code> are <code>ec:2+1</code> (2026-10-14). No
+   separate <code>durable-ec</code> profile: the default itself is ec:2+1.</li>
+<li><strong>The commit point under tape-primary.</strong> I propose commit at <code>f</code> on durable disk spool (9.4), with tape
+   asynchronous. If "the durable tier alone" means nothing is committed until it is VERIFIED on tape,
+   commit latency becomes hours, and the client protocol needs an async commit job.</li>
+<li><strong>The small-block threshold</strong> interacts with the format adapters, which cut kilobyte header blocks so
+   that metadata edits stay small. Replicating those blocks is cheap in bytes but changes how their
+   records are counted. The value and the rule are a test-bed call.</li>
+<li><strong>N-DC11's reach.</strong> I tied one copy to the <code>scratch</code> and <code>cache</code> retention classes <strong>and</strong>
+   <code>durability=cache</code>. A user-defined class (for example, a 30-day "derived" class) cannot hold a single
+   copy. It must use <code>cache</code> (whose TTL <code>core.retention op=define</code> may strengthen) or keep two copies.
+   That is the strict reading of "R = 1 only for scratch or cache classes". Two narrower points stay
+   open: redefining the built-in <code>cache</code> class with a floor is still allowed, and a legal hold on a
+   one-copy collection is deliberately not refused, because a legal obligation overrides storage
+   rules.</li>
+<li><strong>Memory.</strong> About 5 bytes more per block record (7) adds to the heap concern that N-DC6 already
+   addresses.</li>
+<li><strong>The codec's speed on the target hosts.</strong> The existing codec does a log-table multiply per byte. A first
+   single-thread measurement on this Mac (Apple M3 Max, JDK 21.0.5, <code>BlockShares</code> at 1 MiB and 4 MiB
+   blocks) gave about 1.6 GB/s for RS(2,1) encode and degraded decode, 0.8 GB/s for RS(4,2) encode, and
+   memory speed for a healthy decode, which is a concatenation. CodecBench (now with RS(2,1) and RS(3,1)
+   cells) gave about 1.6 GB/s per core at 256 KiB to 2 MiB shares, and about 10.9 GB/s for RS(2,1) encode
+   on 8 threads. That is well above one client's N-WAN target per core. It is not yet measured on the
+   HPC or the site hosts. Section 11 keeps the acceleration question open until CodecBench runs there.</li>
+<li><strong>Lowering a block's requirement (MS5; built as recommended 2026-10-08, see MS5; the default in effect).</strong> The block table keeps reference counts, not holders, so when a
+   collection moves to a weaker mode the engine cannot tell which other collections still reference a block
+   without walking runs. Options: a sliced, cursor-resumed walk of the changed collection's runs that
+   recomputes each block from every referencing run (a scan proportional to the data the change touches, plus
+   finding the other referencers), or a small per-block count of references by redundancy class kept next to
+   <code>refs</code> (a few bytes per record, O(1) to lower). I lean to the second; it is an owner and engineering call.</li>
+<li><strong>Writes with a site down under <code>ec:2+1</code> (owner question, 2026-10-07; built as recommended 2026-10-08, see MS5; the default in effect: <code>core_place_min_shares=-1</code>).</strong> With one of three sites down, should
+   an <code>ec:2+1</code> write continue with two shares as recorded debt (readable, f = 0 until repair adds the third,
+   as <code>core_place_min_copies</code> does for replicas), or be refused? Recommended: continue as debt behind a key,
+   default as the deployment's <code>core_place_min_copies</code> (the standing deployment runs 2 of 3). <code>SharePlacer</code>
+   implements both; the key is wired with encode-on-write (MS5).</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Text licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The GaiaKeep software is not covered by this licence.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

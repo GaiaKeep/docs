@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://gaiakeep.github.io/docs/concepts/deletion-and-repack/">
       
       
-        <link rel="prev" href="../media-and-tape/">
+        <link rel="prev" href="../live-tier/">
       
       
         <link rel="next" href="../panatlas/">
@@ -472,6 +472,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -695,6 +699,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../security/" class="md-nav__link">
         
   
@@ -731,6 +763,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -822,6 +882,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-copies-deletion-has-to-reach-plaintext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live copies: deletion has to reach plaintext
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#retention-built" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -844,10 +915,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#two-tensions-that-must-be-decided-before-any-data-is-written" class="md-nav__link">
+  <a href="#two-tensions-both-decided-by-the-owner-2026-10-02" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two tensions that must be decided before any data is written
+        Two tensions, both decided by the owner (2026-10-02)
       
     </span>
   </a>
@@ -855,10 +926,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-open-items" class="md-nav__link">
+  <a href="#other-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Other open items
+        Other items
       
     </span>
   </a>
@@ -920,6 +991,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1121,6 +1196,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1690,7 +1821,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1806,6 +1937,8 @@
       
         
           
+        
+      
         
       
         
@@ -1981,6 +2114,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2654,6 +2815,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-copies-deletion-has-to-reach-plaintext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live copies: deletion has to reach plaintext
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#retention-built" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2676,10 +2848,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#two-tensions-that-must-be-decided-before-any-data-is-written" class="md-nav__link">
+  <a href="#two-tensions-both-decided-by-the-owner-2026-10-02" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two tensions that must be decided before any data is written
+        Two tensions, both decided by the owner (2026-10-02)
       
     </span>
   </a>
@@ -2687,10 +2859,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-open-items" class="md-nav__link">
+  <a href="#other-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Other open items
+        Other items
       
     </span>
   </a>
@@ -2749,17 +2921,42 @@ is rewritable and repacked over time.</p>
 </tr>
 <tr>
 <td>Status</td>
-<td><strong>Designed</strong>; per-object keys proven in the prototype (E9)</td>
-<td>Retention and reclaim <strong>Built</strong> in the binding</td>
+<td><strong>Built</strong> (1.3): per-object and per-domain keys, <code>core.destroykey</code>, forget, destroying a domain or a tenant</td>
+<td>Retention and reclaim <strong>Built</strong> in the binding; deep delete overwrites pack containers before unlinking (<strong>Built</strong>, 2026-10-02)</td>
 </tr>
 </tbody>
 </table>
 <p>The two differ in speed by about six orders of magnitude, so they are separate operations with
 separate records. Key destruction is the forget for privacy. Physical erasure is how capacity comes
 back. Neither replaces the other.</p>
-<p>Under the proposed deduplication model, a block in a shared domain can be referenced by several
+<p>Under the deduplication model, a block in a shared domain can be referenced by several
 objects, so destroying one object's key can't remove it. Forgetting in a shared domain means
 <strong>reference counting</strong>, then physically removing blocks nobody references.</p>
+<h2 id="live-copies-deletion-has-to-reach-plaintext">Live copies: deletion has to reach plaintext<a class="headerlink" href="#live-copies-deletion-has-to-reach-plaintext" title="Permanent link">&para;</a></h2>
+<p>A key destruction makes durable data unreadable everywhere, but it cannot reach a file on a
+<a href="../live-tier/">live node</a>: live copies are plaintext by owner decision (2026-10-27). So the core keeps a
+journaled inventory of every live copy, and every deletion becomes a <strong>drop</strong> journaled in the same batch as
+its cause: FORGET, a legal order, a withdrawal, a destroy, a pruned version, the end of a grant or of the
+authority that made the copy, lease expiry, eviction or release.</p>
+<ul>
+<li>A drop ends only on the live node's <strong>signed attestation</strong> that the files are gone. A node that cannot
+  delete something reports it stuck; the row stays <strong>unconfirmed</strong> and raises an alarm.</li>
+<li>The lifecycle record keeps the evidence (counts per node, a Merkle root over the attestations, the
+  unconfirmed list) and does not reach <code>CONVERGED</code> while any of its live copies remain.</li>
+<li>A <strong>deep</strong> deletion overwrites each file before unlinking it, and the node claims that coverage only where
+  its operator attested that the live root has no snapshots.</li>
+<li>A pin holds a version against routine pruning, never against FORGET, a legal order, a destroy or a
+  withdrawal.</li>
+<li>Some copies are beyond any drop: copies people made with their own read access, snapshots and backups of
+  the live root, client caches, the page cache and swap. The record's remanence statement lists them.</li>
+</ul>
+<p><strong>Status:</strong> <strong>Built</strong> and tested (2026-10-28, development branch). On the HPC test bed a withdrawal of a
+collection with a live copy ended on the node's attestation with no file left (end-to-end check f1); the
+FORGET check (f2) waits for a second approver to be eligible. On a local fabric (2026-10-28) a FORGET
+converged in 11 s with its path in no live copy and in none of 1,088 audit records. The chaos stage checks
+this after every cycle as invariants I3 and I4 (every end attested; a forgotten path in no live copy and no
+audit record in clear). See
+<a href="../../built/tests/#the-live-tier-and-stability-e18-2026-10-28">Test results</a>.</p>
 <h2 id="retention-built">Retention: built<a class="headerlink" href="#retention-built" title="Permanent link">&para;</a></h2>
 <p>Every binding has <code>retain(extent, until)</code>, which can only extend a floor, and <code>reclaim</code>, the only
 way to remove data, which refuses while a floor stands. Each locus declares how the promise is kept:</p>
@@ -2821,26 +3018,31 @@ cartridge. The cost depends almost entirely on how much of it is still live:</p>
 </table>
 <p>That is an <strong>18× swing</strong> (Modelled). Data that expires together must therefore be written together.
 The write path needs a <strong>retention class</strong> alongside the read-affinity hint it already carries.</p>
-<h2 id="two-tensions-that-must-be-decided-before-any-data-is-written">Two tensions that must be decided before any data is written<a class="headerlink" href="#two-tensions-that-must-be-decided-before-any-data-is-written" title="Permanent link">&para;</a></h2>
+<h2 id="two-tensions-both-decided-by-the-owner-2026-10-02">Two tensions, both decided by the owner (2026-10-02)<a class="headerlink" href="#two-tensions-both-decided-by-the-owner-2026-10-02" title="Permanent link">&para;</a></h2>
 <p><strong>Privacy interleaving works against reclamation grouping.</strong> Mixing different subjects' data in
 each container hides who is in a cohort, but then nothing ever expires as a whole unit. At a 1 %
 yearly withdrawal rate, an interleaved container takes <strong>39 to 98 years</strong> to reach the point where
-repacking pays. Grouping lets containers expire whole but reveals the cohort. This is a
-per-data-class decision (<a href="../../roadmap/open-questions/">D2</a>).</p>
+repacking pays. <strong>Decided (D2): group.</strong> Data that dies together goes onto the same cartridge, so volumes
+die whole; privacy rests on encryption, keyed block ids and sealed metadata, and interleaving is kept only
+for a class whose regulation requires it. <strong>Built</strong> (2026-10-02): a tape volume holds one retention cohort
+(the class and a year bucket of its floor), and a fully dead volume is recycled from the beginning of the
+tape.</p>
 <p><strong>Rewrites must preserve the encryption inputs.</strong> The IV is rebuilt by the reader from the block's
 position counters. A repack that renumbers blocks without re-keying makes every block fail
-authentication, and the read path would report that failure as a <strong>lawful redaction</strong>. The rule a
-rewrite must follow: either preserve the counters and copy ciphertext bit-for-bit, or issue a fresh
-epoch key. Never one without the other (<a href="../../roadmap/open-questions/">D4</a>).</p>
-<h2 id="other-open-items">Other open items<a class="headerlink" href="#other-open-items" title="Permanent link">&para;</a></h2>
+authentication, and the read path would report that failure as a <strong>lawful redaction</strong>. <strong>Decided (D4),
+normative:</strong> a rewrite is either a bit-identical move of the ciphertext or uses a fresh epoch key, never a
+mix. The repack unit is the deduplication block, never finer (D3).</p>
+<h2 id="other-items">Other items<a class="headerlink" href="#other-items" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Repack at whole-fragment granularity or finer. Finer renumbers positions and breaks pinned
-  citations unless designed for.</li>
-<li>Whether tape drives can usefully skip dead regions. The repack cost model differs 3.77× between
-  the two answers, and it is unmeasured.</li>
-<li>Destroying write-once cartridges is an attested two-person act. At a 10 % yearly removal rate on
-  240 cartridges, that is one every 15 days. Who performs it?</li>
-<li>Garbage collection as a budgeted, refusable standing obligation: <strong>Proposed</strong>.</li>
+<li><strong>Repack granularity:</strong> decided (D3): the deduplication block, never finer, so pinned citations keep
+  their positions.</li>
+<li><strong>Whether tape drives can usefully skip dead regions:</strong> a test-bed parameter (D9). The repack cost
+  model differs 3.77× between the two answers; plan for the worst case until it is measured.</li>
+<li><strong>Destroying write-once cartridges</strong> is an attested two-person act. At a 10 % yearly removal rate on
+  240 cartridges, that is one every 15 days. Who performs it is open (D7), and physically destroying real
+  cartridges is not built.</li>
+<li><strong>Garbage collection</strong> as a budgeted, refusable standing obligation: decided (D8: on by default, and
+  repack refused for a volume more than 50 % live) and built with the scheduled maintenance passes.</li>
 </ul>
 
 

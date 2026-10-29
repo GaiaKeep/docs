@@ -472,6 +472,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -695,6 +699,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../security/" class="md-nav__link">
         
   
@@ -731,6 +763,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -909,6 +969,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1110,6 +1174,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1679,7 +1799,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1795,6 +1915,8 @@
       
         
           
+        
+      
         
       
         
@@ -1970,6 +2092,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2738,7 +2888,7 @@ confirm whether it is in the corpus.</p>
 <li><strong>In the design of record</strong> (§19.3), <code>doc_uid</code>, <code>manifest_hash</code> and <code>doc_ids_e8_order.txt</code>
   (2.54 GB of nothing but unkeyed content hashes) are <strong>payload only</strong>. They may appear inside
   encrypted objects, never in on-media structures.</li>
-<li><strong>Under the proposed dedup model</strong>, that rule becomes policy. Public literature, which is most of
+<li><strong>Under the dedup model (built in 1.3)</strong>, that rule becomes policy. Public literature, which is most of
   today's text corpus, could sit in the global domain, where plain content hashes are expected.
   Clinical data can't.</li>
 </ul>

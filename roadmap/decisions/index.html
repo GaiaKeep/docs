@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1588,7 +1708,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1764,6 +1884,8 @@
       
         
       
+        
+      
     
     
     
@@ -1889,6 +2011,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2738,7 +2888,7 @@ what changed and why.</p>
 <td>2026-09-23</td>
 <td>filerepo = local copies, cache, and publishing new versions; advanced caching tier after durable storage</td>
 <td>Owner</td>
-<td>In force</td>
+<td>In force; built as the <a href="../../concepts/live-tier/">live tier</a> (2026-10-28)</td>
 </tr>
 <tr>
 <td>2026-09-23</td>
@@ -2750,31 +2900,31 @@ what changed and why.</p>
 <td>2026-10-02</td>
 <td>Phase one is three identical sites; the default redundancy is erasure coding across them (RS(2,1)-style, 1.5x, survives any one site); durability is per-dataset policy, and all three modes (erasure-coded, three replicas, single copy for scratch or cache only) are supported and tested</td>
 <td>Owner</td>
-<td>In force; erasure coding to build</td>
+<td>In force; built, <code>ec:2+1</code> the default since 2026-10-14</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
 <td>Tape is the primary durable tier, not a backup: the durable tier alone must recreate any dataset and survive the loss of a site; the HPC cluster copy is uncontrolled cache</td>
 <td>Owner</td>
-<td>In force; counting tape copies to build</td>
+<td>In force; built on simulated tape (2026-10-03/04): placement targets tape and a verified tape copy counts</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
 <td>Classes can be marked WORM (keep-forever records; never human-subject data); tape volumes are grouped by retention cohort so they die whole</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built (2026-10-02, extended 2026-10-08)</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
 <td>A legal order to delete always wins: a multi-stage approved path overrides WORM, retention floors and citation pins; maximum-retention classes; quick and deep delete; a withdrawn cited version keeps a stub and gains an alternate version</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built (2026-10-02, extended 2026-10-08); physically destroying real cartridges is still open</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
 <td>One configurable crypto facade across GaiaKeep and Cresco, aligned by FIPS level; drive hardware encryption is a setting (default declined); logical block protection (CRC32C) adopted on tape</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built in part: one fabric-wide crypto policy (2026-10-16), the drive-encryption setting, CRC32C on the tape simulator</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
@@ -2786,7 +2936,7 @@ what changed and why.</p>
 <td>2026-10-02</td>
 <td>Rich human dashboards: where data is and how it is working, down to the block, location and tape type</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; a read-only <a href="../../dashboard/">storage dashboard</a> is built; controls and further views to build</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
@@ -2798,13 +2948,13 @@ what changed and why.</p>
 <td>2026-10-02</td>
 <td>Erasure coding uses one dedup block per stripe (keeps block-level dedup and keeps repack, forget and scrub within a site); a fixed stripe width with placement groups so it scales to more sites; the default stripe shape is confirmed by simulation before any hardware</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built (one stripe per block, placement groups); the simulation of the stripe shape's read cost is open</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
 <td>A durable dataset's ingest is committed only when its copies are verified on tape; the disk staging area never counts as a durable copy; the client submits and then awaits the commit job</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built (a commit job, reads answer <code>COMMITTING</code> until then)</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
@@ -2816,7 +2966,7 @@ what changed and why.</p>
 <td>2026-10-02</td>
 <td>The large-imaging profiles (radiology, pathology) default to erasure coding once the engine lands; full replicas remain selectable per dataset</td>
 <td>Owner</td>
-<td>In force; to build</td>
+<td>In force; built (2026-10-14)</td>
 </tr>
 <tr>
 <td>2026-10-02</td>
@@ -2841,6 +2991,54 @@ what changed and why.</p>
 <td>An ordinary deletion of data a published citation includes is allowed: the citation keeps a verifiable stub where the data was and points to an alternate version without it</td>
 <td>Owner</td>
 <td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-25</td>
+<td><code>main</code> is the development branch of every repository; <code>1.3</code> is the release branch and moves only by fast-forward to a <code>main</code> commit whose CI passed</td>
+<td>Owner</td>
+<td>In force</td>
+</tr>
+<tr>
+<td>2026-10-27</td>
+<td>The caching tier is now called the live tier: committed data as native files near compute, never counted toward durability</td>
+<td>Design, on the owner's decisions</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-27</td>
+<td>Live copies are unencrypted native files: "the durable tier is the only thing that is not native". The core keeps a journaled inventory so that every deletion reaches them</td>
+<td>Owner</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-27</td>
+<td>No early copy: nobody, the writer included, reads a version from the live tier before it commits</td>
+<td>Owner</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-27</td>
+<td>filerepo is a client of the live node, never a storage binding; its unmerged <code>phase0-crypto-baseline</code> commit is rebuilt on filerepo's main line instead of merged</td>
+<td>Default taken under the owner's delegation</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-28</td>
+<td>The live tier needs only a quorum of the core: a core peer that is down counts by its last answer, so copies, extends and pins continue through a core restart or a site roll; drops are never blocked</td>
+<td>Owner</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-28</td>
+<td>A live node still starting, whose host checks wait only for its own agent, answers retryable rather than refused</td>
+<td>Owner</td>
+<td>In force; built</td>
+</tr>
+<tr>
+<td>2026-10-28</td>
+<td>Stability before scale: the system is highly tested (tests, evaluation, chaos cases) and proven stable on the HPC cluster before a much larger FABRIC scale test</td>
+<td>Owner</td>
+<td>In force; the E18 gate, in progress</td>
 </tr>
 </tbody>
 </table>

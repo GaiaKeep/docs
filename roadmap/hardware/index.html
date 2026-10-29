@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1588,7 +1708,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1691,10 +1811,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sizing-3-way-replication-across-three-sites" class="md-nav__link">
+  <a href="#sizing-ec21-across-three-sites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sizing, 3-way replication across three sites
+        Sizing, ec:2+1 across three sites
       
     </span>
   </a>
@@ -1817,6 +1937,8 @@
       
         
           
+        
+      
         
       
         
@@ -1992,6 +2114,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2676,10 +2826,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sizing-3-way-replication-across-three-sites" class="md-nav__link">
+  <a href="#sizing-ec21-across-three-sites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sizing, 3-way replication across three sites
+        Sizing, ec:2+1 across three sites
       
     </span>
   </a>
@@ -2741,9 +2891,10 @@
 <ul>
 <li><strong>Start with a Spectra Stack</strong>, not a Cube. The first library doubles as the instrument that
   measures the constants every throughput figure depends on.</li>
-<li><strong>A few petabytes to start</strong>, replicated, while distribution and encoding mature. The eventual
-  store is petabytes of radiology and pathology imaging.</li>
-<li><strong>Three sites</strong> with 3-way replication.</li>
+<li><strong>A few petabytes to start.</strong> The eventual store is petabytes of radiology and pathology imaging.</li>
+<li><strong>Three identical sites</strong>, with erasure coding <code>ec:2+1</code> as the default redundancy (owner 2026-10-02;
+  the default since 2026-10-14). Full replicas stay a per-dataset choice. The first plan (2026-09-20)
+  was three full replicas; see <a href="../../concepts/durability/">Durability</a>.</li>
 </ul>
 <h2 id="library-facts">Library facts<a class="headerlink" href="#library-facts" title="Permanent link">&para;</a></h2>
 <p>Supplied by Spectra for the <strong>Cube</strong>; figures for the <strong>Stack</strong> are still needed.</p>
@@ -2781,34 +2932,46 @@
 </tr>
 </tbody>
 </table>
-<h2 id="sizing-3-way-replication-across-three-sites">Sizing, 3-way replication across three sites<a class="headerlink" href="#sizing-3-way-replication-across-three-sites" title="Permanent link">&para;</a></h2>
-<p>About 3.43× raw per usable byte (three copies × RS(28,4) inside each volume):</p>
+<h2 id="sizing-ec21-across-three-sites">Sizing, <code>ec:2+1</code> across three sites<a class="headerlink" href="#sizing-ec21-across-three-sites" title="Permanent link">&para;</a></h2>
+<p>Each site holds one share of every coded block: half the usable data, so about 1.5× raw per usable byte
+across the three sites. An intra-volume code on tape such as RS(28,4) is later work; with it, about 1.71×.
+Cartridges per site (<strong>Modelled</strong>: arithmetic only, no slot rounding):</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: right;">Usable</th>
-<th>Per site, PA 40 TB cartridges</th>
-<th>Per site, LA 30 TB cartridges</th>
+<th style="text-align: right;">PA 40 TB</th>
+<th style="text-align: right;">LA 30 TB</th>
+<th style="text-align: right;">PA, with RS(28,4) in each volume</th>
+<th style="text-align: right;">LA, with RS(28,4) in each volume</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: right;">2 PB</td>
-<td>57 cartridges, 70 slots</td>
-<td>76 cartridges, 80 slots</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">39</td>
 </tr>
 <tr>
 <td style="text-align: right;">3 PB</td>
-<td>86 cartridges, 90 slots</td>
-<td>114 cartridges, 120 slots</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">58</td>
 </tr>
 <tr>
 <td style="text-align: right;">5 PB</td>
-<td>143 cartridges, 150 slots</td>
-<td>191 cartridges, 200 slots</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">96</td>
 </tr>
 </tbody>
 </table>
+<p>The first plan's three full replicas with RS(28,4) inside each volume (about 3.43×) needed about twice the
+PA column with RS(28,4): 57, 86 and 143 PA cartridges per site.</p>
 <p>Throughput scales with drive count only up to the robot: about 14 drives per site on scattered
 work. Laying data out so it is read together is worth 4.55× and costs nothing.</p>
 <h2 id="media-la-or-pa">Media: LA or PA<a class="headerlink" href="#media-la-or-pa" title="Permanent link">&para;</a></h2>

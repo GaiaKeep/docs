@@ -472,6 +472,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -830,6 +834,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../security/" class="md-nav__link">
         
   
@@ -866,6 +898,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -953,6 +1013,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1154,6 +1218,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1723,7 +1843,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1839,6 +1959,8 @@
       
         
           
+        
+      
         
       
         
@@ -2014,6 +2136,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2782,11 +2932,12 @@
 
 <h1 id="tenants-collections-and-deduplication">Tenants, collections and deduplication<a class="headerlink" href="#tenants-collections-and-deduplication" title="Permanent link">&para;</a></h1>
 <div class="admonition success">
-<p class="admonition-title">Status: design of record (2026-09-23)</p>
+<p class="admonition-title">Status: built (release 1.3, 2026-10-01)</p>
 <p>The owner set the definitions and the requirement. The mechanism below is the design of record
-(<a href="../../design/TENANCY-AND-DEDUP/">TENANCY-AND-DEDUP.md</a>). Every choice the owner has not made
-explicitly is a <strong>policy setting with a default</strong>, never a constant, so no point on the spectrum
-is closed off. It is <strong>not built yet</strong>.</p>
+(<a href="../../design/TENANCY-AND-DEDUP/">TENANCY-AND-DEDUP.md</a>), and it is <strong>built</strong>: the four modes, sealed
+tenants, grants with withdrawal terms and per-block hashing ship in release 1.3, and the live fabric
+check exercises every deduplication mode. Every choice the owner has not made explicitly is a
+<strong>policy setting with a default</strong>, never a constant, so no point on the spectrum is closed off.</p>
 </div>
 <h2 id="definitions-owner">Definitions (owner)<a class="headerlink" href="#definitions-owner" title="Permanent link">&para;</a></h2>
 <dl>
@@ -2886,7 +3037,7 @@ counter discipline (<code>SegmentCipher</code>).</p>
 </tr>
 <tr>
 <td>Chunker (fixed per domain)</td>
-<td>content-defined; keyed to the tenant for sealed tenants; fixed 64 KiB for NONE</td>
+<td>content-defined, blocks of at least 1 MiB (owner 2026-09-26), with audited format adapters for DICOM, NIfTI and TIFF; keyed to the tenant for sealed tenants</td>
 </tr>
 <tr>
 <td>On withdrawal of referenced data</td>
@@ -2943,9 +3094,9 @@ stands; it means checkpoint collections may choose NONE. It never showed that da
 deduplicate. See the <a href="../../roadmap/decisions/">Decision log</a>.</p>
 <h2 id="still-open">Still open<a class="headerlink" href="#still-open" title="Permanent link">&para;</a></h2>
 <ul>
-<li>The metadata-key IV discipline (S1), to be redone on this model before any media is written.</li>
 <li>How a grant delivers per-block keys at scale.</li>
-<li>Where reference counts live at 10⁹ blocks.</li>
+<li>Reference counts at 10⁹ blocks: the counted block table has been run to 10⁸ blocks, and its on-disk
+  form, behind a page cache, to 10⁷.</li>
 <li>Whether a GROUP can span tenants by agreement (a consortium), or only through grants.</li>
 <li>Chunker parameters, measured on real imaging and text.</li>
 </ul>

@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1345,10 +1465,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caching-tier" class="md-nav__link">
+  <a href="#live-tier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Caching tier
+        Live tier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core stability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous integration
       
     </span>
   </a>
@@ -1701,7 +1843,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1817,6 +1959,8 @@
       
         
           
+        
+      
         
       
         
@@ -1992,6 +2136,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2709,10 +2881,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caching-tier" class="md-nav__link">
+  <a href="#live-tier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Caching tier
+        Live tier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core stability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous integration
       
     </span>
   </a>
@@ -2738,9 +2932,11 @@
 
 <h1 id="status-at-a-glance">Status at a glance<a class="headerlink" href="#status-at-a-glance" title="Permanent link">&para;</a></h1>
 <p>Every component is labelled <strong>Proven</strong>, <strong>Built</strong>, <strong>Designed</strong>, <strong>Proposed</strong> or <strong>Open</strong>; the
-<a href="../../">home page</a> defines them. Updated <strong>2026-10-01</strong>, after <a href="../release-1-3/">release 1.3</a>:
-<code>GaiaKeep/gfs</code> <code>1.3</code> at <code>8461e1a</code>, with CI green on 2,188 core tests. Details are in
-<a href="../tests/">Test results</a> and <a href="../benchmarks/">Benchmarks</a>.</p>
+<a href="../../">home page</a> defines them. The base is <a href="../release-1-3/">release 1.3</a> (2026-10-01:
+<code>GaiaKeep/gfs</code> <code>1.3</code> at <code>8461e1a</code>, CI green on 2,188 core tests). Rows changed since carry their date:
+erasure coding became the default on 2026-10-14, and the <a href="#live-tier">live tier</a> and
+<a href="#core-stability">core stability</a> sections are as of <strong>2026-10-28</strong>, on the development branch, not yet merged
+or released. Details are in <a href="../tests/">Test results</a> and <a href="../benchmarks/">Benchmarks</a>.</p>
 <div class="admonition success">
 <p class="admonition-title">Release 1.3: the durable storage core, validated on the HPC cluster</p>
 <p>The secured build passes the live fabric check <strong>88/88</strong> on the HPC cluster. That build has
@@ -2841,9 +3037,24 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <td>70 lifecycle tests</td>
 </tr>
 <tr>
-<td>Erasure coding reached by repack</td>
-<td><strong>Designed</strong></td>
-<td></td>
+<td>Erasure coding <code>ec:2+1</code> (RS(2,1), one share per site, one stripe per dedup block), the default for new collections since 2026-10-14; <code>replicas:R</code> and <code>single</code> per dataset</td>
+<td><strong>Built</strong> and tested</td>
+<td>integration-matrix cells for every dedup mode, model and linearizability tests with modes, a three-peer cluster test; all 15 erasure-coding crash cells pass on a live local fabric (2026-10-16)</td>
+</tr>
+<tr>
+<td>Changing a collection's mode in place (<code>core.redundancy op=set</code>: repair re-encodes, trim reclaims)</td>
+<td><strong>Built</strong> and tested</td>
+<td>existing collections keep their mode on upgrade</td>
+</tr>
+<tr>
+<td>Coded blocks with tape as the primary tier: each site's share archived, a coded version commits on VERIFIED</td>
+<td><strong>Built</strong> and tested on simulated tape</td>
+<td>read back byte for byte from any two of the three tapes with every disk copy gone (2026-10-14)</td>
+</tr>
+<tr>
+<td>Erasure coding still open</td>
+<td><strong>Open</strong></td>
+<td>codec and read measurements on the HPC cluster; crash cells with three core peers and on packed stores; a lost site rebuilt from tape with coded blocks; codes for a fourth site</td>
 </tr>
 </tbody>
 </table>
@@ -2945,8 +3156,8 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 <td><strong>Decided</strong> (owner)</td>
 </tr>
 <tr>
-<td>Sites: three, 3-way replication</td>
-<td><strong>Decided</strong> (owner, sites chosen later)</td>
+<td>Sites: three identical sites; erasure coding <code>ec:2+1</code> by default (about 1.5×, survives any one site)</td>
+<td><strong>Decided</strong> (owner 2026-10-02, sites chosen later); the default since 2026-10-14</td>
 </tr>
 <tr>
 <td>WAN hosts: BBR congestion control</td>
@@ -2962,21 +3173,148 @@ de-identified DICOM re-upload sends 0.79 % of its bytes.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="caching-tier">Caching tier<a class="headerlink" href="#caching-tier" title="Permanent link">&para;</a></h2>
+<h2 id="live-tier">Live tier<a class="headerlink" href="#live-tier" title="Permanent link">&para;</a></h2>
+<p>The caching tier of earlier plans, built as <a href="../../concepts/live-tier/">the live tier</a>. Development branch,
+2026-10-28; the final-build runs of the E18 gate and the 72-hour soak are <strong>in progress</strong>.</p>
 <table>
 <thead>
 <tr>
-<th>Item</th>
+<th>Component</th>
 <th>Status</th>
+<th>Evidence / note</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Advanced caching tier</td>
-<td><strong>Designed</strong>, deliberately <strong>after</strong> durable storage; see <a href="../../roadmap/caching-tier/">The caching tier</a></td>
+<td>Journaled inventory of live copies; the feature gate; guards that keep live copies from ever counting</td>
+<td><strong>Built</strong> and tested</td>
+<td>inventory, gate and never-counted tests; about 250 live-tier unit and cluster tests in CI</td>
+</tr>
+<tr>
+<td><code>realise</code>, <code>prospect</code>, holds (lease, extend, pin), drops, admissions</td>
+<td><strong>Proven</strong> on the HPC test bed</td>
+<td>end-to-end checks 14 PASS, 0 FAIL, 1 SKIP (build <code>88f086d6</code>, 2026-10-28)</td>
+</tr>
+<tr>
+<td>No early copy, the writer included</td>
+<td><strong>Proven</strong> on the HPC test bed</td>
+<td>no row and no file while the version was committing (14 looks), then the committed bytes</td>
+</tr>
+<tr>
+<td>Sealed node streams (AES-256-GCM); nothing in plaintext over a broker</td>
+<td><strong>Built</strong> and tested</td>
+<td>wire-confinement test captures every frame and message</td>
+</tr>
+<tr>
+<td>Deletion reaches every live copy and ends on a signed attestation</td>
+<td><strong>Proven</strong> for a withdrawal on the HPC test bed; FORGET tested on a local fabric</td>
+<td>a FORGET converged in 11 s with its path in no live copy and no audit record (local, 2026-10-28); FORGET on the test bed waits for an eligible second approver</td>
+</tr>
+<tr>
+<td>Inventory matches the disk; reconciliation, orphans, adoption after a leader change</td>
+<td><strong>Built</strong> and tested</td>
+<td>invariant I1 after every chaos cycle and every model step</td>
+</tr>
+<tr>
+<td>Crash recovery at the six live-tier crash points</td>
+<td><strong>Proven</strong> on an HPC validation deployment</td>
+<td>6/6 cells, 8/8 checks each, recovered in 34–69 s with no operator action (2026-10-28)</td>
+</tr>
+<tr>
+<td>Workspaces published as new versions (<code>core.livepublish</code>)</td>
+<td><strong>Built</strong> and tested</td>
+<td>publish tests; cost follows the changed files</td>
+</tr>
+<tr>
+<td>Live host checks; filerepo's guard verb</td>
+<td><strong>Proven</strong> on the HPC test bed</td>
+<td>check g: host checks ok, link protection attested, evidence re-gathered on the node</td>
+</tr>
+<tr>
+<td>Clients: Java, Python, command line, MCP; local copies first</td>
+<td><strong>Built</strong> and tested</td>
+<td>conformance vectors both clients and the core check</td>
+</tr>
+<tr>
+<td>filerepo as a client of the live node</td>
+<td><strong>Proven</strong> on the HPC test bed</td>
+<td>live-backed repository reports <code>LIVE</code>, refuses serving and files under the live root</td>
+</tr>
+<tr>
+<td>Model-based test of the live tier and the core (LT-M1)</td>
+<td><strong>Built</strong>, in every CI run</td>
+<td>24 seeds × 100 steps per run; a 300 × 200 nightly as a batch job on the cluster, submitted by hand so far</td>
+</tr>
+<tr>
+<td>Realise throughput</td>
+<td><strong>Built</strong>; measured, and open work</td>
+<td>84.5 MB/s on 1 flow, 192–206 MB/s on 4 flows, well below the node leg; see <a href="../benchmarks/#live-tier-realise-hpc-2026-10-28">Benchmarks</a></td>
+</tr>
+<tr>
+<td>The test deployment's live node</td>
+<td><strong>Built</strong>, test configuration only</td>
+<td>it runs shared-user (compute jobs run as the agent's user) and reports itself as not production</td>
 </tr>
 </tbody>
 </table>
+<h2 id="core-stability">Core stability<a class="headerlink" href="#core-stability" title="Permanent link">&para;</a></h2>
+<p>Development branch, 2026-10-28. See <a href="../../concepts/stops-and-restarts/">Stops, restarts and slow disks</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Status</th>
+<th>Evidence / note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A slow disk never costs the leadership; disk work off the raft lock's hot paths</td>
+<td><strong>Built</strong> and tested</td>
+<td>follower stalls of 2.8–17.7 s caused no election (local fabric, E18 LT-C2)</td>
+</tr>
+<tr>
+<td>A cap on the unsynced backlog (64 MiB); a stuck disk hands over only to peers shown healthy</td>
+<td><strong>Built</strong> and tested</td>
+<td>raft stall tests; ordered waiting proposals</td>
+</tr>
+<tr>
+<td>A planned stop hands over and fails no client call; <code>outcome_unknown</code>; safe resends</td>
+<td><strong>Built</strong> and tested</td>
+<td>10 planned stops, 0 failed calls, hand-over 0.726–0.740 s (local fabric, E18 LT-C3, 2026-10-28); HPC test bed in progress</td>
+</tr>
+<tr>
+<td>The process exits on SIGTERM; the stop is bounded; a new instance never shares the old one's files</td>
+<td><strong>Built</strong> and tested</td>
+<td>processes out by themselves in 3.34–3.86 s (was killed at 60 s)</td>
+</tr>
+<tr>
+<td>A write survives a store restarted under it (rolling upgrade)</td>
+<td><strong>Built</strong> and tested</td>
+<td>store-restart tests; HPC test bed in progress</td>
+</tr>
+<tr>
+<td>A signed, boot-fenced departure notice from a stopping store</td>
+<td><strong>Built</strong> and tested</td>
+<td>an earlier boot's notice, delayed or replayed, is ignored</td>
+</tr>
+<tr>
+<td>Memory pressure beside a core</td>
+<td><strong>Built</strong> and tested</td>
+<td>a 768 MiB hog for 31–86 s caused no election (local fabric, E18 LT-C4)</td>
+</tr>
+<tr>
+<td>The 72-hour soak (E18 LT-S1)</td>
+<td><strong>Open</strong>: in progress</td>
+<td>a 58-minute local mini-soak held every invariant but missed the canary criterion once (a tape commit past 180 s)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="continuous-integration">Continuous integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
+<p>CI runs on the HPC cluster as batch jobs, never on GitHub Actions (owner decision 2026-10-02): every head of
+<code>main</code> and <code>1.3</code> is tested and the result posted as a commit status. Since 2026-10-25 <code>main</code> is the development
+branch and <code>1.3</code> moves only by fast-forward to a <code>main</code> commit whose CI passed. CI on the live tier's merged
+tree (its first four milestones) ran green with 3,052 tests on 2026-10-28. See <a href="../harnesses/#continuous-integration">Running the tests</a>.</p>
 
 
 

@@ -16,7 +16,7 @@
         <link rel="prev" href="../placements/">
       
       
-        <link rel="next" href="../lifecycle/">
+        <link rel="next" href="../live-tier/">
       
       
         
@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -815,6 +875,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1114,10 +1178,77 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#site-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Site history
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1679,7 +1810,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1795,6 +1926,8 @@
       
         
           
+        
+      
         
       
         
@@ -1970,6 +2103,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2675,6 +2836,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#site-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Site history
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2700,6 +2872,7 @@
 this page shows, including how many nodes are waiting for admission.</p>
 <h2 id="storage-nodes">Storage nodes<a class="headerlink" href="#storage-nodes" title="Permanent link">&para;</a></h2>
 <p>One row per node, from the paged registry (<code>core.node op=list</code>, 500 per page, read as system-admin or auditor):</p>
+<p><img alt="Storage media while a store restarts on purpose: the store shows DEPARTING (it announced its stop), not DOWN" src="../../assets/dashboard/media-store-restart.png" /></p>
 <table>
 <thead>
 <tr>
@@ -2783,8 +2956,14 @@ state on the <a href="../placements/">Placements page</a>: tape copies distingui
 byte for byte) from <strong>claimed</strong> (written, not yet read back).</p>
 </div>
 <h2 id="disk-and-pack-stores">Disk and pack stores<a class="headerlink" href="#disk-and-pack-stores" title="Permanent link">&para;</a></h2>
-<p>Per-container detail for the packed stores (containers and live fraction) is not served by the core yet — the
-design record's open item S-4. Free bytes, copies and barrier evidence per node are in the registry above.</p>
+<p>Per site, the packed stores' containers (<code>core.site op=containers</code>, 200 per page, observer, auditor or
+system-admin; added 2026-10-08): each container with its live bytes and live copies as the core's references
+record them. Free bytes, copies and barrier evidence per node are in the registry above.</p>
+<h2 id="site-history">Site history<a class="headerlink" href="#site-history" title="Permanent link">&para;</a></h2>
+<p>The leader journals every state and up/down change of each storage node; the page lists them newest first
+(<code>core.site op=events</code>), and the <a href="../overview/">Overview</a> shows the latest eight.</p>
+<p>With more storage nodes than the inline limit (64), the core reports counts only and this page pages the
+node list.</p>
 
 
 

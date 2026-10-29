@@ -472,6 +472,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -775,6 +779,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../security/" class="md-nav__link">
         
   
@@ -811,6 +843,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -898,6 +958,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1099,6 +1163,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1668,7 +1788,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1784,6 +1904,8 @@
       
         
           
+        
+      
         
       
         
@@ -1959,6 +2081,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -2688,12 +2838,13 @@ Cresco dashboard's Storage tab) and nothing else.</p>
 </ul>
 <h2 id="what-the-system-does">What the system does<a class="headerlink" href="#what-the-system-does" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Stores versioned datasets durably</strong>: copies across independent sites, integrity checked,
-   repaired without human action.</li>
+<li><strong>Stores versioned datasets durably</strong>: erasure-coded shares or copies across independent sites,
+   integrity checked, repaired without human action.</li>
 <li><strong>Streams any version wherever it is needed</strong>, as a byte stream from whichever copy is cheapest
    at the moment of the request.</li>
 <li><strong>Keeps live copies as caches.</strong> A working copy on a GPU node or at a partner site is a cache of
-   a version, not a second source of truth. The durable, versioned store is the source of truth.</li>
+   a version, not a second source of truth. The durable, versioned store is the source of truth.
+   See <a href="../live-tier/">The live tier</a>.</li>
 <li><strong>Deduplicates at the block level</strong> within whatever scope policy allows, so that a new version
    or a combined dataset stores only what is actually new.</li>
 </ol>

@@ -16,7 +16,7 @@
         <link rel="prev" href="../JOBS-AND-API/">
       
       
-        <link rel="next" href="../PACK-FORMAT/">
+        <link rel="next" href="../DURABILITY-MODES/">
       
       
         
@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1583,7 +1703,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1701,6 +1821,8 @@
       
         
           
+        
+      
         
       
         
@@ -2033,6 +2155,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3217,6 +3367,16 @@ README's metadata-crypto table.</p>
 <td>bound on one append and one snapshot chunk</td>
 </tr>
 <tr>
+<td><code>core_raft_max_unsynced_bytes</code></td>
+<td>67108864 (64 MiB)</td>
+<td>most bytes the log holds staged, not yet written to its disk (reserved under the raft lock; one larger entry alone when nothing else is); beyond it a proposal waits for the sync up to <code>core_raft_stuck_sync_ms</code> (then is refused, retryable) and new writes are answered busy (11); 0: no cap (OPERATIONS §5)</td>
+</tr>
+<tr>
+<td><code>core_raft_stuck_sync_ms</code></td>
+<td>30000</td>
+<td>a leader calls its disk stuck only when one write or fsync of its log has not returned for this long; it then hands over only to followers shown to make entries durable without it (a quorum of them), else rides the stall out; a slow disk never costs the leadership; 0: never (OPERATIONS §5)</td>
+</tr>
+<tr>
 <td><code>core_site_probe_ms</code></td>
 <td>3000</td>
 <td>the leader's own liveness probe of each storage node</td>
@@ -3245,6 +3405,16 @@ README's metadata-crypto table.</p>
 <td><code>core_raft_transfer</code></td>
 <td><code>true</code></td>
 <td>leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (<code>xfer1</code>); off: neither advertised nor sent</td>
+</tr>
+<tr>
+<td><code>core_stop_drain_ms</code></td>
+<td>3000</td>
+<td>a stopping peer refuses new requests at once (12, <code>stopping=true</code>) and lets those it admitted finish for at most this long before it hands over (OUT-111)</td>
+</tr>
+<tr>
+<td><code>core_stop_max_ms</code></td>
+<td>10000</td>
+<td>the stop's drain, hand-over and waits (passes, archives, jobs, probes, the replicated core's hooks, the raft log's sync) share one budget, at most this long and inside the plugin's <code>gfs_stop_max_ms</code> (25000); a sync still running then is left to the log's close, which keeps the directory held until it returns (OUT-111)</td>
 </tr>
 <tr>
 <td><code>core_raft_voter_override</code></td>
@@ -3278,6 +3448,13 @@ README's metadata-crypto table.</p>
 </tr>
 </tbody>
 </table>
+<p><strong>One instance per log directory.</strong> A log directory is held from <code>CoreLog.open</code> until the instance's files are really
+closed (its close's closer, after a write the medium stalled has returned): in the JVM, and on the real filesystem with an
+OS lock on <code>core-log.lock</code> in the directory. A second open waits for the holder at most <code>reopenWaitMs</code> (60 s) and
+refuses (<code>CoreLogRefusal</code>: the core's start fails closed). Review of fix/clean-stop (2026-10-28): a plugin stop past its
+bound left the old instance's log open with staged records; a new instance opened it and acknowledged entries, and the
+old sync's late write replaced them with a valid chain (CleanStopReviewTest). A simulated medium (CrashFs) holds the
+directory only from a close until its files are closed, as an instance abandoned at a simulated power cut never closes.</p>
 <h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
 <p>JUnit: <code>CoreLogTest</code> (torn tails, refusals, compaction, install), <code>RaftCodecTest</code> (forged,
 altered, replayed, stale, misaddressed, oversized, unknown format), <code>RaftSimTest</code> (deterministic

@@ -470,6 +470,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -690,6 +694,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts/security/" class="md-nav__link">
         
   
@@ -726,6 +758,34 @@
     
   
     Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
   
 
     
@@ -813,6 +873,10 @@
       
         
           
+        
+      
+        
+      
         
       
         
@@ -1014,6 +1078,62 @@
     
   
     Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
   
 
     
@@ -1588,7 +1708,7 @@
   <span class="md-ellipsis">
     
   
-    The caching tier
+    The caching tier, now the live tier
   
 
     
@@ -1999,6 +2119,8 @@
       
         
       
+        
+      
     
     
     
@@ -2124,6 +2246,34 @@
     
   
     The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
   
 
     
@@ -3329,7 +3479,7 @@ though it uses paths and sidecar files?</p>
 <p><strong>N6 — Order of bindings to build after FS:</strong> tape, raw NVMe, raw disk, RAM?</p>
 <hr />
 <h2 id="12-the-agent-interface">12. The agent interface<a class="headerlink" href="#12-the-agent-interface" title="Permanent link">&para;</a></h2>
-<p><strong>I1 [NOW] — Confirm the verbs:</strong> <strong>ANSWERED 2026-10-02:</strong> a cache-tier concern, deferred to phase two. <code>prospect</code> (what would it cost to get this version here, by which
+<p><strong>I1 [NOW] — Confirm the verbs:</strong> <strong>ANSWERED 2026-10-02:</strong> a live-tier concern (then called the cache tier), deferred to phase two. <code>prospect</code> (what would it cost to get this version here, by which
 strategy) and <code>realise</code> (the only verb that moves bytes).</p>
 <p><strong>I2 — Should agents be able to move compute to data</strong>, not just data to compute? That requires
 GFS to know about compute locations and schedulers (SLURM on the HPC cluster).</p>
@@ -3346,14 +3496,18 @@ decides priority?</strong> At 100 TB/day scattered the plant is oversubscribed 2
 <p><strong>I8 — Do agents get notified when a realise completes (push), or do they poll?</strong></p>
 <hr />
 <h2 id="13-filerepo">13. filerepo<a class="headerlink" href="#13-filerepo" title="Permanent link">&para;</a></h2>
-<p><strong>F1 — Confirm filerepo's role:</strong> <strong>ANSWERED 2026-09-23:</strong> filerepo = local copies, cache, and publishing new versions; the advanced caching tier comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
+<p><strong>F1 — Confirm filerepo's role:</strong> <strong>ANSWERED 2026-09-23:</strong> filerepo = local copies, cache, and publishing new versions; the advanced caching tier, now the live tier, comes after durable storage (decision log). it materialises local versions (as a cache) and can publish new
 versions, but is no longer primary storage.</p>
 <p><strong>F2 — Should filerepo's <code>phase0-crypto-baseline</code> branch (<code>repostate</code>, <code>clearRepo(force)</code>) merge to
-1.3?</strong></p>
-<p><strong>F3 — Does filerepo become a GFS binding, a GFS client, or both?</strong></p>
+1.3?</strong> <strong>ANSWERED 2026-10-27 (default, under the owner's delegation):</strong> not as written: the commit is inert,
+refuses every non-empty repository and misses edits in place. Its idea (never wipe the only copy; report a
+repository's state by comparison) is rebuilt on <code>main</code> with the live tier (docs/LIVE-TIER.md §12).</p>
+<p><strong>F3 — Does filerepo become a GFS binding, a GFS client, or both?</strong> <strong>ANSWERED 2026-10-27 (default):</strong> a
+client, through the live node on its own agent; never a binding (docs/LIVE-TIER.md §12). The owner decided the
+same day that live copies are unencrypted native files and that the writer gets no early copy (docs/LIVE-TIER.md).</p>
 <hr />
 <h2 id="14-operations">14. Operations<a class="headerlink" href="#14-operations" title="Permanent link">&para;</a></h2>
-<p><strong>O1 [NOW] — Fix the HPC cluster mesh storage path?</strong> <strong>ANSWERED 2026-10-02:</strong> deferred to the phase-two cache tier (node-local store_dir remains the expected answer). Nodes under <code>~/cresco/nodes</code> are on a network
+<p><strong>O1 [NOW] — Fix the HPC cluster mesh storage path?</strong> <strong>ANSWERED 2026-10-02:</strong> deferred to the phase-two live tier (node-local store_dir remains the expected answer). Nodes under <code>~/cresco/nodes</code> are on a network
 filesystem and are now refused durable copies. Point <code>store_dir</code> at node-local storage, or attest?
 <strong>Rec:</strong> node-local; it is also 40× faster.</p>
 <p><strong>O2 — Who operates each site day to day</strong> (media handling, drive swaps, destruction ceremonies)?</p>
