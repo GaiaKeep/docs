@@ -35,6 +35,8 @@ DOCS = [
     ("PACK-FORMAT.md", "Pack container format", "Current",
      "The storage-node container format: fixed blocks, sealed records and repack (shipped in 1.3, 2026-10-01)."),
     # TAPE-FORMAT.md is not published: it is private until the owner decides B4 (the document says so)
+    # LIVE-TIER.md is not published: it is marked private (it describes the security boundary of plaintext on
+    # compute nodes, and says the public site gets a user-facing summary only). concepts/live-tier.md is that summary.
     ("TAPE-SIMULATION.md", "Tape simulation", "Current",
      "The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks."),
     ("FROM-SCRATCH-DECISION.md", "From-scratch decision", "Current",
@@ -75,8 +77,9 @@ DOCS = [
      "erasure-coded prototype shape."),
     ("CORE-PRINCIPLES.md", "Prototype core principles", "Proven (prototype)",
      "The prototype's principles and architecture (2026-09-17)."),
-    ("EVALUATION-PLAN.md", "Evaluation plan", "Proven (prototype)",
-     "Every evaluation check with its method, pass criterion and status."),
+    ("EVALUATION-PLAN.md", "Evaluation plan", "Current",
+     "Every evaluation check with its method, pass criterion and status, from the prototype's E1-E16 to E18, "
+     "the live tier and stability gate before the FABRIC test (2026-10-28)."),
     ("PROTOTYPE.md", "Running the prototype", "Proven (prototype)",
      "How to build, run and evaluate the prototype locally."),
     ("RESULTS.md", "Prototype results", "Proven (prototype)", "Functional results: 99/99."),

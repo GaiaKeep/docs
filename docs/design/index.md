@@ -22,7 +22,7 @@ The engineering documents behind this site, copied from `GaiaKeep/gfs` `docs/` w
 | [Storage research brief](RESEARCH-PROMPT.md) | Historical record | The deep-research prompt on federated archival storage. |
 | [Prototype system report](SYSTEM-REPORT.md) | Proven (prototype) | How the September prototype works and how we know it works: 59/59 claims |
 | [Prototype core principles](CORE-PRINCIPLES.md) | Proven (prototype) | The prototype's principles and architecture (2026-09-17). |
-| [Evaluation plan](EVALUATION-PLAN.md) | Proven (prototype) | Every evaluation check with its method, pass criterion and status. |
+| [Evaluation plan](EVALUATION-PLAN.md) | Current | Every evaluation check with its method, pass criterion and status, from the prototype's E1-E16 to E18, the live tier and stability gate before the FABRIC test (2026-10-28). |
 | [Running the prototype](PROTOTYPE.md) | Proven (prototype) | How to build, run and evaluate the prototype locally. |
 | [Prototype results](RESULTS.md) | Proven (prototype) | Functional results: 99/99. |
 | [Scale results (full)](SCALE-RESULTS.md) | Proven (prototype) | Full scale and performance tables. |

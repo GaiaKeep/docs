@@ -53,10 +53,12 @@ from the page that reaches the end.
   system-admin; cooperative, at safe points). Every accept is the request's own audit record; every
   end is audited (`core.job.end`).
 - Retention: ended jobs are forgotten (`jobForget`) after `core_job_retain_ms` (7 d).
-- Events: `{job_id, seq, state, progress, result | error, ts, sig}` on the stream the request named
+- Events: `{job_id, seq, state, progress, ts, sig}` on the stream the request named
   (`events`), GK-CJSON-1 canonical JSON signed ECDSA P-384 by the core identity, byte for byte the
   clients' golden (`clients/conformance/event-golden-v1.json`, copied to test resources). seq is the
-  leader's term x 10^9 plus a per-job count, so it only rises. core.job stays authoritative.
+  leader's term x 10^9 plus a per-job count, so it only rises. core.job stays authoritative. An end event names
+  the job and its end state only: events cross the broker signed but unsealed, and a result or error can name a path,
+  so the client reads both from core.job (sealed) and asks again if that call times out.
 - `core.status` advertises `jobs-1` and `ingest-1a` in `capabilities`.
 
 ### Ingest by striped parts and a short commit (opmodel §1a)

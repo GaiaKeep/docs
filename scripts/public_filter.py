@@ -19,6 +19,9 @@ SCRUB = [
     (re.compile(r"/Users/[^\s)`'\"\]]+"), "<local workspace path>"),
     (re.compile(r"/home/vbu\d+[^\s)`'\"\]]*"), "<cluster home>"),
     (re.compile(r"/project/ibi-staff[^\s)`'\"\]]*"), "<cluster project storage>"),
+    # the cluster's bare mount points (shared project storage, node-local disk), as prose names them
+    (re.compile(r"(?<![\w./:-])/project\b"), "shared project storage"),
+    (re.compile(r"(?<![\w./:-])/local\b"), "node-local storage"),
     (re.compile(r"\bdgx\.ai\.uky\.edu\b"), "the HPC cluster"),
     (re.compile(r"\bslogin-\d+\b"), "a login node"),
     (re.compile(r"\bvbu\d{3}(_[a-z0-9]+)?\b"), "<cluster account>"),
