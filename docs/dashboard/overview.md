@@ -18,6 +18,8 @@ peer (unsigned: the call carries no tenant data, so it needs no role).
 | **Throughput** | MB/s written to storage nodes and read back, averaged over the last 10 s. |
 | **Jobs** | Jobs running now, open jobs, and uploads open. |
 | **Core log** | The leader's raft log: bytes not yet written to its disk, its sync lag, and how many stuck-disk hand-overs it made. Amber when the sync is slow or the backlog half full, red at the backlog cap or a stuck disk. Shown for a core that reports it. |
+| **Archive memory** | Bytes the tape archive holds in memory, against its budget, and the peak. Red above 90 %. |
+| **Tape pump** | Re-archive work queued, collections waiting for their tape copies, and the number of tape sites. |
 | **Live tier** | Copies, live nodes up of registered, bytes held and drops overdue; links to the [Live tier](live-tier.md) page. Shown for a core with the live tier. |
 
 ## Alarms and notes
@@ -40,6 +42,7 @@ view.
 | Peer / Role / Term | The peer's address, its Raft role (`LEADER`, `FOLLOWER`) and the term it was elected in. A peer in a planned stop shows `STOPPING` (it refuses requests and hands its leadership over), then `RESTARTING`, in blue; only a peer that is silent without having said so shows `NO ANSWER`. |
 | Commit / Applied / Last / Durable / Snapshot | Journal indexes: committed by the quorum, applied to this peer's state, the peer's last, the newest durably on disk, and the newest compacted into a snapshot. |
 | Lag / Last ack | Entries behind the leader, and how long ago the leader heard from the peer. |
+| Apply lag / Quorum | Entries committed but not yet applied on the peer, and the peer's quorum verdict (`OK`, `AT_RISK`, `LOST`). A follower that hears its leader reports OK and defers, so the leader's verdict counts; while a peer restarts after a planned stop, `AT_RISK` is marked planned. |
 | Audit | The peer's audit-log chain state (`ok`, or `lost` — a loss is journaled and must be acknowledged). |
 | Log barrier | The fsync-barrier verdict for this peer's journal (`attested` where the owner has attested the storage). |
 | RTT / Error | Round-trip time of the status call, and the peer's last error, if any. |
@@ -57,6 +60,7 @@ One row per storage node — a site is a failure domain holding a disk node and 
 | Key pinned | Whether the node's key is pinned (a pinned key is refused if the node re-registers with a different one). |
 | Free / Write MB/s / Read est. | What the node reports free, its measured write rate, and the estimated time to a first byte on a read (tape reads ~75 s). |
 | Copies | Live copies held on the node. |
+| Tape pump | For a tape node, the re-archive work queued for its site. |
 | Failures | Recent failures by class (for example `timeout 3`). |
 
 ## Core log (Raft)
@@ -113,6 +117,11 @@ deployment's **measured history** from the standing watchdog's site-loss log: wh
 cancelled job), when it was marked down, when it rejoined and caught up, whether the quorum held and writes
 succeeded throughout, and the canary's byte-identical data check on the versions written across the event. Every
 recorded incident ends `recovered`.
+
+## Site history
+
+The latest eight state and up/down changes of the storage nodes, as the leader journaled them
+(`core.site op=events`), with a link to the full history on [Storage media](media.md#site-history).
 
 ## Dashboard principals
 

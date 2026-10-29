@@ -37,5 +37,6 @@ actions. A chain state of `lost` (a log that lost records the journal anchored) 
 [Overview](overview.md) row and must be acknowledged with `core.auditack`.
 
 !!! note "Search at scale"
-    Searching by principal or action without a time bound needs indexes on (principal, seq) and (action, seq) in
-    the log — the design record's open item S-5.
+    Since 2026-10-08 each audit segment carries a sparse index (principal and collection tags, actions, sequence and
+    time ranges), so the core skips segments that cannot match a search by principal or action. The dashboard
+    keeps its bounded window and pages older records on request.

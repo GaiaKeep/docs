@@ -71,6 +71,7 @@ nav:
       - Placements: dashboard/placements.md
       - Storage media: dashboard/media.md
       - Live tier: dashboard/live-tier.md
+      - Operations: dashboard/operations.md
       - Lifecycle and jobs: dashboard/lifecycle.md
       - Audit: dashboard/audit.md
       - Controls: dashboard/controls.md
@@ -96,6 +97,7 @@ nav:
       - "Format-aware dedup adapters": design/FORMAT-ADAPTERS.md
       - "Jobs and the API": design/JOBS-AND-API.md
       - "The replicated core log": design/CORE-LOG.md
+      - "Durability modes and erasure coding": design/DURABILITY-MODES.md
       - "Pack container format": design/PACK-FORMAT.md
       - "Tape simulation": design/TAPE-SIMULATION.md
       - "From-scratch decision": design/FROM-SCRATCH-DECISION.md
