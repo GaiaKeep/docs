@@ -3,8 +3,8 @@
 *Added 2026-10-28. The page works against a core built with the live tier (the gfs development branch; see
 [The live tier](../concepts/live-tier.md)).*
 
-The live tier's copies, the live nodes that hold them and the rows of the core's inventory: plaintext copies
-of committed versions near compute, which never count toward durability. Like every page, it is read-only and
+The live tier's copies, the live nodes that hold them and the rows of the core's inventory: unencrypted copies
+of the files of committed versions (any type, byte for byte) near compute, which never count toward durability. Like every page, it is read-only and
 every datum comes from a signed core verb under a named profile's role.
 
 ![The Live tier page: tiles for live nodes, copies, bytes held, realising, drops overdue, shared-user nodes, realise jobs and live-tier alarms; the live-node table with the core's probe, what a new realise would be answered, host checks (one node still settling after a restart), budgets and host classes; one page of the core's inventory of live rows](../assets/dashboard/live-tier.png)
@@ -21,7 +21,7 @@ From `core.status` `livetier`, every 10 s in the background (no role needed):
 | **Copies** | Live copies, with the number of workspaces beneath. |
 | **Bytes held** | Bytes the inventory counts at live nodes: planned bytes of copies being made (`REALISING`), `LIVE` copies, and copies being dropped (`DROPPING`). |
 | **Realising** | Copies being made now, with the number being dropped. |
-| **Drops overdue** | Drops not attested within the overdue bound (10 minutes by default), with the number of **unconfirmed** rows. Red when either is not zero: these are plaintext copies the core cannot yet prove gone. |
+| **Drops overdue** | Drops not attested within the overdue bound (10 minutes by default), with the number of **unconfirmed** rows. Red when either is not zero: these are unencrypted copies the core cannot yet prove gone. |
 | **Shared-user nodes** | Live nodes whose compute jobs run as the agent's own user. Amber, labelled *not production*. |
 | **Realise jobs** | Realise jobs running on the leader, and how many requests a copy already there answered (hits). Shown when the leader's own `gfs.livetier.core.*` gauges reach the dashboard. |
 | **Live-tier alarms** | Alarms the leader raised since it started: unconfirmed drops, stuck rows, changed node identities, missing or damaged rows. Amber when not zero. |

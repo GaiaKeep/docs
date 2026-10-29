@@ -43,7 +43,7 @@ flowchart TB
 | Placement engine | Chooses where copies or shares go using measured properties and policy; repairs lost ones | **Built**: measured placement, fail-closed durability, `ec:2+1` shares by default since 2026-10-14, tape as a placement target |
 | Bindings | One interface every storage medium implements | **Built**: filesystem, RAM, pack store, remote storage nodes, tape (simulated drives and virtual drives); raw NVMe and raw disk **Designed** |
 | Replicated core log | The journaled, Raft-replicated log of the core's state: versions, placements, the node registry, jobs, the audit anchors | **Proven** (1.3, the HPC fabric check) |
-| Live tier | Committed versions as plaintext native files on live nodes near compute, in a journaled inventory; workspaces publish new versions; never counted toward durability ([The live tier](live-tier.md)) | **Built** and tested (2026-10-28, development branch); final-build runs in progress |
+| Live tier | Committed versions as unencrypted native files (any type, byte for byte) on live nodes near compute, in a journaled inventory; workspaces publish new versions; never counted toward durability ([The live tier](live-tier.md)) | **Built** and tested (2026-10-28, development branch); final-build runs in progress |
 | Cresco mesh | Transport, identity, tenant isolation, QoS | **Proven** (Cresco 1.3) |
 
 ## Two paths through the system

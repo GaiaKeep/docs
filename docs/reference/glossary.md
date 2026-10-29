@@ -114,7 +114,7 @@
   filesystem (site scope).
 
 **Live tier**
-: Every copy of committed data held as plaintext native files on live nodes near compute, in a journaled
+: Every copy of committed data held as unencrypted native files (the version's real files, any type, byte for byte) on live nodes near compute, in a journaled
   inventory, never counted toward durability. Formerly called the caching tier.
 
 **Locus**

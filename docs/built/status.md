@@ -83,7 +83,7 @@ The caching tier of earlier plans, built as [the live tier](../concepts/live-tie
 | Journaled inventory of live copies; the feature gate; guards that keep live copies from ever counting | **Built** and tested | inventory, gate and never-counted tests; about 250 live-tier unit and cluster tests in CI |
 | `realise`, `prospect`, holds (lease, extend, pin), drops, admissions | **Proven** on the HPC test bed | end-to-end checks 14 PASS, 0 FAIL, 1 SKIP (build `88f086d6`, 2026-10-28) |
 | No early copy, the writer included | **Proven** on the HPC test bed | no row and no file while the version was committing (14 looks), then the committed bytes |
-| Sealed node streams (AES-256-GCM); nothing in plaintext over a broker | **Built** and tested | wire-confinement test captures every frame and message |
+| Sealed node streams (AES-256-GCM); nothing unencrypted over a broker | **Built** and tested | wire-confinement test captures every frame and message |
 | Deletion reaches every live copy and ends on a signed attestation | **Proven** for a withdrawal on the HPC test bed; FORGET tested on a local fabric | a FORGET converged in 11 s with its path in no live copy and no audit record (local, 2026-10-28); FORGET on the test bed waits for an eligible second approver |
 | Inventory matches the disk; reconciliation, orphans, adoption after a leader change | **Built** and tested | invariant I1 after every chaos cycle and every model step |
 | Crash recovery at the six live-tier crash points | **Proven** on an HPC validation deployment | 6/6 cells, 8/8 checks each, recovered in 34–69 s with no operator action (2026-10-28) |

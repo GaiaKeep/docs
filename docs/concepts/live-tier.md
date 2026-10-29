@@ -20,12 +20,14 @@ toward durability: losing all of it loses nothing.
 
 Both were made on 2026-10-27:
 
-- **Live copies are plaintext native files.** Programs read them as they read any file. Encryption ends
-  at the live node; the durable tier stays encrypted.
+- **A live copy is a file system tree of the version's real files, unencrypted.** Every file of the
+  version, of any type (images, scans, model weights, archives, binaries, text), lands byte for byte in an
+  ordinary directory tree on the live node's local disk, so programs open, read and memory-map them like any
+  other files. Encryption ends at the live node; the durable tier stays encrypted.
 - **No early copy.** Nobody reads a version from the live tier before it commits, the writer included.
   For a durable collection under tape-primary, a version commits when its tape copies are verified.
 
-Because a key shred cannot reach a plaintext file, the core keeps a journaled **inventory** of every live
+Because a key shred cannot reach an unencrypted file, the core keeps a journaled **inventory** of every live
 copy. A copy is registered before any byte moves, and every deletion ends only on the live node's signed
 attestation that the files are gone.
 
@@ -63,7 +65,7 @@ A realise is an asynchronous job:
 4. **Stage from tape** where blocks are only on tape, in batches the recall cache can hold.
 5. **Push.** The core, the only place that can decrypt, reads the version through its gated read path and
    streams the files to the node over up to 4 node streams (by default), sealed with AES-256-GCM under keys from a
-   signed key exchange. No file byte, no path and no digest of plaintext crosses a message broker.
+   signed key exchange. No file byte, no path and no digest of file content crosses a message broker.
 6. **Verify and place.** The node writes into a private staging area, checks every file against a keyed
    MAC the core computed as it read it, fsyncs, moves the tree into place and signs a commit attestation.
    The core journals the row `LIVE` only when the node's keyed root equals the one it computed itself.

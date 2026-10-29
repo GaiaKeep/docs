@@ -21,7 +21,7 @@ The system is required to be five things:
 
 | | What it means here |
 |---|---|
-| **Programmatic** | No filesystem and no human interface. Agents ask what something would cost, then ask for it. |
+| **Programmatic** | Agents call the core's verbs as tools: they ask what something would cost, then ask for it. Jobs and tools get a real file system: on a live node a committed version is an ordinary directory tree of its files, any type, read in place. |
 | **Versioned** | Every read names a version. Versions and point-in-time extracts are citable and reproducible. |
 | **Resilient** | Copies in independent failure domains; loss is detected and repaired without intervention. |
 | **Secure** | Encrypted at the origin; storage sites hold only ciphertext; policies scale from full isolation to global sharing. |
@@ -47,7 +47,7 @@ the HPC cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/t
   [Erasure coding](concepts/durability.md) `ec:2+1` across three sites, the default for new collections
   since 2026-10-14. See [Status at a glance](built/status.md).
 - **What is new (2026-10-28, development branch, not yet released).**
-    - **[The live tier](concepts/live-tier.md):** committed versions as plaintext native files on live nodes
+    - **[The live tier](concepts/live-tier.md):** committed versions as unencrypted native files (any type, byte for byte) on live nodes
       near compute, in a journaled inventory, never counted toward durability. No copy before a version
       commits, and every deletion reaches every copy and ends on the node's signed attestation. On the HPC
       test bed: end-to-end checks 14 PASS, 0 FAIL, 1 SKIP, and the six live-tier crash cells pass.

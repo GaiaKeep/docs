@@ -42,7 +42,7 @@ profile. Nothing on the site writes to the core — the Controls tab is a design
 | [Collections](collections.md) | What collections exist, their policies, branches and versions | [Collections](collections.md) |
 | [Placements](placements.md) | Where a file actually is: version → file → block → each copy's site and medium | [Placements](placements.md) |
 | [Storage media](media.md) | The nodes and the media themselves: disk, pack and tape, down to drives and slots | [Storage media](media.md) |
-| [Live tier](live-tier.md) | Plaintext copies near compute: live nodes, their budgets and host checks, the core's inventory of copies | [Live tier](live-tier.md) |
+| [Live tier](live-tier.md) | Unencrypted copies of committed files near compute: live nodes, their budgets and host checks, the core's inventory of copies | [Live tier](live-tier.md) |
 | [Operations](operations.md) | The core's own gauges on every agent, and the memory each message broker needs | [Operations](operations.md) |
 | [Lifecycle & jobs](lifecycle.md) | Retention classes, policy profiles, forget/legal-order proposals, running jobs | [Lifecycle & jobs](lifecycle.md) |
 | [Audit](audit.md) | The core's audit log: who did what, decided how, and why | [Audit](audit.md) |

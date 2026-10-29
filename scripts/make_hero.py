@@ -288,7 +288,7 @@ add(f'<rect x="48" y="{by0}" width="1512" height="{bh}" rx="18" fill="{CYAN}" fi
 text(72, by0 + 30, "LIVE TIER · NATIVE COPIES NEAR COMPUTE", 12.5, CYAN, 700, spacing=2.2)
 text(72, by0 + 56, "Committed versions as ordinary files on live nodes,", 14, TEXT)
 text(72, by0 + 76, "read in place at local-disk speed by GPU jobs and tools", 14, MUTED)
-text(72, by0 + 96, "plaintext by owner decision · never counted toward durability", 12, DIM)
+text(72, by0 + 96, "any file type, unencrypted · never counted toward durability", 12, DIM)
 # the core realises a committed version down through the regional controller to the live nodes
 lx0, ly0 = cx0, core[1] + core[3]
 lpath = f"M{lx0} {ly0}L{nodes['n8'][0]} {nodes['n8'][1]}L{nodes['n8'][0]+1} {by0+14}"
@@ -303,9 +303,13 @@ tiles = [("live node · GPU host", "copy, leased"), ("live node · GPU host", "c
 for i, (t1, t2) in enumerate(tiles):
     tx = 484 + i * 204
     add(f'<rect x="{tx}" y="{by0+18}" width="194" height="76" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="{CYAN}" stroke-opacity="0.55"/>')
+    # a folder holding a tree of files: a live copy is a file system, any file type
+    fx, fy = tx + 14, by0 + 32
+    add(f'<rect x="{fx}" y="{fy}" width="13" height="8" rx="2" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="0.75"/>')
+    add(f'<rect x="{fx}" y="{fy+4}" width="32" height="28" rx="3" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="0.9"/>')
+    add(f'<path d="M{fx+8} {fy+11}V{fy+27}M{fx+8} {fy+15}h6M{fx+8} {fy+21}h6M{fx+8} {fy+27}h6" stroke="{CYAN}" stroke-opacity="0.8" stroke-width="1.3" fill="none"/>')
     for k in range(3):
-        add(f'<rect x="{tx+14+k*4}" y="{by0+32+k*4}" width="24" height="30" rx="3" fill="#0b2a36" stroke="{CYAN}" stroke-opacity="{0.45+0.2*k}"/>')
-    add(f'<path d="M{tx+26} {by0+50}h12M{tx+26} {by0+56}h12M{tx+26} {by0+62}h8" stroke="{CYAN}" stroke-opacity="0.8" stroke-width="1.4"/>')
+        add(f'<rect x="{fx+15}" y="{fy+13+k*6}" width="9" height="4" rx="1" fill="{CYAN}" fill-opacity="{0.35+0.2*k}"/>')
     text(tx + 54, by0 + 50, t1, 12.5, TEXT, 650)
     text(tx + 54, by0 + 70, t2, 12.5, MUTED)
 # what the core guarantees about them
@@ -320,7 +324,7 @@ add(f'<rect x="-5" y="-5" width="10" height="10" rx="2" fill="{CYAN}" filter="ur
 add('</g>')
 
 # ---------------------------------------------------------------- the five properties
-props = [("Programmatic", "no filesystem: agents call tools", VIOLET), ("Versioned", "every read names a version", CYAN),
+props = [("Programmatic", "tools for agents, real files for jobs", VIOLET), ("Versioned", "every read names a version", CYAN),
          ("Resilient", "erasure coded, tape primary", TEAL2), ("Secure", "encrypted at origin, zero trust", AMBER),
          ("Distributed", "federated over the Cresco mesh", GREEN)]
 for i, (t, s, color) in enumerate(props):
