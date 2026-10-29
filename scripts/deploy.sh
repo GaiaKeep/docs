@@ -27,7 +27,16 @@ fi
 SRC="$(git rev-parse --short HEAD)"
 
 echo "== gate 1: secret scan of the whole history (gitleaks)"
-gitleaks git --redact --no-banner --exit-code 1 .
+# every ref of the repository, from its common git directory: in a worktree (.git is a file) a scan of "." reads
+# no commits and passes, which is no gate at all
+COMMON="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+SCAN="$(gitleaks git --redact --no-banner --exit-code 1 --log-opts="--all" "$(dirname "$COMMON")" 2>&1)" || { echo "$SCAN"; exit 1; }
+echo "$SCAN" | tail -2
+N="$(echo "$SCAN" | sed -n 's/.* \([0-9][0-9]*\) commits scanned.*/\1/p' | tail -1)"
+if [[ -z "$N" || "$N" -lt "$(git rev-list --count HEAD)" ]]; then
+  echo "deploy: the secret scan read ${N:-no} commits, fewer than this branch's $(git rev-list --count HEAD): refusing" >&2
+  exit 1
+fi
 
 echo "== gate 2: public-content filter"
 python3 scripts/public_filter.py check docs
