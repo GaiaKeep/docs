@@ -34,7 +34,7 @@ Nothing in phase 1 can be specified exactly until these are answered. See
     - the tape items below that need a real drive.
 
 **Goal:** an agent publishes a versioned dataset into a collection under policy; three sites each
-hold a verified copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
+hold a verified share or copy; one site is lost; the exact version is reconstructed and streamed elsewhere,
 hash-verified, with no human action.
 
 **Placement and bindings**
@@ -62,6 +62,9 @@ hash-verified, with no human action.
 **Redundancy**
 
 - [x] 3-way replication across three sites, with the existing loss detection, repair, scrub and audit reused
+- [x] Erasure coding `ec:2+1`, one stripe per dedup block, the default for new collections since 2026-10-14; `replicas:R` and `single` per dataset; mode changes in place (`core.redundancy op=set`)
+- [x] Coded blocks with tape as the primary tier: each site's share archived, a coded version commits on VERIFIED
+- [ ] Erasure coding measured on the HPC cluster and site hosts; its crash cells with three core peers and on packed stores; a lost site rebuilt from tape with coded blocks
 - [x] Retention classes at write time; garbage collection as a budgeted, refusable obligation
 - [x] Repack with the rewrite rule (preserve counters and copy bit-for-bit, or re-key)
 
@@ -76,7 +79,7 @@ hash-verified, with no human action.
 
 - [x] Metadata-key IV discipline (S1, redone under the dedup model)
 - [x] Idempotency-key lease (S2); lint banning direct low-level encrypt calls (S3)
-- [ ] Per-object wrapping key for the site-key wrap
+- [x] ~~Per-object wrapping key for the site-key wrap~~: the site key went with the prototype path, retired 2026-10-08
 
 ## Phase 2: the live tier
 
@@ -115,8 +118,9 @@ criteria. That build and its configuration are what the FABRIC test deploys. See
 
 ## Phase 3: scale-out
 
-- [ ] Erasure coding reached by repack (RS(3,1) across four sites uses 11.1 % less media than RS(2,1) across three)
-- [ ] Raw NVMe, raw disk and RAM bindings
+- [ ] Codes for a fourth site (RS(3,1) across four sites uses 11.1 % less media than RS(2,1) across three), and an intra-volume code on tape
+- [x] RAM binding (`MemBinding`)
+- [ ] Raw NVMe and raw disk bindings
 - [x] Global deduplication for public data across tenants
 - [ ] Moving computation to data (`realise` with a remote locus), integrated with SLURM
 - [ ] Hardware key custody (HSM) and a FIPS 140-3 validated module for DoD fielding

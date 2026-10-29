@@ -43,7 +43,9 @@ the HPC cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/t
     - **The prototype before it:** 99/99 functional checks, a 240-site federation and a million-file
       index. See [The prototype](built/prototype.md) and [Scale results](built/scale.md).
 - **What is built and tested on simulated hardware.** The tape software path, on a simulator and on
-  virtual drives. Pack containers on storage nodes. See [Status at a glance](built/status.md).
+  virtual drives, with tape as the primary tier. Pack containers on storage nodes.
+  [Erasure coding](concepts/durability.md) `ec:2+1` across three sites, the default for new collections
+  since 2026-10-14. See [Status at a glance](built/status.md).
 - **What is new (2026-10-28, development branch, not yet released).**
     - **[The live tier](concepts/live-tier.md):** committed versions as plaintext native files on live nodes
       near compute, in a journaled inventory, never counted toward durability. No copy before a version
@@ -60,7 +62,7 @@ the HPC cluster. See [Release 1.3](built/release-1-3.md), [Test results](built/t
   deployment, with screenshots and an exhaustive guide to everything it shows:
   [The storage control dashboard](dashboard/index.md).
 - **What is still to be decided and built.** Raw tape I/O on a real drive. Faster reads over links of
-  80 ms and more. Erasure coding. Faster live-tier realises. Merging and releasing the live tier once its
+  80 ms and more. Erasure coding measured on the HPC cluster. Faster live-tier realises. Merging and releasing the live tier once its
   gate passes. See [Remaining work](roadmap/remaining.md) and
   [Open questions](roadmap/open-questions.md).
 

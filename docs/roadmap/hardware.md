@@ -4,9 +4,10 @@
 
 - **Start with a Spectra Stack**, not a Cube. The first library doubles as the instrument that
   measures the constants every throughput figure depends on.
-- **A few petabytes to start**, replicated, while distribution and encoding mature. The eventual
-  store is petabytes of radiology and pathology imaging.
-- **Three sites** with 3-way replication.
+- **A few petabytes to start.** The eventual store is petabytes of radiology and pathology imaging.
+- **Three identical sites**, with erasure coding `ec:2+1` as the default redundancy (owner 2026-10-02;
+  the default since 2026-10-14). Full replicas stay a per-dataset choice. The first plan (2026-09-20)
+  was three full replicas; see [Durability](../concepts/durability.md).
 
 ## Library facts
 
@@ -21,15 +22,20 @@ Supplied by Spectra for the **Cube**; figures for the **Stack** are still needed
 | Form | 42U standalone frame |
 | Compute | **None**: a management controller only (LumOS REST API) |
 
-## Sizing, 3-way replication across three sites
+## Sizing, `ec:2+1` across three sites
 
-About 3.43× raw per usable byte (three copies × RS(28,4) inside each volume):
+Each site holds one share of every coded block: half the usable data, so about 1.5× raw per usable byte
+across the three sites. An intra-volume code on tape such as RS(28,4) is later work; with it, about 1.71×.
+Cartridges per site (**Modelled**: arithmetic only, no slot rounding):
 
-| Usable | Per site, PA 40 TB cartridges | Per site, LA 30 TB cartridges |
-|---:|---|---|
-| 2 PB | 57 cartridges, 70 slots | 76 cartridges, 80 slots |
-| 3 PB | 86 cartridges, 90 slots | 114 cartridges, 120 slots |
-| 5 PB | 143 cartridges, 150 slots | 191 cartridges, 200 slots |
+| Usable | PA 40 TB | LA 30 TB | PA, with RS(28,4) in each volume | LA, with RS(28,4) in each volume |
+|---:|---:|---:|---:|---:|
+| 2 PB | 25 | 34 | 29 | 39 |
+| 3 PB | 38 | 50 | 43 | 58 |
+| 5 PB | 63 | 84 | 72 | 96 |
+
+The first plan's three full replicas with RS(28,4) inside each volume (about 3.43×) needed about twice the
+PA column with RS(28,4): 57, 86 and 143 PA cartridges per site.
 
 Throughput scales with drive count only up to the robot: about 14 drives per site on scattered
 work. Laying data out so it is read together is worth 4.55× and costs nothing.
