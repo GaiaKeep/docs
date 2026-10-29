@@ -32,7 +32,7 @@ echo "== gate 1: secret scan of the whole history (gitleaks)"
 COMMON="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
 SCAN="$(gitleaks git --redact --no-banner --exit-code 1 --log-opts="--all" "$(dirname "$COMMON")" 2>&1)" || { echo "$SCAN"; exit 1; }
 echo "$SCAN" | tail -2
-N="$(echo "$SCAN" | sed -n 's/.* \([0-9][0-9]*\) commits scanned.*/\1/p' | tail -1)"
+N="$(echo "$SCAN" | grep -o '[0-9][0-9]* commits scanned' | grep -o '^[0-9]*' | tail -1)"
 if [[ -z "$N" || "$N" -lt "$(git rev-list --count HEAD)" ]]; then
   echo "deploy: the secret scan read ${N:-no} commits, fewer than this branch's $(git rev-list --count HEAD): refusing" >&2
   exit 1
