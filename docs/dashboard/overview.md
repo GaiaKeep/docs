@@ -10,13 +10,25 @@ peer (unsigned: the call carries no tenant data, so it needs no role).
 | Tile | Meaning |
 |---|---|
 | **Storage core** | The overall verdict — `HEALTHY` when every peer serves and every site is up and `ACTIVE`. The sub-line names the journal format the core writes (`meta format 2`). |
-| **Leader** | Which peer leads the replicated core log, and its Raft term (term 2 · 3/3 peers answer). |
+| **Leader** | Which peer leads the replicated core log, and its Raft term (term 2 · 3/3 peers answer). The sub-line counts peers in a planned stop. |
 | **Commit index** | The newest journal index committed by the quorum, and the worst follower lag in entries. |
-| **Storage nodes** | How many storage nodes are up and how many are not `ACTIVE` (6 / 6 above). |
-| **Live data** | Logical bytes of live data and the number of live blocks in the census. |
+| **Storage nodes** | How many storage nodes are up and how many are not `ACTIVE` (6 / 6 above). Nodes restarting after announcing their stop are counted as planned, in blue, not as down. |
+| **Live data** | Logical bytes of live data and the number of live blocks in the census. "Live" here means blocks some version still references; it is not the [live tier](live-tier.md). |
 | **Copies** | Recorded copies of those blocks, plus how many are under-replicated or unavailable (0 / 0 is the healthy state). |
 | **Throughput** | MB/s written to storage nodes and read back, averaged over the last 10 s. |
 | **Jobs** | Jobs running now, open jobs, and uploads open. |
+| **Core log** | The leader's raft log: bytes not yet written to its disk, its sync lag, and how many stuck-disk hand-overs it made. Amber when the sync is slow or the backlog half full, red at the backlog cap or a stuck disk. Shown for a core that reports it. |
+| **Live tier** | Copies, live nodes up of registered, bytes held and drops overdue; links to the [Live tier](live-tier.md) page. Shown for a core with the live tier. |
+
+## Alarms and notes
+
+Derived on each poll from `core.status`. **Alarms** are health issues: a peer that does not answer, a lost
+quorum, a storage node down, a raft log at its backlog cap or with a stuck disk, writes that ran out of retries,
+live-tier drops overdue or unconfirmed. **Notes** are normal states an operator should know about and never
+count as a health issue: a planned stop, a store restarting after it announced its stop, a slow disk, a
+leadership move and why it happened, bookkeeping. A core peer that stopped on purpose is a note while it
+restarts, and becomes an alarm only if it is not back within the dashboard's grace (180 s). While the leader
+hands over in a planned stop, the status bar says *leader hand-over (planned stop)* rather than *stale*.
 
 ## Core peers (Raft)
 
@@ -25,7 +37,7 @@ view.
 
 | Column | Meaning |
 |---|---|
-| Peer / Role / Term | The peer's address, its Raft role (`LEADER`, `FOLLOWER`) and the term it was elected in. |
+| Peer / Role / Term | The peer's address, its Raft role (`LEADER`, `FOLLOWER`) and the term it was elected in. A peer in a planned stop shows `STOPPING` (it refuses requests and hands its leadership over), then `RESTARTING`, in blue; only a peer that is silent without having said so shows `NO ANSWER`. |
 | Commit / Applied / Last / Durable / Snapshot | Journal indexes: committed by the quorum, applied to this peer's state, the peer's last, the newest durably on disk, and the newest compacted into a snapshot. |
 | Lag / Last ack | Entries behind the leader, and how long ago the leader heard from the peer. |
 | Audit | The peer's audit-log chain state (`ok`, or `lost` — a loss is journaled and must be acknowledged). |
@@ -39,13 +51,37 @@ One row per storage node — a site is a failure domain holding a disk node and 
 | Column | Meaning |
 |---|---|
 | Node / Failure domain / Class | The node's address; the site it lives in; `nfs` (disk), `tape` or `pack`. |
-| State / Up | The node's registration state (`ACTIVE`…) and whether it answers. |
+| State / Up | The node's registration state (`ACTIVE`…) and whether it answers. A store that announced its stop shows `DEPARTING`, in blue: out of service for new writes until its next boot registers. |
 | Durable | Whether what the node acked as stable is known to survive a restart. |
 | Barrier | The fsync-barrier probe verdict (`INDETERMINATE` where the hardware cannot be probed — durability is then attested by the owner, noted in the page's sub-line). |
 | Key pinned | Whether the node's key is pinned (a pinned key is refused if the node re-registers with a different one). |
 | Free / Write MB/s / Read est. | What the node reports free, its measured write rate, and the estimated time to a first byte on a read (tape reads ~75 s). |
 | Copies | Live copies held on the node. |
 | Failures | Recent failures by class (for example `timeout 3`). |
+
+## Core log (Raft)
+
+One row per answering peer, for a core that reports its log's health ([Stops, restarts and slow
+disks](../concepts/stops-and-restarts.md#a-slow-disk-never-costs-the-leadership)):
+
+| Column | Meaning |
+|---|---|
+| Not yet durable / Sync lag | Entries the peer holds that its disk has not made durable, and how long its durable index has not moved while entries wait: amber from 2 s (the core logs a stall report), red at `core_raft_stuck_sync_ms`. |
+| Unsynced / Oldest unsynced | Bytes staged and not yet written, against `core_raft_max_unsynced_bytes` (at the cap the leader answers new writes busy), and the age of the oldest. |
+| Writes parked | Proposals that waited for the log's sync. |
+| Stuck-disk hand-overs / Moves sent, taken, declined | Leadership handed over because the disk was stuck, and leadership transfers in general. |
+| Step-downs / Outcome unknown | Times the peer stepped down, and writes it answered `outcome_unknown` because its leadership ended under them. |
+| Deferred truncations and compactions | Log work left to a later pass rather than done waiting on the disk. |
+
+Under the table, a line per peer says what it is doing: handing over, retired (stopping: it votes but appends
+nothing), and its last hand-over and why.
+
+## Planned stops and restarts
+
+Core peers in a planned stop or restarting after one, and storage nodes that announced their stop, each with
+where clients are being sent. Beneath: writes placed again on other stores, writes that ran out of retries,
+store departures heard and stale ones ignored, stores departing now, and the leader's `outcome_unknown` count.
+A core built before this work says it does not report them.
 
 ## Throughput
 

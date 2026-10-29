@@ -53,6 +53,40 @@ The live encode path (`DurabilityEngine`) makes a **fresh data key for every enc
 stripe index as the counter. It reads each file sequentially, so each (key, stripe) pair is used
 exactly once. Repair rebuilds fragments from ciphertext and never re-encrypts.
 
+## The live tier: plaintext by decision
+
+The [live tier](live-tier.md) puts committed versions on live nodes near compute as **plaintext native
+files** (owner decision, 2026-10-27: "the durable tier is the only thing that is not native"). That moves
+part of the security boundary, so the rest of the design is built around it. **Built** and tested
+(2026-10-28, development branch).
+
+- **Decryption stays in the core.** Storage nodes stay blind and hold ciphertext only. The core decrypts a
+  committed version and sends it to the live node over node streams sealed with AES-256-GCM per frame, under
+  keys from a signed ECDH P-384 exchange (HKDF-SHA-384), with an HMAC-SHA-384 per file. **No file byte, path
+  or digest of plaintext crosses a message broker**; a test captures every frame and message during a
+  realise and a workspace publish and finds none.
+- **Signed both ways, sealed end to end.** Every live verb is a signed, sealed request. Every request to a
+  live node is signed by the core's leader, and every reply by the node's pinned key, including the
+  attestations that end a deletion.
+- **Who decides where plaintext may go.** Only a tenant administrator may admit a collection at a node; a
+  system administrator may only withdraw an admission, since that role grants no data access. An admission
+  is tied to the node's pinned key and lapses if the key changes.
+- **A narrow node principal.** A live node may hold a principal of its own whose only right is to realise, at
+  itself, the collections a tenant administrator bound it to. Every other verb refuses it.
+- **File permissions fail closed.** Copies are read-only, owned by the agent's user, in a group from the
+  node's mapping; with no mapping they are owner-only.
+- **The node checks its host** at start and every 30 s and accepts no new copy while a check fails (see
+  [The live tier](live-tier.md#the-node-checks-its-own-host)).
+
+What this cannot do, stated plainly: on the node, the operating system is the boundary. Root, and anyone
+the operating system lets read the live root, can read live copies, and reads through the filesystem are not
+audited. Copies people make with their own access are beyond any deletion. An encrypted live root, with
+per-tenant keys held by the node, is a deployment option and is not built.
+
+**Restarts are authenticated too.** A storage node's departure notice is signed and bound to its current
+boot; a notice from an earlier boot, delayed or replayed, is ignored
+([Stops, restarts and slow disks](stops-and-restarts.md#a-storage-node-restarted-under-writes)).
+
 ## Known issues and open items
 
 | Item | Severity | Status |

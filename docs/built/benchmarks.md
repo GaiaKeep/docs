@@ -1,6 +1,7 @@
 # Benchmarks
 
-The measurements behind release 1.3. **HPC** means the multi-host runs on the HPC cluster: 4 nodes,
+The measurements behind release 1.3, and the [live tier's](#live-tier-realise-hpc-2026-10-28) first
+(2026-10-28). **HPC** means the multi-host runs on the HPC cluster: 4 nodes,
 the secured build, signed requests and strict node-key pinning. **In-process** means a single JVM on
 one Mac, which is useful for comparing before and after, not as absolute numbers. Raw results are
 under `eval/results/` in the repository.
@@ -44,6 +45,36 @@ three sites).
 **Before 1.3,** an 8 GB publish was one synchronous request that took 28–37 s. Now no request runs
 past 20 s. The 8 GB run on the shipped build used two core peers, with no leader change during the
 ingest.
+
+## Live tier realise (HPC, 2026-10-28)
+
+A [realise](../concepts/live-tier.md) moves a committed version from the durable tier to a live node: each
+block is read from a storage node, decrypted in the core's leader, and pushed to the live node over sealed
+node streams, where every file is verified and placed. Measured on the HPC test deployment, build
+`88f086d6`, with `livebench` (E18 LT-B1):
+
+- **Data:** 4 GB of seeded random data in 8 files, one version, durable at three copies on three sites
+  (disk and simulated tape). Before each cold run the copies at the node were dropped and attested gone, so
+  nothing was a hit or a link. Every run's bytes were checked at the node against SHA-384.
+- **Path:** from the disk stores (on the cluster's shared project storage), through the core leader, to a
+  live node on another host. `prospect` chose `copy-from-disk` with no tape-only bytes.
+
+| Flows | Run | Time | Rate |
+|---:|---:|---:|---:|
+| 1 | cold, first | 47.3 s | 84.5 MB/s |
+| 1 | cold, second | 47.3 s | 84.6 MB/s |
+| 4 | cold, first | 20.9 s | 191.8 MB/s |
+| 4 | cold, second | 19.4 s | 205.7 MB/s |
+| any | warm (a hit) | 0.41 s | nothing moved |
+
+!!! warning "Open: realise throughput"
+    192–206 MB/s on 4 flows is **well below the storage-node leg** measured on 2026-09-26, 733–1,208 MB/s
+    per flow (see [Transport foundation](#transport-foundation-hpc)). Where the time goes (the read from
+    shared storage, the core's decryption, the push, the node's verify and write) is **not yet measured**.
+
+**Not measured yet:** 8 flows (the cores ran at the default cap of 4 flows), and a realise staged from tape
+(the disk copies were present). For context, publishing the 4 GB version took 51.8 s, and its commit, which
+waits for verified copies on the simulated tape libraries, took 32 minutes. Final-build runs: in progress.
 
 ## Replication topology
 

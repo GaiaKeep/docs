@@ -57,8 +57,10 @@ nav:
       - Versioning: concepts/versioning.md
       - Placement and loci: concepts/placement.md
       - Durability and redundancy: concepts/durability.md
+      - Stops, restarts and slow disks: concepts/stops-and-restarts.md
       - Security and cryptography: concepts/security.md
       - Media and tape: concepts/media-and-tape.md
+      - The live tier: concepts/live-tier.md
       - Deletion, retention and repack: concepts/deletion-and-repack.md
       - panAtlas: concepts/panatlas.md
   - Dashboard:
@@ -68,6 +70,7 @@ nav:
       - Collections and versions: dashboard/collections.md
       - Placements: dashboard/placements.md
       - Storage media: dashboard/media.md
+      - Live tier: dashboard/live-tier.md
       - Lifecycle and jobs: dashboard/lifecycle.md
       - Audit: dashboard/audit.md
       - Controls: dashboard/controls.md
@@ -84,7 +87,7 @@ nav:
       - Running the tests: built/harnesses.md
   - Roadmap:
       - Remaining work: roadmap/remaining.md
-      - The caching tier: roadmap/caching-tier.md
+      - The caching tier, now the live tier: roadmap/caching-tier.md
       - Hardware and procurement: roadmap/hardware.md
       - Decision log: roadmap/decisions.md
       - Open questions: roadmap/open-questions.md

@@ -34,9 +34,9 @@ cartridges in total than the best erasure code would:
   downloads are served by the core's replicated log, and the core serves only while a majority
   lease holds ([The replicated core log](../design/CORE-LOG.md)). An isolated site's objects are
   intact and durable, but its API is not serving while the site is disconnected; reads that need
-  the core wait for quorum. Serving objects from an isolated site without the core is **not built**
-  (it is a future goal for the caching tier's stale-read modes; see
-  [The caching tier](../roadmap/caching-tier.md)).
+  the core wait for quorum. Serving objects from an isolated site without the core is **not built**.
+  The [live tier](live-tier.md) does not do it either: live copies are read where they sit, and one
+  site's live copies serving another site is not in its first phase.
 - **Repair is a copy**, not a reconstruction.
 - **A lost site can be rebuilt anywhere**: a new site, a rented rack, disk, or cloud. Under the
   earlier cross-site code, a lost site's pieces could not be re-placed on the surviving sites at
@@ -58,6 +58,27 @@ erase the other replicas.
 | 5 PB | 13.3 PB | 9,259 | ~32 days |
 
 It is background work, and the choice of encoding stays reversible.
+
+## Live copies never count
+
+A copy on a [live node](live-tier.md) is plaintext near compute, made for speed, and it is never a
+durable copy:
+
+- A live node never becomes a site, so no live copy is ever recorded as a copy of a block, and no census,
+  repair, trim, placement or commit check sees one.
+- Placement refuses a live locus even when it is attested, so a misconfiguration cannot make a live root
+  count.
+- The disk copy a site keeps after its tape copy is verified is durable-tier ciphertext, not live tier.
+
+Losing every live copy loses nothing: each can be made again from the durable tier.
+
+## Restarts are not failures
+
+Durability also depends on what happens while the system is restarted. A planned stop of a core peer hands
+the leadership over without failing client calls; a storage node restarted under writes announces its stop
+and the core places writes elsewhere; a slow disk never costs the leadership, and a stuck one hands it over
+only to peers shown healthy. See [Stops, restarts and slow disks](stops-and-restarts.md) (built and tested
+2026-10-28; test-bed runs in progress).
 
 ## What the prototype proves
 

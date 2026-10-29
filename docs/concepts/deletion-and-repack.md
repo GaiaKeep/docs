@@ -24,6 +24,33 @@ Under the proposed deduplication model, a block in a shared domain can be refere
 objects, so destroying one object's key can't remove it. Forgetting in a shared domain means
 **reference counting**, then physically removing blocks nobody references.
 
+## Live copies: deletion has to reach plaintext
+
+A key destruction makes durable data unreadable everywhere, but it cannot reach a file on a
+[live node](live-tier.md): live copies are plaintext by owner decision (2026-10-27). So the core keeps a
+journaled inventory of every live copy, and every deletion becomes a **drop** journaled in the same batch as
+its cause: FORGET, a legal order, a withdrawal, a destroy, a pruned version, the end of a grant or of the
+authority that made the copy, lease expiry, eviction or release.
+
+- A drop ends only on the live node's **signed attestation** that the files are gone. A node that cannot
+  delete something reports it stuck; the row stays **unconfirmed** and raises an alarm.
+- The lifecycle record keeps the evidence (counts per node, a Merkle root over the attestations, the
+  unconfirmed list) and does not reach `CONVERGED` while any of its live copies remain.
+- A **deep** deletion overwrites each file before unlinking it, and the node claims that coverage only where
+  its operator attested that the live root has no snapshots.
+- A pin holds a version against routine pruning, never against FORGET, a legal order, a destroy or a
+  withdrawal.
+- Some copies are beyond any drop: copies people made with their own read access, snapshots and backups of
+  the live root, client caches, the page cache and swap. The record's remanence statement lists them.
+
+**Status:** **Built** and tested (2026-10-28, development branch). On the HPC test bed a withdrawal of a
+collection with a live copy ended on the node's attestation with no file left (end-to-end check f1); the
+FORGET check (f2) waits for a second approver to be eligible. On a local fabric (2026-10-28) a FORGET
+converged in 11 s with its path in no live copy and in none of 1,088 audit records. The chaos stage checks
+this after every cycle as invariants I3 and I4 (every end attested; a forgotten path in no live copy and no
+audit record in clear). See
+[Test results](../built/tests.md#the-live-tier-and-stability-e18-2026-10-28).
+
 ## Retention: built
 
 Every binding has `retain(extent, until)`, which can only extend a floor, and `reclaim`, the only

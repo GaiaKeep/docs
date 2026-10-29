@@ -8,9 +8,10 @@
     dashboard browses collections, branches and version histories as existing behavior
     ([Collections and versions](../dashboard/collections.md)).
     **Designed, not built:** the runs-and-roots container layout below (each commit a ~6 KB root
-    referencing unchanged runs), the caching tier's working copies, and the pin-amplification
+    referencing unchanged runs) and the pin-amplification
     accounting described later on this page. The prototype's file-granular index publishing is
-    **Proven** for the prototype era and is not the 1.3 mechanism.
+    **Proven** for the prototype era and is not the 1.3 mechanism. Working copies near compute are now the
+    [live tier](live-tier.md) (**Built**, 2026-10-28, development branch).
 
 ## The rules
 
@@ -21,9 +22,10 @@
   committed it (a majority of the core peers). A durable collection's version additionally commits
   only when its tape copies verify: until then reads answer `COMMITTING` and the publish reply names
   the commit job to await ([The replicated core log](../design/CORE-LOG.md), [Tape simulation](../design/TAPE-SIMULATION.md)).
-- **Durable storage is versioned; live copies are caches.** A working copy on a GPU node or at a
-  partner site is a cache of a named version, or an unversioned scratch cache. It is never a second
-  source of truth. See [The caching tier](../roadmap/caching-tier.md) (**Designed**).
+- **Durable storage is versioned; live copies are caches.** A copy on a live node is a native copy of a
+  named, committed version, and a workspace is unversioned work in progress until it is published as a new
+  version. Neither is ever a second source of truth, and no one reads a version from the live tier before it
+  commits, the writer included. See [The live tier](live-tier.md) (**Built**, 2026-10-28).
 
 ## Structure
 
