@@ -30,7 +30,7 @@ confirm whether it is in the corpus.
 - **In the design of record** (§19.3), `doc_uid`, `manifest_hash` and `doc_ids_e8_order.txt`
   (2.54 GB of nothing but unkeyed content hashes) are **payload only**. They may appear inside
   encrypted objects, never in on-media structures.
-- **Under the proposed dedup model**, that rule becomes policy. Public literature, which is most of
+- **Under the dedup model (built in 1.3)**, that rule becomes policy. Public literature, which is most of
   today's text corpus, could sit in the global domain, where plain content hashes are expected.
   Clinical data can't.
 
