@@ -2,7 +2,12 @@
 
 The GaiaKeep storage pages sit beside the mesh tabs the dashboard has always had — the *"old information for
 the underlying agents"*. The mesh is the fabric GaiaKeep runs on; these tabs show the fabric itself: where
-the agents are, how they are connected, what the links are doing, and how the agent JVMs are feeling.
+the agents are, how they are connected, what the links are doing, and how the agent JVMs are feeling. The
+mechanisms behind them are documented by the mesh: the [hierarchy of agents, regions and globals](https://mesh.github.io/docs/architecture/overview/),
+[tunnel path tracing](https://mesh.github.io/docs/architecture/tunnel-tracing/),
+[dynamic cost-aware routing](https://mesh.github.io/docs/architecture/dynamic-routing/),
+[health](https://mesh.github.io/docs/architecture/health/) and
+[metrics](https://mesh.github.io/docs/architecture/metrics/).
 
 ![The mesh Overview: regions, agents, plugins and links, with the live topology graph](../assets/dashboard/mesh-overview.png)
 

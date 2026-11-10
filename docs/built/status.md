@@ -17,7 +17,7 @@ or released. Details are in [Test results](tests.md) and [Benchmarks](benchmarks
 
 | Component | Status | Evidence |
 |---|---|---|
-| mesh transport, identity, tenant isolation | **Proven** | 1.3 |
+| mesh transport, identity, tenant isolation | **Proven** | the mesh's `1.3` branch builds through 2026-10-28. On 2026-11-10 the standing deployment moved to the 1.3 release, which is [secure by default](https://mesh.github.io/docs/security/secure-defaults/) (mutual TLS, tenant namespacing, authenticated messages and signed plugin installs on by default); results on it are not yet recorded on this site |
 | Dataplane for data, control messages for control, QoS per traffic class | **Proven** | HPC: 0.7 GB/s per flow, 2.1–2.4 GB/s on 4–8 flows, control p99 16 ms under load |
 | Framework fixes: no silent message loss, tunnel integrity, secret redaction | **Proven**, shipped in 1.3 | 40/40 loss-proof runs; 10/10 tunnel integrity runs |
 | Replicated core: Raft log, lease, pre-vote, snapshots, non-voter catch-up | **Proven** | 112 tests, power-cut campaigns, failover in the HPC cluster fabric check |
