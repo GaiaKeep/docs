@@ -58,7 +58,9 @@ could mean partner sites hold our ciphertext blindly, or that they also publish 
 datasets into the fabric. The trust and tenancy model differs completely.
 
 **P7 — Is DoD/DoW deployment in scope for this system specifically?** The zero-trust pivot made
-fail-closed and FIPS/CNSA mandatory for Cresco. Does GFS inherit every one of those requirements
+Cresco fail-closed by default, with the CNSA-strength `cnsa1` crypto policy as the default and FIPS 140-3
+approved-only mode required under the `production` security profile
+([FIPS](https://crescoedge.github.io/docs/security/fips/)). Does GFS inherit every one of those requirements
 now, or only when it is fielded there?
 
 **P8 — Is GFS intended to become a product or open-source project others run?** This decides how
@@ -485,7 +487,7 @@ required for Cresco generally. Anything else?
 
 **I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools** **ANSWERED 2026-10-02:** yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
 existing ones, when asked; Cresco's [capability inventory](https://crescoedge.github.io/docs/api/plugin-actions/)
-lists about 119 actions across 9 namespaces as of 2026-11)?
+lists about 130 actions across 9 namespaces as of 2026-11-10)?
 
 **I6 — Cost model returned by `prospect`:** drive-hours, wall time, dollars, carbon, egress? Which
 matter to an agent's decision?
