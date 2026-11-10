@@ -29,7 +29,7 @@ scale with the document count.
 ## Document identity and the oracle rule
 
 panAtlas identifies each document by `doc_uid = blake2b(raw_text, 16 bytes)`, an **unkeyed** hash
-of the text. That is intentional: it makes 200 million documents traceable across corpus versions
+of the text. That is intentional: it makes about 200 million documents (200,497,968 in the ledger crosswalk) traceable across corpus versions
 and checkable for training contamination. It also means anyone holding a candidate document can
 confirm whether it is in the corpus.
 
@@ -40,11 +40,11 @@ confirm whether it is in the corpus.
   today's text corpus, could sit in the global domain, where plain content hashes are expected.
   Clinical data can't.
 
-!!! danger "Decide before the imaging overlap job runs ([X1](../roadmap/open-questions.md))"
-    The contamination check has so far run only on text (16 benchmarks, all text, no imaging keys).
-    When the imaging version runs, the same unkeyed hash will be computed over protected health
-    information. Whether to key it, which would break the cross-version crosswalk whenever the key
-    rotates, has to be decided first.
+!!! warning "GaiaKeep's side is settled; keying `doc_uid` is panAtlas's decision ([X1](../roadmap/open-questions.md))"
+    X1 was answered on 2026-10-02: GaiaKeep mints its own identifiers and never relies on external keys. The
+    contamination check has so far run only on text (16 benchmarks, all text, no imaging keys). Before an imaging
+    version runs, panAtlas has to decide whether to key `doc_uid`, which would break the cross-version crosswalk
+    whenever the key rotates, because the same unkeyed hash would otherwise be computed over protected data.
 
 ## Withdrawal
 
@@ -57,6 +57,7 @@ confirm whether it is in the corpus.
 
 ## A good first dataset
 
-The panAtlas index is a strong candidate to be the first real dataset in the system. It's small,
+There is no single hero dataset: the first real data is several fixtures of different sizes and shapes
+([P2](../roadmap/open-questions.md), answered 2026-10-02), and the panAtlas index is among the candidates. It's small,
 its sizes are measured, and it exercises identity, versioning and the identifier rules without
-needing tape ([P2](../roadmap/open-questions.md)).
+needing tape.
