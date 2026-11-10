@@ -7,7 +7,8 @@ Built 2026-09-17 and proven by 2026-09-18 as a Cresco plugin, `io.cresco.gfs`, w
 !!! info "Scope of the evidence"
     Everything here ran on **one host** (14-core Apple silicon, 36 GB). All nodes share loopback
     networking, so the numbers are compute, broker and protocol ceilings, not wide-area numbers. The
-    prototype implements cross-site **erasure coding**. Phase 1 has since moved to replication; see
+    prototype implements cross-site **erasure coding**. Phase 1 moved to replication on 2026-09-20 and back
+    to erasure coding on 2026-10-02 (`ec:2+1`, the default for new collections since 2026-10-14); see
     [Durability](../concepts/durability.md).
 
 ## Functional suite: 99/99

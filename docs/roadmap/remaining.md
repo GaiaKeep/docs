@@ -13,11 +13,15 @@ Nothing in phase 1 can be specified exactly until these are answered. See
 - [x] **Tenant / collection / deduplication domain** model: design of record written 2026-09-23; open choices are policy settings with defaults
 - [x] **Chunking**: a per-domain setting (content-defined by default)
 - [x] Redo **S1**, the metadata-key IV discipline, under the dedup model
-- [ ] Choose the **first consumers** and the **first dataset** (P1, P2); proposed: the panAtlas index
-- [ ] Decide whether the **HPC copy is kept** after archiving (P3); this decides whether two sites could ever suffice
+- [x] Choose the **first consumers** and the **first dataset** (P1, P2): answered 2026-10-02. The owner's group,
+  with GaiaKeep as the durable backend for panAtlas; no single first dataset, but several test fixtures of
+  different sizes and shapes, with the panAtlas index among the candidates
+- [x] Decide whether the **HPC copy is kept** after archiving (P3): answered 2026-10-02. The HPC copy is
+  uncontrolled cache, never counted; the durable tier alone must survive the loss of a site
 - [x] **Hash function**: SHA-384 by default, fixed per domain
-- [ ] **Java toolchain** for raw SCSI: JDK 22+, JNA or a C helper
-- [ ] Record-the-basis locus properties and banning media labels from placement (A1, A2)
+- [ ] **Java toolchain** for raw SCSI: JDK 22+, JNA or a C helper (B2: to be decided by measurement)
+- [x] Record-the-basis locus properties and banning media labels from placement (A1, A2): decided 2026-10-02;
+  building them is in phase 1 below
 
 ## Phase 1: durable storage core
 

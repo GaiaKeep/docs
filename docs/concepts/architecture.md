@@ -44,7 +44,7 @@ flowchart TB
 | Bindings | One interface every storage medium implements | **Built**: filesystem, RAM, pack store, remote storage nodes, tape (simulated drives and virtual drives); raw NVMe and raw disk **Designed** |
 | Replicated core log | The journaled, Raft-replicated log of the core's state: versions, placements, the node registry, jobs, the audit anchors | **Proven** (1.3, the HPC fabric check) |
 | Live tier | Committed versions as unencrypted native files (any type, byte for byte) on live nodes near compute, in a journaled inventory; workspaces publish new versions; never counted toward durability ([The live tier](live-tier.md)) | **Built** and tested (2026-10-28, development branch); final-build runs in progress |
-| Cresco mesh | Transport, identity, tenant isolation, QoS | **Proven** (Cresco 1.3) |
+| [Cresco](https://crescoedge.github.io/docs/) mesh | Transport, identity, tenant isolation, QoS | **Proven** on Cresco's `1.3` branch builds through 2026-10-28; the standing deployment moved to the Cresco 1.3 release (secure by default) on 2026-11-10 |
 
 ## Two paths through the system
 

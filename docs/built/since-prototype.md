@@ -45,7 +45,9 @@ These are worth knowing because each looked finished and wasn't.
 
 ## Decisions made
 
-See the [Decision log](../roadmap/decisions.md). In short: agents not humans; raw blocks, no
+See the [Decision log](../roadmap/decisions.md), which marks what has since been superseded or refined
+(replication first gave way to erasure coding on 2026-10-02; "no filesystem" was refined by the live tier on
+2026-10-27). In short, as of 2026-09-23: agents not humans; raw blocks, no
 filesystem; one placement engine for every medium; Bareos removed on licence grounds; replication
 first; write-once media per cohort, with repack; Spectra Stack first; permissive licences only;
 block-level deduplication across a configurable isolation-to-global range.

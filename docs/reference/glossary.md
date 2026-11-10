@@ -42,6 +42,11 @@
 : One registered crash point, armed on a running deployment: the process halts there, restarts, and must
   recover with no operator action.
 
+**Cresco**
+: The distributed agent mesh GaiaKeep runs on: identity, tenant isolation, the MsgEvent control plane and
+  the dataplane. The storage core runs as a Cresco plugin, `io.cresco.gfs`.
+  [Cresco documentation](https://crescoedge.github.io/docs/).
+
 **Dedup domain**
 : The set of data whose identical blocks may be stored once: NONE, COLLECTION, GROUP or GLOBAL
   (built in release 1.3).
@@ -130,12 +135,17 @@
   start, unload. Modelled at 295–355 s.
 
 **Oracle (confirmation oracle)**
-: Any stored value that lets someone holding a guessed plaintext and no key confirm the guess. It
-  is forbidden in sealed domains.
+: Any stored value that lets someone holding a guessed plaintext and no key confirm the guess. Every
+  dedup mode but GLOBAL forbids one outside the domain's own index (NONE: outside the encrypted
+  manifest); in GLOBAL the plain content hash is the public block id.
 
 **`outcome_unknown`**
 : The answer to a write whose leadership ended under it: the next leader decides whether it happened.
   Clients resend only what is safe to send twice.
+
+**panAtlas**
+: A reference atlas for multimodal evaluation across every domain of knowledge, built on Cresco, and a
+  primary intended user of this storage. See [panAtlas](../concepts/panatlas.md).
 
 **Planned stop**
 : A core peer stopped on purpose. It refuses requests with status 12 and `stopping=true`, naming where to
@@ -161,8 +171,10 @@
 : The core's journaled record of one live copy or workspace at one node: `REALISING`, `LIVE`, `DROPPING`,
   then removed.
 
-**Sealed**
-: The most isolated dedup domain: nothing shared outside the tenant, and no raw hash leaves it.
+**Sealed** (tenant)
+: A tenant across whose boundary nothing crosses, in or out. It may use only the NONE, COLLECTION or its
+  own GROUP domain, can't issue or accept grants, and none of its raw hashes leaves its private index
+  partition. NONE is the most isolated dedup domain.
 
 **`SegmentCipher`**
 : The per-object key counter discipline: one derived key per write, with an IV made from two

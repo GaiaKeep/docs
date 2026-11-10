@@ -22,7 +22,8 @@ me to build the decision as a parameter rather than a constant.
 - **[LATER]** — worth knowing, costs nothing to defer.
 
 **What is already decided** (listed so you can overturn anything here too):
-3-way replication across 3 sites now, erasure coding later via repack · Bareos out (AGPL) ·
+erasure coding (`ec:2+1`) across 3 sites by default, replicas or a single copy per dataset (2026-10-02,
+superseding 3-way replication first) · Bareos out (AGPL) ·
 tape is one binding among several, placement is media-neutral · WORM is per-cohort, not
 plant-wide · repack is in scope · GCM counter discipline (`SegmentCipher`) · panAtlas `doc_uid` is
 payload-only, never on-media structure · durability barrier is measured and fails closed · Stack
@@ -483,7 +484,8 @@ the mesh?**
 required for Cresco generally. Anything else?
 
 **I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools** **ANSWERED 2026-10-02:** yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
-existing ones)?
+existing ones, when asked; Cresco's [capability inventory](https://crescoedge.github.io/docs/api/plugin-actions/)
+lists about 119 actions across 9 namespaces as of 2026-11)?
 
 **I6 — Cost model returned by `prospect`:** drive-hours, wall time, dollars, carbon, egress? Which
 matter to an agent's decision?

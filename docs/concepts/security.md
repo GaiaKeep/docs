@@ -12,12 +12,17 @@
 - **Approved algorithms, one policy.** AES-256-GCM, HMAC-SHA-384, HKDF-SHA-384, ECDSA and ECDH P-384, and
   SHA-384 for new formats (a few existing formats keep SHA-256 until a versioned format moves them). Since
   2026-10-16 one fabric-wide crypto policy covers GaiaKeep and Cresco: `cnsa1` by default, or `fips140-3`,
-  with any exception allowed explicitly.
+  with any exception allowed explicitly (Cresco's
+  [`crypto_policy`](https://crescoedge.github.io/docs/reference/configuration/#fabric-crypto-policy-global-controller-only),
+  set on the global controller).
 - **Zero trust, fail closed.** Every request is signed by a principal, authorised against tenant-scoped
   roles (the system administrator has no data access) and recorded in a tamper-evident audit log before
   its reply is released.
 - **Tenant isolation comes from Cresco** as well: tenant-namespaced messaging, broker authorisation, and
-  named cross-tenant flows.
+  named cross-tenant flows ([Cresco: Multi-tenancy](https://crescoedge.github.io/docs/architecture/tenancy/)).
+  So do node identity and transport security: X.509 identities, mutual TLS on every broker connection, and
+  in Cresco 1.3 end-to-end, recipient-bound message authentication
+  ([Cresco: Security](https://crescoedge.github.io/docs/security/)).
 
 ## Built
 
@@ -98,7 +103,7 @@ boot; a notice from an earlier boot, delayed or replayed, is ignored
 | Hardware key custody (HSM) (S4) | Before production | **Decided** (owner 2026-10-02): software keys behind a swappable interface in phase one, an HSM later; PKCS#11 is built |
 | Whether file names and sizes must be hidden from site operators (S11) | Before production | **Built** in part: sealed metadata partitions and keyed identifiers; the rest of metadata encryption is open |
 | Per-request, audited credentials for agents: scope and issuer (S8) | Before production | **Open** |
-| A FIPS 140-3 validated module for fielding | Before fielding | **Open**: the `fips140-3` policy and a FIPS test profile exist; validation does not |
+| A FIPS 140-3 validated module for fielding | Before fielding | **Open**: the `fips140-3` policy and a FIPS test profile exist. Cresco 1.3's `production` profile runs the agent's JVM in FIPS 140-3 approved-only mode over CMVP-validated modules ([Cresco: FIPS 140-3](https://crescoedge.github.io/docs/security/fips/)); a validated run of the storage core in that mode is not yet recorded here |
 
 Library-level (BlueScale) drive encryption is **declined** by default (owner 2026-10-02): the data is
 already ciphertext. It is a setting that a deployment's compliance rules can switch on.

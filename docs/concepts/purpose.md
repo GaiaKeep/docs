@@ -4,8 +4,8 @@
 
 Autonomous agents: training pipelines, analysis agents, evaluation and decontamination jobs, and
 agents working on behalf of partner institutions. Humans run the system; they are not its users.
-There is no browsing interface, no mount point and no console. Operators get monitoring (the
-Cresco dashboard's Storage tab) and nothing else.
+There is no browsing interface, no mount point and no console. Operators get a read-only
+[storage control dashboard](../dashboard/index.md), beside the Cresco mesh tabs, and nothing else.
 
 This changes the design:
 
@@ -60,5 +60,5 @@ extremes, and everything between, are policy. See
 BSD). Copyleft code may appear only in test infrastructure that is never shipped or linked. This is
 why Bareos was removed; see [Media and tape](media-and-tape.md).
 
-**Built on Cresco.** Cresco supplies the mesh, identity, tenant isolation, messaging and the
-dataplane. The storage system does not reinvent any of them.
+**Built on Cresco.** [Cresco](https://crescoedge.github.io/docs/) supplies the mesh, identity, tenant
+isolation, messaging and the dataplane. The storage system does not reinvent any of them.

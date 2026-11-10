@@ -25,7 +25,7 @@ The system is required to be five things:
 | **Versioned** | Every read names a version. Versions and point-in-time extracts are citable and reproducible. |
 | **Resilient** | Copies in independent failure domains; loss is detected and repaired without intervention. |
 | **Secure** | Encrypted at the origin; storage sites hold only ciphertext; policies scale from full isolation to global sharing. |
-| **Distributed** | Runs over the [Cresco](https://crescoedge.github.io/quickstart/) mesh across institutions and sites. |
+| **Distributed** | Runs over the [Cresco](https://crescoedge.github.io/docs/) mesh across institutions and sites. |
 
 ## Where things stand
 
@@ -88,3 +88,10 @@ Every status claim on this site uses one of five labels:
 - Code, harnesses and the full design record: `GaiaKeep/gfs` (private repository; the design record is mirrored here)
   (private; development on `main`, releases on the `1.3` branch; moved from CrescoEdge on 2026-09-23).
 - This site: [`GaiaKeep/docs`](https://github.com/GaiaKeep/docs).
+
+## Related
+
+- [Cresco](https://crescoedge.github.io/docs/): the distributed agent mesh GaiaKeep runs on (identity, tenant
+  isolation, messaging and the dataplane).
+- [panAtlas](https://thepanatlas.github.io/docs/): a reference atlas for multimodal evaluation across every domain
+  of knowledge, also built on Cresco, and a primary intended user of this storage. See [panAtlas](concepts/panatlas.md).

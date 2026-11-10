@@ -46,7 +46,7 @@ Copy or symlink `eval/` to `run/gfs/` in a Cresco workspace. Results land in `ru
 | Script | Runs |
 |---|---|
 | `launch_gfs_fabric.sh up` then `gfs_eval.py` | Functional suite E1–E11 (99 checks, ~80 s) |
-| `core_fabric_check.py` | Storage core on a live fabric: 61 checks, including every dedup mode, the replica hash, a killed node, the index killed -9 and a halt between seal and commit. Run with `IXMX=2048M GXMX=4096M` |
+| `core_fabric_check.py` | Storage core on a live fabric: 88 checks on the shipped 1.3 build (61 on the single-host fabric in September), including every dedup mode, the replica hash, a killed node, the index killed -9 and a halt between seal and commit. Run with `IXMX=2048M GXMX=4096M` |
 | `core_throughput.py` | Throughput leg by leg (`TP_PHASES=A,B,C`): node transport, client upload, publish and read at R=1 and R=3, and pipelined ingest |
 | `core_frame_sweep.py` | Frame size, broker persistence and batch size for the node leg |
 | `gkt.py` | Python GKT client (the dataplane transfer protocol): `CoreClient`, `MultiClient`, `ingest` |

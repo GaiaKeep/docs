@@ -17,7 +17,7 @@ what changed and why.
 | 2026-09-19 | Deduplication and content-derived block ids retired (checkpoints share no blocks) | Design | **Superseded**: never owner-approved; reversed 2026-09-23 |
 | 2026-09-19 | Content chunking at fixed 64 KiB | Design | **Superseded** 2026-09-23: per-domain chunker |
 | 2026-09-19 | Per-object keys; GCM counter discipline (`SegmentCipher`) | Design | In force for sealed data |
-| 2026-09-19 | No plaintext-derived identifier on write-once media | Design | **Becomes policy**: mandatory in sealed domains, relaxed in global |
+| 2026-09-19 | No plaintext-derived identifier on write-once media | Design | **Becomes policy**: mandatory in every mode but GLOBAL, where the plain content hash is the public block id |
 | 2026-09-20 | Write-once is not hard and fast; things must be removable; group and repack over time | Owner | In force |
 | 2026-09-20 | Store petabytes of radiology and pathology imaging | Owner | In force |
 | 2026-09-20 | LTO-10 media type (LA 30 TB / PA 40 TB) is a purchase parameter | Owner | In force |

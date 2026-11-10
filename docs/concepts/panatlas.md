@@ -1,8 +1,14 @@
 # panAtlas
 
-panAtlas is a multimodal evaluation reference atlas (medicine first). It is a provenance-first
-knowledge graph linking datasets, models, training curricula and benchmarks. It is a primary user
-of this storage system: every document has a unique id and metadata, and everything is indexed.
+panAtlas is a reference atlas for multimodal evaluation across every domain of knowledge. Medicine is
+where its holdings run deepest today, but it is not a medical atlas. It is a provenance-first knowledge
+graph linking concepts, datasets, models, training curricula and benchmarks, and a distributed system on
+[Cresco](https://crescoedge.github.io/docs/): each registered dataset is managed by its own Cresco plugin at
+the site that holds it. It is a primary intended user of this storage system: every document has a unique
+id and metadata, and everything is indexed. Its own documentation is at
+[thepanatlas.github.io/docs](https://thepanatlas.github.io/docs/), and
+[Storage on GaiaKeep](https://thepanatlas.github.io/docs/distributed/storage/) describes this binding from its
+side.
 
 ## The index is a dataset, not a structure of the store
 
