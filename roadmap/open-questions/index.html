@@ -3198,7 +3198,9 @@ tab) is still wanted for operators.</p>
 could mean partner sites hold our ciphertext blindly, or that they also publish their own
 datasets into the fabric. The trust and tenancy model differs completely.</p>
 <p><strong>P7 — Is DoD/DoW deployment in scope for this system specifically?</strong> The zero-trust pivot made
-fail-closed and FIPS/CNSA mandatory for Cresco. Does GFS inherit every one of those requirements
+Cresco fail-closed by default, with the CNSA-strength <code>cnsa1</code> crypto policy as the default and FIPS 140-3
+approved-only mode required under the <code>production</code> security profile
+(<a href="https://crescoedge.github.io/docs/security/fips/">FIPS</a>). Does GFS inherit every one of those requirements
 now, or only when it is fielded there?</p>
 <p><strong>P8 — Is GFS intended to become a product or open-source project others run?</strong> This decides how
 much effort goes into packaging, documentation of the on-media format, and licence hygiene.</p>
@@ -3490,7 +3492,7 @@ the mesh?</strong></p>
 required for Cresco generally. Anything else?</p>
 <p><strong>I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools</strong> <strong>ANSWERED 2026-10-02:</strong> yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
 existing ones, when asked; Cresco's <a href="https://crescoedge.github.io/docs/api/plugin-actions/">capability inventory</a>
-lists about 119 actions across 9 namespaces as of 2026-11)?</p>
+lists about 130 actions across 9 namespaces as of 2026-11-10)?</p>
 <p><strong>I6 — Cost model returned by <code>prospect</code>:</strong> drive-hours, wall time, dollars, carbon, egress? Which
 matter to an agent's decision?</p>
 <p><strong>I7 — Admission control: when retrieval demand exceeds the plant, which requests wait, and who
