@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2735,6 +2735,10 @@
 <dt><strong>Crash cell</strong></dt>
 <dd>One registered crash point, armed on a running deployment: the process halts there, restarts, and must
   recover with no operator action.</dd>
+<dt><strong>Cresco</strong></dt>
+<dd>The distributed agent mesh GaiaKeep runs on: identity, tenant isolation, the MsgEvent control plane and
+  the dataplane. The storage core runs as a Cresco plugin, <code>io.cresco.gfs</code>.
+  <a href="https://crescoedge.github.io/docs/">Cresco documentation</a>.</dd>
 <dt><strong>Dedup domain</strong></dt>
 <dd>The set of data whose identical blocks may be stored once: NONE, COLLECTION, GROUP or GLOBAL
   (built in release 1.3).</dd>
@@ -2801,11 +2805,15 @@
 <dd>The non-transfer time to use a tape cartridge that isn't loaded: fetch, load, locate, rewind to
   start, unload. Modelled at 295–355 s.</dd>
 <dt><strong>Oracle (confirmation oracle)</strong></dt>
-<dd>Any stored value that lets someone holding a guessed plaintext and no key confirm the guess. It
-  is forbidden in sealed domains.</dd>
+<dd>Any stored value that lets someone holding a guessed plaintext and no key confirm the guess. Every
+  dedup mode but GLOBAL forbids one outside the domain's own index (NONE: outside the encrypted
+  manifest); in GLOBAL the plain content hash is the public block id.</dd>
 <dt><strong><code>outcome_unknown</code></strong></dt>
 <dd>The answer to a write whose leadership ended under it: the next leader decides whether it happened.
   Clients resend only what is safe to send twice.</dd>
+<dt><strong>panAtlas</strong></dt>
+<dd>A reference atlas for multimodal evaluation across every domain of knowledge, built on Cresco, and a
+  primary intended user of this storage. See <a href="../../concepts/panatlas/">panAtlas</a>.</dd>
 <dt><strong>Planned stop</strong></dt>
 <dd>A core peer stopped on purpose. It refuses requests with status 12 and <code>stopping=true</code>, naming where to
   go, lets admitted requests finish, hands over its leadership and exits.</dd>
@@ -2824,8 +2832,10 @@
 <dt><strong>Row</strong> (inventory)</dt>
 <dd>The core's journaled record of one live copy or workspace at one node: <code>REALISING</code>, <code>LIVE</code>, <code>DROPPING</code>,
   then removed.</dd>
-<dt><strong>Sealed</strong></dt>
-<dd>The most isolated dedup domain: nothing shared outside the tenant, and no raw hash leaves it.</dd>
+<dt><strong>Sealed</strong> (tenant)</dt>
+<dd>A tenant across whose boundary nothing crosses, in or out. It may use only the NONE, COLLECTION or its
+  own GROUP domain, can't issue or accept grants, and none of its raw hashes leaves its private index
+  partition. NONE is the most isolated dedup domain.</dd>
 <dt><strong><code>SegmentCipher</code></strong></dt>
 <dd>The per-object key counter discipline: one derived key per write, with an IV made from two
   counters.</dd>
@@ -2917,10 +2927,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

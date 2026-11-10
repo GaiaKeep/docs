@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -3171,7 +3171,8 @@ me to build the decision as a parameter rather than a constant.</p>
 <li><strong>[LATER]</strong> — worth knowing, costs nothing to defer.</li>
 </ul>
 <p><strong>What is already decided</strong> (listed so you can overturn anything here too):
-3-way replication across 3 sites now, erasure coding later via repack · Bareos out (AGPL) ·
+erasure coding (<code>ec:2+1</code>) across 3 sites by default, replicas or a single copy per dataset (2026-10-02,
+superseding 3-way replication first) · Bareos out (AGPL) ·
 tape is one binding among several, placement is media-neutral · WORM is per-cohort, not
 plant-wide · repack is in scope · GCM counter discipline (<code>SegmentCipher</code>) · panAtlas <code>doc_uid</code> is
 payload-only, never on-media structure · durability barrier is measured and fails closed · Stack
@@ -3488,7 +3489,8 @@ the mesh?</strong></p>
 <p><strong>I4 — Which client languages must work at launch?</strong> Python (pycrescolib) and Java are both
 required for Cresco generally. Anything else?</p>
 <p><strong>I5 — Should GFS verbs appear in the Cresco capability inventory as LLM tools</strong> <strong>ANSWERED 2026-10-02:</strong> yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
-existing ones)?</p>
+existing ones, when asked; Cresco's <a href="https://crescoedge.github.io/docs/api/plugin-actions/">capability inventory</a>
+lists about 119 actions across 9 namespaces as of 2026-11)?</p>
 <p><strong>I6 — Cost model returned by <code>prospect</code>:</strong> drive-hours, wall time, dollars, carbon, egress? Which
 matter to an agent's decision?</p>
 <p><strong>I7 — Admission control: when retrieval demand exceeds the plant, which requests wait, and who
@@ -3617,10 +3619,10 @@ bug. Run them freely on design questions, or ask each time?</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
