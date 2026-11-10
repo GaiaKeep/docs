@@ -2887,7 +2887,7 @@ index inside the store's own on-media structures, would be 254× larger per cart
 scale with the document count.</p>
 <h2 id="document-identity-and-the-oracle-rule">Document identity and the oracle rule<a class="headerlink" href="#document-identity-and-the-oracle-rule" title="Permanent link">&para;</a></h2>
 <p>panAtlas identifies each document by <code>doc_uid = blake2b(raw_text, 16 bytes)</code>, an <strong>unkeyed</strong> hash
-of the text. That is intentional: it makes 200 million documents traceable across corpus versions
+of the text. That is intentional: it makes about 200 million documents (200,497,968 in the ledger crosswalk) traceable across corpus versions
 and checkable for training contamination. It also means anyone holding a candidate document can
 confirm whether it is in the corpus.</p>
 <ul>
@@ -2898,12 +2898,12 @@ confirm whether it is in the corpus.</p>
   today's text corpus, could sit in the global domain, where plain content hashes are expected.
   Clinical data can't.</li>
 </ul>
-<div class="admonition danger">
-<p class="admonition-title">Decide before the imaging overlap job runs (<a href="../../roadmap/open-questions/">X1</a>)</p>
-<p>The contamination check has so far run only on text (16 benchmarks, all text, no imaging keys).
-When the imaging version runs, the same unkeyed hash will be computed over protected health
-information. Whether to key it, which would break the cross-version crosswalk whenever the key
-rotates, has to be decided first.</p>
+<div class="admonition warning">
+<p class="admonition-title">GaiaKeep's side is settled; keying <code>doc_uid</code> is panAtlas's decision (<a href="../../roadmap/open-questions/">X1</a>)</p>
+<p>X1 was answered on 2026-10-02: GaiaKeep mints its own identifiers and never relies on external keys. The
+contamination check has so far run only on text (16 benchmarks, all text, no imaging keys). Before an imaging
+version runs, panAtlas has to decide whether to key <code>doc_uid</code>, which would break the cross-version crosswalk
+whenever the key rotates, because the same unkeyed hash would otherwise be computed over protected data.</p>
 </div>
 <h2 id="withdrawal">Withdrawal<a class="headerlink" href="#withdrawal" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2915,9 +2915,10 @@ rotates, has to be decided first.</p>
   exhaustive nearest-neighbour search is the expensive part.</li>
 </ul>
 <h2 id="a-good-first-dataset">A good first dataset<a class="headerlink" href="#a-good-first-dataset" title="Permanent link">&para;</a></h2>
-<p>The panAtlas index is a strong candidate to be the first real dataset in the system. It's small,
+<p>There is no single hero dataset: the first real data is several fixtures of different sizes and shapes
+(<a href="../../roadmap/open-questions/">P2</a>, answered 2026-10-02), and the panAtlas index is among the candidates. It's small,
 its sizes are measured, and it exercises identity, versioning and the identifier rules without
-needing tape (<a href="../../roadmap/open-questions/">P2</a>).</p>
+needing tape.</p>
 
 
 
