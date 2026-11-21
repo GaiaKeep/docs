@@ -62,7 +62,9 @@ WT="$(mktemp -d)"
 trap 'git worktree remove --force "$WT" >/dev/null 2>&1 || rm -rf "$WT"' EXIT
 git fetch -q "$REMOTE" gh-pages
 git worktree add -q --detach "$WT" FETCH_HEAD
-rsync -a --delete --exclude .git site/ "$WT"/
+# --checksum: compare contents, never size and time alone (2026-11-21: three rewritten pages came out the same size as
+# the published ones and the quick check left the old pages live)
+rsync -a --checksum --delete --exclude .git site/ "$WT"/
 cd "$WT"
 git add -A
 if git diff --cached --quiet; then
