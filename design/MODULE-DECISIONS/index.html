@@ -1,0 +1,4526 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/MODULE-DECISIONS/">
+      
+      
+        <link rel="prev" href="../FROM-SCRATCH-DECISION/">
+      
+      
+        <link rel="next" href="../COMPONENTS/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Module decisions (measured) - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#module-level-decisions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Module decisions (measured)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dashboard/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dashboard
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dashboard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dashboard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections and versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/placements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle and jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/mesh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesh tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier, now the live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#status-of-every-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status of every decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-verdicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary of verdicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c1-chunker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C1: chunker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c2-block-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C2: block hash
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c5-codec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C5: codec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c6-reference-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C6: reference index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c8-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C8: placement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c10-engine-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C10: engine findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c11-which-configurations-are-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C11: which configurations are supported
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-comes-next-once-these-are-decided" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What comes next, once these are decided
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-d-c2-1-answered-by-an-x86-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision D-C2-1, answered by an x86 host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-measurement-correction-jit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A measurement correction: JIT warm-up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-evening-on-hpc-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (evening): on HPC servers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-night-the-core-on-the-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (night): the core on the fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-late-the-data-path-measured-leg-by-leg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (late): the data path, measured leg by leg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (late): the data path, measured leg by leg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addendum: failures found under concurrent load, all fixed (2026-09-23, night)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-26-block-size-on-real-imaging-out-10-d-c1-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#follow-up-2026-09-26-reads-and-derived-publishes-at-1-mib-out-10-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-up 2026-09-26: reads and derived publishes at 1 MiB (OUT-10 review)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#follow-up-2026-09-26-second-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-up 2026-09-26: second review
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-26-evening-format-adapters-d-c1-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-26 (evening): format adapters (D-C1-1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#status-of-every-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status of every decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-verdicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary of verdicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c1-chunker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C1: chunker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c2-block-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C2: block hash
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c5-codec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C5: codec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c6-reference-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C6: reference index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c8-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C8: placement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c10-engine-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C10: engine findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c11-which-configurations-are-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C11: which configurations are supported
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-comes-next-once-these-are-decided" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What comes next, once these are decided
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decision-d-c2-1-answered-by-an-x86-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision D-C2-1, answered by an x86 host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-measurement-correction-jit-warm-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A measurement correction: JIT warm-up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-evening-on-hpc-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (evening): on HPC servers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-night-the-core-on-the-fabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (night): the core on the fabric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-23-late-the-data-path-measured-leg-by-leg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-23 (late): the data path, measured leg by leg
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-23 (late): the data path, measured leg by leg">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addendum: failures found under concurrent load, all fixed (2026-09-23, night)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-26-block-size-on-real-imaging-out-10-d-c1-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#follow-up-2026-09-26-reads-and-derived-publishes-at-1-mib-out-10-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-up 2026-09-26: reads and derived publishes at 1 MiB (OUT-10 review)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#follow-up-2026-09-26-second-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-up 2026-09-26: second review
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-2026-09-26-evening-format-adapters-d-c1-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update 2026-09-26 (evening): format adapters (D-C1-1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The decisions each component raises, with the measurements behind them. Superseded in part by the 1.3 ship (2026-10-01): see the newer pages.</p>
+</div>
+<h1 id="module-level-decisions">Module-level decisions<a class="headerlink" href="#module-level-decisions" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-23. Every component in <code>COMPONENTS.md</code> is built and tested: <strong>203 tests pass, 0 fail</strong> (at the time; 324 at <code>e3d7b46</code>, CI green)
+(83 module and engine tests, and a 120-cell integration matrix). The measurements below are from
+<code>ModuleMeasurementsTest</code> and <code>IntegrationMatrixTest</code>, with raw data in <code>eval/results/modules/</code>. Host:
+14-core Apple silicon, JDK 23, single machine. Every rate is a ceiling for this machine, not a
+deployment figure, and macOS fsync is about 8× costlier than Linux node-local fsync
+(<code>eval/results/fsync_cost.json</code>).</em></p>
+<p>Each decision is labelled <strong>D-Cn-k</strong> after its component. Where I have a recommendation it is marked
+<strong>Rec</strong>, and accepting it is a valid answer.</p>
+<h2 id="status-of-every-decision">Status of every decision<a class="headerlink" href="#status-of-every-decision" title="Permanent link">&para;</a></h2>
+<p>Every decision below now runs on its recommended default. <strong>These are adopted defaults, not owner
+approvals:</strong> each one is reversible, and each one stays open until the owner confirms or overrides it.</p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Running default</th>
+<th>Where it lives</th>
+<th>Reversible by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D-C1-1 default chunker</td>
+<td><code>fmt:dicom@1,nifti@1,tiff@1+cdc:1048576:262144:4194304</code> (reviewed format adapters around 1 MiB CDC; plain 1 MiB CDC earlier on 2026-09-26, 64 KiB before)</td>
+<td><code>ChunkerSpec.DEFAULT_CDC</code>, config <code>core_default_chunker</code></td>
+<td>per-domain <code>chunker</code> at creation; config key for new domains (existing domains keep the spec they recorded)</td>
+</tr>
+<tr>
+<td>D-C1-2 16 KiB CDC per collection</td>
+<td>offered, not default</td>
+<td>any <code>cdc:</code> spec is accepted per domain</td>
+<td>policy</td>
+</tr>
+<tr>
+<td>D-C1-3 reject 256 KiB CDC</td>
+<td>not a default; still accepted if asked</td>
+<td>policy</td>
+<td>policy</td>
+</tr>
+<tr>
+<td>D-C2-1 default hash</td>
+<td>SHA-384 (CNSA)</td>
+<td><code>BlockHash.DEFAULT</code></td>
+<td>per-domain <code>hash</code> at creation</td>
+</tr>
+<tr>
+<td>D-C5-1 keyed ids</td>
+<td>HMAC-SHA-384, 96 hex</td>
+<td><code>BlockCodec</code></td>
+<td>new domains only (ids are permanent)</td>
+</tr>
+<tr>
+<td>D-C6-1 reference storage at scale</td>
+<td>counted compact table (primitive arrays, ~75 B/block) + per-collection run holds; incremental multiset metaHash; copy-on-write snapshot cut</td>
+<td><code>BlockTable</code> / <code>CompactBlockTable</code>, <code>RefIndex</code>, <code>RefHolds</code></td>
+<td>another <code>BlockTable</code> (on-disk / LSM, STORAGE-DIRECTION D3); owner may override</td>
+</tr>
+<tr>
+<td>D-C8-1 site weighting</td>
+<td><code>log10(measured write rate)</code></td>
+<td><code>ReplicaPlacer</code></td>
+<td>code constant</td>
+</tr>
+<tr>
+<td>D-C10-1 trim</td>
+<td>surplus kept through a grace period, never below R</td>
+<td><code>StorageEngine.trim</code></td>
+<td><code>grace_ms</code> per call</td>
+</tr>
+<tr>
+<td>D-C10-2 sync at seal</td>
+<td>one barrier per write per site</td>
+<td><code>FsBinding.seal</code></td>
+<td>built</td>
+</tr>
+<tr>
+<td>D-C10-3 batched streaming reads</td>
+<td>window of at most 256 blocks and 64 MiB, one window prefetched; 32 blocks per site request</td>
+<td><code>StorageEngine.readWindow</code>, <code>readWindowBytes</code>, <code>fetchSlice</code></td>
+<td>fields</td>
+</tr>
+<tr>
+<td>D-C11-1 minimum replication</td>
+<td>R ≥ 2 for durable collections (OUT-41); one copy only for a cache in the <code>scratch</code> or <code>cache</code> retention class, at creation, profile creation and class change (N-DC11, owner 2026-10-02); R=3 used everywhere tested</td>
+<td><code>PolicyEngine</code>, <code>Profile.of</code>, <code>LifecycleEngine.assignClass</code></td>
+<td>decided (N-DC11); the EC/replica/single modes are designed in DURABILITY-MODES.md</td>
+</tr>
+<tr>
+<td>D-C11-2 supported configurations</td>
+<td>all tested combinations (180 cells at 64 KiB + 40 at 1 MiB, incl. remote)</td>
+<td><code>IntegrationMatrixTest</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="summary-of-verdicts">Summary of verdicts<a class="headerlink" href="#summary-of-verdicts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Tests</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1 Chunker</td>
+<td>18</td>
+<td>Correct at every size; content-defined chunking behaves as measured on edits</td>
+</tr>
+<tr>
+<td>C2 Block hash</td>
+<td>part of 6</td>
+<td>Known answers pass; SHA-384 is 1.67× slower than SHA-256 here</td>
+</tr>
+<tr>
+<td>C3 Tenancy and policy</td>
+<td>7 (40+ matrix cells)</td>
+<td>Every rule enforced; every refusal names its rule</td>
+</tr>
+<tr>
+<td>C4 Keys</td>
+<td>part of 6</td>
+<td>Derivations separated by tenant, domain and purpose; destroying a root destroys its keys</td>
+</tr>
+<tr>
+<td>C5 Block codec</td>
+<td>10</td>
+<td>Shared modes converge, keyed domains separate, tampering refused, oracle rule holds</td>
+</tr>
+<tr>
+<td>C6 References</td>
+<td>5</td>
+<td>Idempotent; agrees with a reference model across 50,000 random operations</td>
+</tr>
+<tr>
+<td>C7 Versioning</td>
+<td>5</td>
+<td>Shadowing, tombstones, compare-and-set, stable ids and citations</td>
+</tr>
+<tr>
+<td>C8 Placement</td>
+<td>7</td>
+<td>Constraints enforced, unsatisfiability explained, deterministic and weighted</td>
+</tr>
+<tr>
+<td>C9 Bindings</td>
+<td>9</td>
+<td>Contract holds for RAM and filesystem. <strong>Found and fixed:</strong> MemBinding returned FAILED instead of REFUSED for a missing extent</td>
+</tr>
+<tr>
+<td>C10 Engine</td>
+<td>16</td>
+<td>Every owner case and failure passes (below)</td>
+</tr>
+<tr>
+<td>C11 Integration</td>
+<td>120</td>
+<td>Every option combination passes the full lifecycle</td>
+</tr>
+</tbody>
+</table>
+<p><strong>C10 behaviours verified end to end:</strong>
+- Composing public datasets stores <strong>zero</strong> blocks.
+- A second tenant publishing the same public bytes stores <strong>zero</strong> blocks.
+- Augmenting another tenant's 2 MB file with a 500-byte insert stores <strong>1–4 blocks</strong>.
+- A revoked grant blocks reads immediately.
+- Sealed tenants are refused references and grants in both directions, and copy public data in.
+- Withdrawal honours PIN, COPY and BREAK, and reclaims exactly what nothing else references.
+- R−1 site losses leave every version readable, and repair restores R copies.
+- A corrupt replica is read around, and scrub repairs it.
+- Durability fails closed on unattested RAM.
+- A refused commit leaves only reclaimable garbage.
+- Keyed domains never record a raw content hash.</p>
+<h2 id="c1-chunker">C1: chunker<a class="headerlink" href="#c1-chunker" title="Permanent link">&para;</a></h2>
+<p>32 MiB base, five edit workloads. Figures are blocks retained / new bytes that must be stored:</p>
+<table>
+<thead>
+<tr>
+<th>Chunker</th>
+<th style="text-align: right;">MB/s</th>
+<th>Append 1 %</th>
+<th>Insert 0.1 %</th>
+<th>Prepend 0.1 %</th>
+<th>Overwrite 20×4 KiB</th>
+<th>10 small inserts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fixed:65536</code></td>
+<td style="text-align: right;">6,059</td>
+<td>98.8 % / 328 K</td>
+<td>49.9 % / 16.0 M</td>
+<td><strong>0.0 % / 32.0 M</strong></td>
+<td>96.1 % / 1.3 M</td>
+<td><strong>9.0 % / 29.1 M</strong></td>
+</tr>
+<tr>
+<td><code>fixed:16384</code></td>
+<td style="text-align: right;">8,819</td>
+<td>99.0 % / 328 K</td>
+<td>49.9 % / 16.0 M</td>
+<td>0.0 % / 32.0 M</td>
+<td>99.0 % / 336 K</td>
+<td>9.1 % / 29.1 M</td>
+</tr>
+<tr>
+<td><strong><code>cdc:65536:8192:131072</code></strong></td>
+<td style="text-align: right;">878</td>
+<td>98.7 % / 442 K</td>
+<td><strong>99.6 % / 161 K</strong></td>
+<td><strong>99.6 % / 51 K</strong></td>
+<td>96.0 % / 1.9 M</td>
+<td><strong>98.1 % / 606 K</strong></td>
+</tr>
+<tr>
+<td><code>cdc:16384:4096:65536</code></td>
+<td style="text-align: right;">505</td>
+<td>99.0 % / 355 K</td>
+<td>99.7 % / 70 K</td>
+<td>99.9 % / 46 K</td>
+<td>98.5 % / 729 K</td>
+<td>99.4 % / 279 K</td>
+</tr>
+<tr>
+<td><code>cdc:262144:32768:1048576</code></td>
+<td style="text-align: right;">870</td>
+<td>97.4 % / 570 K</td>
+<td>99.1 % / 423 K</td>
+<td>98.2 % / 229 K</td>
+<td>87.4 % / 6.2 M</td>
+<td>90.1 % / 4.4 M</td>
+</tr>
+<tr>
+<td><code>keyed-cdc:65536:…</code></td>
+<td style="text-align: right;">869</td>
+<td>98.9 % / 393 K</td>
+<td>99.8 % / 117 K</td>
+<td>99.6 % / 146 K</td>
+<td>96.1 % / 1.9 M</td>
+<td>98.1 % / 811 K</td>
+</tr>
+</tbody>
+</table>
+<p>In the integration matrix's version-2 workload, content-defined chunking reused <strong>73 %</strong> of blocks
+against <strong>54 %</strong> for fixed blocks.</p>
+<ul>
+<li><strong>D-C1-1: default chunker.</strong> <em>Superseded 2026-09-26 by 1 MiB CDC; see the update at the end.</em>
+  The original recommendation was <code>cdc:65536:8192:131072</code>. After a single insertion, fixed
+  blocks have to store 100× more new data than content-defined ones, and after several small
+  insertions about 50× more. It runs at 878 MB/s on one thread, which is 2.2× an LTO-10 drive.</li>
+<li><strong>D-C1-2: offer 16 KiB content-defined chunking per collection</strong> for text-heavy collections with
+  frequent small edits. It stores 2–3× less on edits, but produces 3.1× more blocks, so more index
+  and reference entries, and runs at 505 MB/s. <strong>Rec: allowed as a per-domain option, not the
+  default.</strong></li>
+<li><strong>D-C1-3: reject 256 KiB content-defined chunking.</strong> Scattered overwrites store 3.3× more than at
+  64 KiB. <strong>Rec: don't offer it.</strong></li>
+<li>Keying the chunker costs nothing measurable (869 against 878 MB/s). The sealed-tenant default
+  stands.</li>
+</ul>
+<h2 id="c2-block-hash">C2: block hash<a class="headerlink" href="#c2-block-hash" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Hash</th>
+<th style="text-align: right;">MB/s, one thread</th>
+<th style="text-align: right;">Id bytes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SHA-256</td>
+<td style="text-align: right;">3,008</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td>SHA-384</td>
+<td style="text-align: right;">1,805</td>
+<td style="text-align: right;">48</td>
+</tr>
+</tbody>
+</table>
+<p>The hash choice has <strong>no effect on deduplication</strong> (reuse was 51.6 % with either across all 120
+cells).</p>
+<ul>
+<li><strong>D-C2-1: default hash.</strong> <strong>Rec: keep SHA-384</strong> (CNSA). It is 1.67× slower, but still 4.5× an
+  LTO-10 drive on one thread. <strong>Re-measure on the deployment host's CPU:</strong> this laptop has SHA-256
+  hardware acceleration, and the gap on an x86 server may be different.</li>
+</ul>
+<h2 id="c5-codec">C5: codec<a class="headerlink" href="#c5-codec" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">Seal MB/s</th>
+<th style="text-align: right;">Open and verify MB/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NONE</td>
+<td style="text-align: right;">1,808</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>COLLECTION</td>
+<td style="text-align: right;">1,180</td>
+<td style="text-align: right;">1,131</td>
+</tr>
+<tr>
+<td>GROUP</td>
+<td style="text-align: right;">1,071</td>
+<td style="text-align: right;">1,060</td>
+</tr>
+<tr>
+<td>GLOBAL</td>
+<td style="text-align: right;">1,179</td>
+<td style="text-align: right;">1,229</td>
+</tr>
+</tbody>
+</table>
+<p>Shared modes cost about 35 % more than NONE because they hash every block. That is the price of
+deduplication and is well above media rates.</p>
+<ul>
+<li><strong>D-C5-1: keyed block ids are always HMAC-SHA-384</strong>, 48 bytes (96 hex characters), even in a
+  SHA-256 domain; GLOBAL ids are the domain's own hash. <strong>Rec: keep it.</strong> Ids stay uniform across
+  keyed domains, and the keyed part is CNSA regardless of the content hash chosen. The alternative
+  is to follow the domain's hash, which saves 16 bytes per id in SHA-256 domains.</li>
+</ul>
+<h2 id="c6-reference-index">C6: reference index<a class="headerlink" href="#c6-reference-index" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>D-C6-1: how references are stored at scale.</strong> Today each block holds a <em>set of holder names</em>,
+  so every operation is idempotent and the index agrees with a reference model across 50,000 random
+  operations. That design is correct but can't be the representation at 10⁹ blocks: a string per
+  reference, in memory. <strong>Rec: keep the set semantics, store them as a counted table plus an
+  append-only holder log in the federation index,</strong> and design this before the index integration
+  stage. This is <code>TENANCY-AND-DEDUP.md</code> §12 item 3, now blocking the next stage.
+  <strong>Adopted default (builder, 2026-09-26; owner may override):</strong> a counted table behind the
+  <code>BlockTable</code> interface. Per block: id bytes, domain ordinal, length, reference count, required
+  copies, up to four site ordinals and flags, in paged primitive arrays (no per-block object or
+  string). Holders are counts; which run positions are counted is kept per collection and run
+  (<code>RefHolds</code>), with the positions derived from the run in the version log, so adoption and drops
+  stay idempotent. This also closes a data-loss case of holder names, which carried no collection:
+  two collections holding the same run shared its references, and withdrawing one reclaimed the
+  other's blocks. <code>metaHash</code> is an incremental multiset hash, O(1) while the policy is unchanged (the
+  policy digest is cached against the policy's and key ring's generations). A snapshot cuts the table
+  copy-on-write, opens with a <code>snaphead</code> (format, delta count) and ends with a <code>snapcheck</code>; install
+  refuses anything torn, padded, spliced or downgraded, and a pre-D-C6-1 snapshot installs only
+  through the explicit <code>installLegacy</code>. The index cuts the core inside its consistent point and
+  writes it after, and installs a snapshot only once the rebuilt core has verified. A snapshot is
+  authenticated (HMAC-SHA-384 under a key derived from the master key, checked before anything is
+  applied) and bound to the index position it was cut at; its holds are checked against the version
+  log it carries (every live collection holds exactly the runs it adopted, versions name only
+  adopted runs, a position is uncounted only when its block is gone or a withdrawal dropped it), and
+  its counts against its holds. A version and its references, and a withdrawal's drop and its mark,
+  reach the journal in one batch; a trimmed copy's release carries an intent, so a crash before the
+  copy leaves its site is recovered, not leaked. Measurements: <code>eval/results/scale/</code>.</li>
+</ul>
+<h2 id="c8-placement">C8: placement<a class="headerlink" href="#c8-placement" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>D-C8-1: how much faster sites are favoured.</strong> Placement weight is <code>log10(measured write rate)</code>.
+  With a 375× speed difference, the test requires the fast site to take between 52 % and 90 % of single-copy placements, and it passes. The exact share wasn't recorded. An
+  unmeasured site never outranks a measured one (tested). <strong>Rec: keep the logarithmic weight;</strong> a
+  linear weight would put almost everything on the fastest site and concentrate failure risk.</li>
+</ul>
+<h2 id="c10-engine-findings">C10: engine findings<a class="headerlink" href="#c10-engine-findings" title="Permanent link">&para;</a></h2>
+<p>The engine is correct in every tested behaviour, and the measurements show where it is slow.
+Publish and verified read of one 32 MiB file across 4 sites:</p>
+<table>
+<thead>
+<tr>
+<th>Locus</th>
+<th style="text-align: right;">Replication</th>
+<th style="text-align: right;">Publish MB/s</th>
+<th style="text-align: right;">Read MB/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAM</td>
+<td style="text-align: right;">1–3</td>
+<td style="text-align: right;">111–236</td>
+<td style="text-align: right;">74–174</td>
+</tr>
+<tr>
+<td>Filesystem</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4.8–6.0</td>
+<td style="text-align: right;">31–34</td>
+</tr>
+<tr>
+<td>Filesystem</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;"><strong>1.6–2.0</strong></td>
+<td style="text-align: right;">30–36</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>F-C10-1: extra copies are never trimmed.</strong> When a site is down, repair re-replicates elsewhere to
+  get back to R copies; when the site returns, the block holds more than R copies and nothing removes
+  the surplus. Measured: at R=2 an average of <strong>9.9 blocks per cell</strong> were over-replicated after sites
+  returned. <strong>D-C10-1: trim policy.</strong> <strong>Rec:</strong> keep the surplus through a grace period (a returning
+  site may fail again), then trim back to R, never below, preferring to keep copies in distinct
+  failure domains with the best measured health.</li>
+<li><strong>F-C10-2: filesystem publish is slow because it syncs to disk per block, serially.</strong> <code>FsBinding</code>
+  fsyncs on every <code>append</code>, and the engine writes to each site in turn. On macOS that is about 6 ms
+  per 64 KiB block per copy. <strong>D-C10-2.</strong> <strong>Rec:</strong> move the sync to <code>seal()</code> (one barrier per write
+  batch), which is what the interface's two-state write exists for, and write to sites in parallel.
+  I expect this to improve filesystem publish by more than 10×; I'll measure after the change.</li>
+<li><strong>F-C10-3: reads go block by block through a staging file.</strong> Each block is enqueued, written to a
+  staging file, read back and deleted, and completion is polled. <strong>D-C10-3.</strong> <strong>Rec:</strong> request every
+  block of a file from a site in one call, and add a streaming read path to the interface, as the
+  "stream" requirement calls for.</li>
+<li><strong>F-C10-4: the engine is single-threaded</strong> (its public methods are synchronized). That is correct
+  and simple, and concurrency comes with the index integration stage. It is recorded, not proposed
+  for now.</li>
+</ul>
+<h2 id="c11-which-configurations-are-supported">C11: which configurations are supported<a class="headerlink" href="#c11-which-configurations-are-supported" title="Permanent link">&para;</a></h2>
+<p>All 120 cells pass: every mode × {fixed, content-defined, keyed content-defined (keyed modes)} ×
+{SHA-256, SHA-384} × R ∈ {1, 2, 3} × {RAM, filesystem}.</p>
+<table>
+<thead>
+<tr>
+<th>Replication</th>
+<th>Read with one corrupt copy</th>
+<th>Read after scrub</th>
+<th>Fewest copies after scrub</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R=1</td>
+<td>0 / 40, <strong>refused, never wrong</strong></td>
+<td>0 / 40</td>
+<td>0 for the corrupted block</td>
+</tr>
+<tr>
+<td>R=2</td>
+<td>40 / 40</td>
+<td>40 / 40</td>
+<td>2</td>
+</tr>
+<tr>
+<td>R=3</td>
+<td>40 / 40</td>
+<td>40 / 40</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>With R=1, corruption is <strong>detected and refused</strong>, never returned as data. Nothing is left to repair
+from.</p>
+<ul>
+<li><strong>D-C11-1: the minimum replication policy.</strong> <strong>Rec: R ≥ 2 for any collection that counts as
+  durable</strong>, with R=1 permitted only for explicitly declared caches or recomputable derived data. The
+  design of record is R=3.</li>
+<li><strong>D-C11-2: supported configurations.</strong> <strong>Rec:</strong> declare all 120 tested combinations supported, with
+  the defaults: content-defined 64 KiB, SHA-384, R=3. Keyed content-defined chunking is the default
+  in sealed tenants.</li>
+</ul>
+<h2 id="what-comes-next-once-these-are-decided">What comes next, once these are decided<a class="headerlink" href="#what-comes-next-once-these-are-decided" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Engine performance: D-C10-2 (sync at seal, parallel site writes) and D-C10-3 (batched and
+   streaming reads), re-measured.</li>
+<li>Over-replication trim (D-C10-1).</li>
+<li>Reference storage at scale (D-C6-1), then wiring the engine into the federation index for quorum
+   commit across hosts. That is the next integration stage.</li>
+<li>Metadata-key IV discipline (S1), before any media is written.</li>
+</ol>
+<h2 id="update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci">Update 2026-09-23 (afternoon): findings fixed, smoke test, benchmark, CI<a class="headerlink" href="#update-2026-09-23-afternoon-findings-fixed-smoke-test-benchmark-ci" title="Permanent link">&para;</a></h2>
+<p>The recommended defaults for D-C10-1, D-C10-2 and D-C10-3 were adopted and built. They stay
+configurable. <strong>208 tests, 0 failures</strong>, on this machine and on CI.</p>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Fix</th>
+<th>Before</th>
+<th>After (same Mac)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F-C10-2: one fsync per block, sites written serially</td>
+<td><code>BlockStore.stage</code> / <code>commitStaged</code>: syncs run in parallel at <code>seal</code>, one directory sync per batch, sites sealed in parallel</td>
+<td>disk publish at R=3: 1.6–2.0 MB/s</td>
+<td><strong>46–78 MB/s</strong></td>
+</tr>
+<tr>
+<td>F-C10-3: reads staged one block at a time</td>
+<td><code>readTo(OutputStream)</code>: windowed, one request per site per window, parallel across sites, authenticated per block, per-block fallback</td>
+<td>verified disk read: 30–36 MB/s</td>
+<td><strong>230–380 MB/s</strong></td>
+</tr>
+<tr>
+<td>New (found by the benchmark): repair one block at a time</td>
+<td>Plan first, one fetch per source site, one sealed write per target site, all in parallel</td>
+<td>72 copies/s</td>
+<td><strong>~1,400–1,600 copies/s</strong></td>
+</tr>
+<tr>
+<td>F-C10-1: surplus copies never trimmed</td>
+<td><code>trim(graceMs)</code>: after the grace period, down to R and never below, distinct failure domains first</td>
+<td>never</td>
+<td>tested; idempotent</td>
+</tr>
+<tr>
+<td>New: a long domain id made every block unwritable (stores cap ids at 128 characters)</td>
+<td>Block names hash long or unusual domain ids</td>
+<td>—</td>
+<td>tested</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Versioning with deduplication (benchmark).</strong> Ten successive versions of a file, each with a 0.1 %
+insertion: the deduplicating modes stored <strong>0.01 of the logical bytes</strong> published, NONE stored <strong>3.0</strong>
+(R=3).</p>
+<h3 id="decision-d-c2-1-answered-by-an-x86-host">Decision D-C2-1, answered by an x86 host<a class="headerlink" href="#decision-d-c2-1-answered-by-an-x86-host" title="Permanent link">&para;</a></h3>
+<p>The CI runner (Azure, Linux x86-64, 2 cores) measured <strong>SHA-256 at 1,365 MB/s and SHA-384 at
+613 MB/s</strong>, a <strong>2.2×</strong> gap against 1.67× on Apple silicon. SHA-384 is still above one LTO-10 drive
+(400 MB/s) on a single core, with less headroom than the laptop suggested. Hashing parallelises per
+block, so a many-core server has room to spare. The recommendation to keep SHA-384 stands, now on
+x86 evidence. The HPC cluster run (job 221777) adds a server-class x86 figure.</p>
+<h3 id="a-measurement-correction-jit-warm-up">A measurement correction: JIT warm-up<a class="headerlink" href="#a-measurement-correction-jit-warm-up" title="Permanent link">&para;</a></h3>
+<p>The benchmark's first codec figure (269 MB/s) was a measurement artifact, not a regression. The
+codec seals at <strong>103 MB/s cold</strong> and reaches <strong>~1,100 MB/s after ~3,000 seals (~200 MB)</strong> in the
+same JVM, and JDK 21 and 23 are identical once warm. The benchmark now warms up the primitives and
+the whole engine path before measuring, and reports steady state (1,043 MB/s), because a storage
+server runs warm. The first ~200 MB after a process starts are slower, and that should be expected
+after every restart.</p>
+<h3 id="tools">Tools<a class="headerlink" href="#tools" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>eval/gfs-core.sh smoke [dir] [fs|mem] [--attest]</code> runs 25 checks end to end on real sites and
+  exits 0 or 1. It passes 25/25 on disk (3.4 s) and in RAM (0.5 s), and runs in every build.</li>
+<li><code>eval/gfs-core.sh bench [...]</code> measures primitives, publish and read, versioning, repair and scrub,
+  and writes JSON to <code>eval/results/bench/</code>.</li>
+<li>Both are classes in the bundle (<code>gfs.core.tools</code>), so they run on any deployment host.</li>
+<li>CI (then <code>.github/workflows/test.yml</code>; on the HPC cluster since 2026-10-02, docs/CI.md) runs the suite, the wire-contract lint, the smoke test and a
+  small benchmark on every push, and uploads the results. The first run passed.</li>
+</ul>
+<h2 id="update-2026-09-23-evening-on-hpc-servers">Update 2026-09-23 (evening): on HPC servers<a class="headerlink" href="#update-2026-09-23-evening-on-hpc-servers" title="Permanent link">&para;</a></h2>
+<p>The smoke test and benchmark ran on HPC compute nodes via SLURM: job 221777 on cluster node 03, then job
+221810 on cluster node 01 after the fixes below. Logs and JSON are in <code>eval/results/bench/cluster/</code>. Both are
+x86-64 with 32 cores, JDK 21.</p>
+<p><strong>Two defects the server found, both fixed:</strong></p>
+<ol>
+<li><strong>The durability probe was a single timing pass.</strong> On cluster node 03 it classified one of four identical
+   node-local directories INDETERMINATE and the other three COSTS_TIME: the first site probed ran on
+   a cold JVM. The probe now warms up, runs five rounds alternating which pass goes first, and counts
+   a locus durable only when <strong>every</strong> round agrees (<code>classifyRounds</code>). The per-round ratios are kept
+   for audit. On cluster node 01 all four node-local sites came back unanimous, and the smoke test passed
+   25/25.</li>
+<li><strong>The engine was CPU-bound on one thread.</strong> On x86 each core is slower at this work (SHA-384
+   718 MB/s, codec ~545 MB/s), and every block was hashed and encrypted serially. Per-block work now
+   runs across cores, with the decisions that touch shared state kept sequential and in order.
+   Domain keys are memoised, and the memo is cleared when a root is installed or destroyed.</li>
+</ol>
+<p><strong>Correction:</strong> with the unanimous probe, the HPC cluster <strong>shared project filesystem measured COSTS_TIME</strong>
+(13–14 MiB/s), contradicting the one-pass ×0.94 from 2026-09-19. It is admitted; its real cost is
+speed, 10–18× slower than node-local storage.</p>
+<p><strong>cluster node 01, node-local disk (job 221810):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">R</th>
+<th style="text-align: right;">Publish MB/s</th>
+<th style="text-align: right;">Verified read MB/s</th>
+<th style="text-align: right;">Stored / logical (10 versions)</th>
+<th style="text-align: right;">Repair copies/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NONE</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">175</td>
+<td style="text-align: right;">361</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>NONE</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">103</td>
+<td style="text-align: right;">420</td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">2,397</td>
+</tr>
+<tr>
+<td>COLLECTION</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">140</td>
+<td style="text-align: right;">380</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td>COLLECTION</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">74</td>
+<td style="text-align: right;">367</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2,234</td>
+</tr>
+<tr>
+<td>GROUP</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">76</td>
+<td style="text-align: right;">380</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2,464</td>
+</tr>
+<tr>
+<td>GLOBAL</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">77</td>
+<td style="text-align: right;">380</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2,336</td>
+</tr>
+</tbody>
+</table>
+<p>Against cluster node 03 before the CPU fix, deduplicating-mode publish went from ~100 to <strong>131–140 MB/s</strong> at
+R=1, and verified reads from 226–241 to <strong>367–383 MB/s</strong>. At R=3 the limit is now the disk syncs
+(74–77 MB/s). In RAM on the same CPU, publish reaches 152–227 MB/s at R=1 and reads 396–472 MB/s.</p>
+<p><strong>D-C2-1 on a server:</strong> SHA-384 <strong>718 MB/s</strong> against SHA-256 <strong>1,765 MB/s</strong> per core, a <strong>2.5×</strong> gap
+on x86 (1.67× on Apple silicon, 2.2× on the CI runner). Per core, SHA-384 is 1.8× one LTO-10 drive,
+and hashing now runs across cores. <strong>The recommendation to keep SHA-384 stands</strong>, now on
+server-class evidence, but it costs 2.5× on x86.</p>
+<p><strong>What limits a single stream now:</strong> content-defined chunking runs single-threaded per file at
+~600 MB/s on x86. That is the next ceiling above one LTO-10 drive (400 MB/s). Several files publish in
+parallel; one very large file does not yet.</p>
+<h2 id="update-2026-09-23-night-the-core-on-the-fabric">Update 2026-09-23 (night): the core on the fabric<a class="headerlink" href="#update-2026-09-23-night-the-core-on-the-fabric" title="Permanent link">&para;</a></h2>
+<p>The three outstanding items are closed or explicitly handed back.</p>
+<p><strong>1. The engine runs across hosts, with agreement.</strong> The storage core now runs inside the federation
+index (<code>coresvc/CoreService</code>). The index is its journal and its replication.</p>
+<ul>
+<li><strong>One apply path.</strong> Every persistent change is a <code>Delta</code> applied through <code>StorageEngine.apply</code>. That
+  one function runs live, on replay after a restart, and on every replica, so the three cannot
+  diverge.</li>
+<li><strong>Journaling.</strong> Each operation's changes go out as one <code>core.batch</code> through the index's commit path.
+  The batch is forced to disk before the operation returns, then shipped to the replicas.
+  <code>statehash</code> now carries <code>core_hash</code>; snapshots carry the core too.</li>
+<li><strong>Storage nodes.</strong> The index reaches them through <code>RemoteBinding</code>: the unchanged <code>ExtentBinding</code>
+  contract over RPC. Each node serves its own <code>FsBinding</code> through <code>ExtentServer</code>, and only to
+  the index that owns it.</li>
+<li><strong>Crash safety.</strong> Before any seal, the blocks and sites a write is about to create are journaled as
+  an <em>intent</em>. Recovery reclaims every copy an intent names that the index never recorded.</li>
+<li><strong>Tenant roots.</strong> They leave memory only wrapped under <code>core_master_key</code>. Without that key the core
+  does not start.</li>
+</ul>
+<p>Evidence:
+- JUnit 294/294. <code>JournalReplayTest</code> 12/12: replay and snapshot give an identical hash; a crash
+  between seal and commit leaves no orphans; a refused seal cleans up; no root in the clear. The new
+  REMOTE locus runs the binding contract and all 60 extra integration-matrix cells over the protocol.
+- Live fabric, 9 JVMs, <code>eval/core_fabric_check.py</code>: <strong>61/61</strong>
+  (<code>eval/results/core_fabric_20260923-180417.json</code>). Covered:
+  - all four dedup modes, and v2 of a 3.5 MB file stores 234 KB at R=3;
+  - cross-tenant GLOBAL dedup stores 0 blocks, and compose stores 0 bytes;
+  - a grant-derived publish stores only the addition;
+  - a sealed tenant is refused by rule;
+  - the replica's hash equals the primary's;
+  - no plaintext on any disk;
+  - a storage node killed: every read survives, repair and trim work;
+  - the index killed -9: the replayed hash equals the pre-crash hash, and dedup survives the restart;
+  - the index halted between seal and commit: 1,128 sealed orphans are reclaimed from the journaled
+    intent, leaving 1,125 files on disk = 1,125 recorded copies.</p>
+<p>Found live and fixed:
+- <strong>A dead node stalled liveness.</strong> The core's one timer thread blocked on an RPC to it. Fix: liveness
+  sync gets its own thread, a timed-out node is quarantined at once, and control calls time out at 10 s.
+- <strong>An index restart marked every node LOST.</strong> Replayed <code>last_seen</code> values were stale. That would
+  also start the prototype's repair storm. Fix: each node gets a full grace window from start.
+- <strong>Control messages are capped at 1 MiB</strong> by the websocket. Bulk bytes now arrive by chunked
+  <code>core.upload</code>, and reads are ranged: <code>core.readrange</code> fetches only the covering blocks.</p>
+<p><strong>Throughput through the fabric is low, and the cause is known.</strong> One Mac running 9 JVMs, R=3:
+engine publish 15–18 MB/s and engine read 59–78 MB/s. Bytes travel base64-encoded inside
+control-plane control messages. In-process on the same machine the engine does 568–604 MB/s. The fix is to
+move the extent data onto the dataplane (FrameBus), as the prototype's fragment path does.
+That is the next performance item.</p>
+<p><strong>2. A single large file no longer caps at one core.</strong>
+- Parallel content-defined chunking is byte-identical to sequential (proven in <code>ChunkerTest</code>), and the
+  whole-file hash overlaps the rest of the work.
+- <code>MemBinding</code> usage is O(1): <code>describe()</code> had summed every stored extent on every placement call.
+- One 1 GiB file publishes at <strong>568–604 MB/s</strong> (was 186).</p>
+<p><strong>3. Decisions.</strong> The table at the top records every decision as an adopted, reversible default, not
+an owner approval. Two remain open and matter at scale: <strong>D-C6-1</strong> (reference storage) and
+<strong>D-C11-1</strong> (enforce R ≥ 2 for durable collections).</p>
+<p>Known limits, stated plainly:
+- Core RPCs have no per-tenant authorization yet. Anyone holding the service key can call
+  <code>core.*</code>, and tenant-level authorization is an open question.
+- Per-block metadata is journaled at roughly 130 bytes per block, about 2 MB per GiB. Journal
+  compaction exists only as snapshot install.
+- The index keeps retained log entries in memory.</p>
+<h2 id="update-2026-09-23-late-the-data-path-measured-leg-by-leg">Update 2026-09-23 (late): the data path, measured leg by leg<a class="headerlink" href="#update-2026-09-23-late-the-data-path-measured-leg-by-leg" title="Permanent link">&para;</a></h2>
+<p><strong>No file byte travels in a control message.</strong> Clients stream over GKT, a reliable transfer on the
+the mesh client dataplane (per-chunk sha256, sliding window, selective acknowledgements, retransmit).
+The index and the storage nodes exchange bodies as FrameBus dataplane frames, and a lost frame
+retries the idempotent exchange. The engine streams with bounded memory, runs concurrently, and
+reads directly from media that can (<code>readNow</code>).</p>
+<p>Measured on one Mac: 7 the mesh JVMs of 512 MB heap each, sharing one SSD, R as stated
+(<code>eval/core_throughput.py</code>, <code>eval/results/core_throughput_*.json</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Leg</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Index ↔ node, pure transport (no disk, no crypto)</td>
+<td>~300 MB/s per flow at ≥4 MiB messages; 540–580 MB/s multi-flow to one node; ~550 MB/s out / 1.0–1.2 GB/s in across 5 nodes</td>
+</tr>
+<tr>
+<td>Client → index upload (8 flows × 1 MiB chunks, 16 MiB in flight per flow)</td>
+<td>420–490 MB/s, 0 retransmits</td>
+</tr>
+<tr>
+<td>Engine read on the index (no client leg), 1 MiB blocks</td>
+<td>256–395 MB/s on 1 flow; 590–705 MB/s on 4–8 flows</td>
+</tr>
+<tr>
+<td>Engine publish, 1 MiB blocks</td>
+<td><strong>368 MB/s at R=1</strong>, <strong>126–147 MB/s at R=3</strong></td>
+</tr>
+<tr>
+<td>Engine publish, 64 KiB blocks</td>
+<td>97 MB/s at R=1, 54 MB/s at R=3</td>
+</tr>
+<tr>
+<td>Client download to a local file (Python client, 8 flows)</td>
+<td>230–263 MB/s: the client leg, not the engine, is the limit</td>
+</tr>
+</tbody>
+</table>
+<p>Findings, all fixed and covered by tests:
+- <strong>Data loss.</strong> Concurrent appends to one write dropped entries on the disk binding, so blocks behind
+  a committed version were never sealed.
+- <strong>RAM.</strong> An in-flight window counted in chunks, not bytes, exhausted a 512 MB heap. Windows are now
+  a byte budget, enforced by both ends.
+- <strong>Stalls.</strong> Lost non-persistent frames stalled reads for 15 s each; they now cost a retry.
+- <strong>Wasted I/O.</strong> Every block read made three extra disk round trips through sink directories, and
+  every seal re-read what it had just staged.
+- <strong>A thread leak</strong> in the engine and disk-binding pools.
+- <strong>The "1 MiB cap"</strong> was the Python websockets default <code>max_size</code>, not the server (which allows 1 GiB)
+  or the broker (128 MiB). The the Python transport library dataplane now accepts 64 MiB.</p>
+<p><strong>Decision for the owner: D-C1-1 block size.</strong> 1 MiB content-defined blocks publish about 3× faster
+than 64 KiB (368 against 97 MB/s at R=1) and cut per-block metadata 16×. The cost: an edit stores
+about 1–2 MiB instead of about 64–128 KiB. For petabytes of imaging, 1 MiB is the recommended default.
+It is available per domain today (<code>chunker=cdc:1048576:262144:4194304</code>); the global default is
+unchanged pending the owner's confirmation.</p>
+<p>Next:
+- Pipelined ingest (publish while parts arrive). End-to-end ingest today is upload then publish:
+  196 MB/s at R=1, 98–113 MB/s at R=3.
+- A Java client measurement of downloads.
+- Physical R=3 on separate hosts: three copies on one laptop SSD is not a deployment figure.</p>
+<h3 id="addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night">Addendum: failures found under concurrent load, all fixed (2026-09-23, night)<a class="headerlink" href="#addendum-failures-found-under-concurrent-load-all-fixed-2026-09-23-night" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Silent handler death.</strong> An OutOfMemoryError in a handler vanished inside the plugin's message
+  pool, whose processor catches only Exception. <code>CoreService</code> now catches and logs every Throwable.
+  The error itself came from pipelined ingest overcommitting a 512 MB index heap. The index now sets
+  each upload's window from a shared budget (64 MB across all open flows, returned in the <code>core.put</code>
+  reply and enforced by the receiver), and per-site shipping is 2 batches in flight.</li>
+<li><strong>An interrupt closing a shared file.</strong> Interrupting a thread closed the <code>FileChannel</code> that every
+  receiver shared. Readers now use their own channel.</li>
+<li><strong>Acks sent from the JMS consumer thread</strong> could block under producer backpressure and stall the
+  flows that wait for them. Acks now go out on their own ordered lane.</li>
+<li><strong>The hub broker.</strong> On the test fabric every agent attaches to one global controller, so every
+  byte passes one broker JVM. Under ~1 GB/s it exhausted a 1 GB heap and every agent declared its
+  controller lost at the same moment. A hub broker must be sized for bulk traffic in flight: the
+  tests use 4 GB. In a deployment, regional brokers split this load.</li>
+<li><strong>Pipelined ingest</strong> (publish while the flows land) is built and correct, byte-identical. It is not
+  faster on this machine (R=1: 189 against 183 MB/s serial) because upload and replica traffic share
+  the one hub broker. It is expected to pay off where clients and storage nodes reach the index over
+  different links, which this machine cannot test.</li>
+</ul>
+<p>State: 324/324 unit tests; live fabric 61/61
+(<code>eval/results/core_fabric_20260923-222652.json</code>, index heap 2 GB, hub 4 GB).</p>
+<h2 id="update-2026-09-26-block-size-on-real-imaging-out-10-d-c1-1">Update 2026-09-26: block size on real imaging (OUT-10, D-C1-1)<a class="headerlink" href="#update-2026-09-26-block-size-on-real-imaging-out-10-d-c1-1" title="Permanent link">&para;</a></h2>
+<p>Dedup and edit amplification were measured with the production chunkers and SHA-384 on real data on
+the HPC cluster (SLURM array 223030, 32 tasks; lists 223029; merge 223031). A rerun on the same sample
+(array 223196, merge 223197) reproduced every figure exactly and added exact size quantiles and read
+amplification. Data was read in place. The de-identification edits were made in memory and never
+written. Only aggregate numbers left the cluster: <code>eval/results/dedup/</code> (<code>*_r1.json</code>, <code>*_r2.json</code>).
+The tool is <code>gfs.core.tools.DedupMeasure</code> and the drivers are in <code>eval/dedup/</code>.</p>
+<ul>
+<li><strong>DICOM.</strong> Every instance of the five TCIA renal collections: 410,546 instances, 194 GiB, median
+  528 KB, mostly CT slices. De-identification is PS3.15-style: names and IDs pseudonymised, birth
+  date and accession blanked, dates shifted, UIDs remapped (lengths change). All 410,546 instances
+  parsed.</li>
+<li><strong>WSI.</strong> 837 GDC TCGA kidney SVS slides, 377 GiB, median 259 MB. The sample is stratified by
+  project and by diagnostic or tissue slide. The edit blanks the Aperio identifying keys (Filename,
+  Title, Date, Time, User, ScanScope ID, Barcode) in place (<code>desc</code>), or moves a longer description
+  to the end of the file (<code>grow</code>). None of the 837 slides has a label or macro image: GDC strips them.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Chunker</th>
+<th style="text-align: right;">DICOM dedup saving</th>
+<th style="text-align: right;">DICOM de-id: new bytes per instance</th>
+<th style="text-align: right;">DICOM refs per TiB</th>
+<th style="text-align: right;">WSI dedup saving</th>
+<th style="text-align: right;">WSI <code>desc</code> edit: new bytes per slide</th>
+<th style="text-align: right;">WSI refs per TiB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fixed:65536</code></td>
+<td style="text-align: right;">2.0 %</td>
+<td style="text-align: right;">499 KB (98 %)</td>
+<td style="text-align: right;">18.7 M</td>
+<td style="text-align: right;">0.34 %</td>
+<td style="text-align: right;">130 KB</td>
+<td style="text-align: right;">16.8 M</td>
+</tr>
+<tr>
+<td><code>fixed:1048576</code></td>
+<td style="text-align: right;">0.8 %</td>
+<td style="text-align: right;">504 KB (99 %)</td>
+<td style="text-align: right;">2.2 M</td>
+<td style="text-align: right;">0.07 %</td>
+<td style="text-align: right;">1.7 MB</td>
+<td style="text-align: right;">1.05 M</td>
+</tr>
+<tr>
+<td><code>cdc:65536:8192:131072</code></td>
+<td style="text-align: right;">1.4 %</td>
+<td style="text-align: right;"><strong>99 KB (20 %)</strong></td>
+<td style="text-align: right;">17.2 M</td>
+<td style="text-align: right;">0.30 %</td>
+<td style="text-align: right;">186 KB</td>
+<td style="text-align: right;">17.1 M</td>
+</tr>
+<tr>
+<td><code>cdc:262144:65536:1048576</code></td>
+<td style="text-align: right;">0.9 %</td>
+<td style="text-align: right;">278 KB (55 %)</td>
+<td style="text-align: right;">4.8 M</td>
+<td style="text-align: right;">0.07 %</td>
+<td style="text-align: right;">1.0 MB</td>
+<td style="text-align: right;">3.3 M</td>
+</tr>
+<tr>
+<td><strong><code>cdc:1048576:262144:4194304</code></strong></td>
+<td style="text-align: right;">0.4 %</td>
+<td style="text-align: right;"><strong>470 KB (93 %)</strong></td>
+<td style="text-align: right;"><strong>2.6 M</strong></td>
+<td style="text-align: right;">0.03 %</td>
+<td style="text-align: right;"><strong>2.9 MB (0.6 %)</strong></td>
+<td style="text-align: right;"><strong>0.84 M</strong></td>
+</tr>
+<tr>
+<td><code>cdc:4194304:1048576:16777216</code></td>
+<td style="text-align: right;">0.0 %</td>
+<td style="text-align: right;">506 KB (99.6 %)</td>
+<td style="text-align: right;">2.2 M</td>
+<td style="text-align: right;">0.01 %</td>
+<td style="text-align: right;">9.3 MB</td>
+<td style="text-align: right;">0.21 M</td>
+</tr>
+</tbody>
+</table>
+<p>Journal metadata at 130 bytes per reference: DICOM 2.2 GB per TiB at 64 KiB CDC against 0.33 GB at
+1 MiB. WSI 2.2 GB per TiB against 0.11 GB.</p>
+<p>What the data says:
+- <strong>Real imaging does not deduplicate at any block size.</strong> DICOM saves at most 2.0 %, and WSI at
+  most 0.34 %, because the pixel data is already compressed or noisy. Smaller blocks buy almost no dedup.
+- <strong>WSI favours 1 MiB clearly.</strong> Metadata is 20× smaller. A description edit stores 2.9 MB per
+  slide, 0.6 % of slide bytes, against 186 KB at 64 KiB.
+- <strong>DICOM instances are about one block at 1 MiB.</strong> A median instance is 528 KB, so a 1 MiB block
+  holds the whole instance. A de-identified copy kept in the same dedup domain re-stores 93 % of each
+  instance at 1 MiB, against 20 % at 64 KiB CDC. Keeping original plus copy costs 1.93× at 1 MiB and
+  1.20× at 64 KiB. Metadata is 6.7× smaller, not 16×. This cost applies only where the edited copy
+  shares a domain with the original (a version in the same collection), or is a derived publish
+  through a grant from a 1 MiB base. A derived publish cuts its changed files at the base's
+  boundaries where that is safe (see the follow-up below), so a derivative of a 64 KiB base still
+  costs about 20 %. A copy in another domain with no grant is stored whole at any block size.
+- <strong>Adopted:</strong> <code>cdc:1048576:262144:4194304</code> for new domains (sealed tenants use the keyed form;
+  NONE uses <code>fixed:1048576</code>). The data does not argue for 64 KiB as the global default. It does
+  support a per-domain 64 KiB CDC for DICOM collections that will hold de-identified versions of the
+  same instances in-domain. <strong>Flag for the owner:</strong> that per-domain choice is available today
+  (<code>chunker=cdc:65536:8192:131072</code> on <code>core.domain</code>); no automatic per-modality default is built.
+- Config <code>core_default_chunker</code> sets the default for new domains. It must be a canonical, unkeyed
+  <code>cdc:</code> spec. An invalid value refuses the plugin start. The value belongs to the plugin instance's
+  own storage core (<code>CoreService.defaultChunker</code>, held by its <code>PolicyEngine</code>), never to the JVM, so
+  two gfs instances in one agent cannot change each other's default; the core logs it at start. A
+  domain records its spec at creation, and replay uses that record, so the change never re-cuts
+  existing data (<code>DefaultChunkerTest</code>, <code>ExecutorConfigTest</code>). No chunker size in a new domain may
+  exceed 16 MiB; a spec an earlier build recorded is honoured on replay (see the second follow-up).
+- The cost stated plainly: scattered small edits. On the synthetic C1 workloads (32 MiB of random
+  bytes, <code>eval/results/modules/chunkers.json</code>), twenty 4 KiB overwrites re-store 18.4 MB at 1 MiB
+  against 2.0 MB at 64 KiB, and ten 300-byte insertions 21.0 MB against 0.6 MB. Imaging edits are
+  header-local, which is what the real-data run measured; a collection edited in scattered places
+  should choose a smaller chunker per domain.
+- Matrix: 40 new cells at 1 MiB on 8–48 MB files, with a 700-byte insertion in the middle of 48 MB.
+  1 MiB CDC re-stores at most two maximum blocks; fixed 1 MiB re-stores everything after the edit.
+  The 180 64 KiB cells stay, for domains created before this change. The tier adds about 95 s to the
+  suite on a laptop.</p>
+<h3 id="follow-up-2026-09-26-reads-and-derived-publishes-at-1-mib-out-10-review">Follow-up 2026-09-26: reads and derived publishes at 1 MiB (OUT-10 review)<a class="headerlink" href="#follow-up-2026-09-26-reads-and-derived-publishes-at-1-mib-out-10-review" title="Permanent link">&para;</a></h3>
+<p>An adversarial review of the change found three costs of larger blocks that the first pass had not
+measured or handled. All three are fixed or measured; the default stays 1 MiB.</p>
+<ul>
+<li><strong>Derived publishes across specs.</strong> A grant bundle is keyed by the hash of the base's blocks, so a
+  derived publish finds unchanged bytes only if it cuts them at the base's boundaries. Before the
+  fix it always cut with the target domain's spec: a 16 MiB file derived from a 64 KiB base into a
+  new 1 MiB domain, with a 500-byte insertion, stored the whole file (50.3 MB at R=3) instead of
+  0.3 MB. <code>StorageEngine.derivedChunkers</code> now cuts changed files with the chunker of the base domain
+  that holds most of the inherited bytes, when that reveals nothing the target's own chunker would
+  not: fixed boundaries, both specs unkeyed, or a keyed base owned by the target's owner. A keyed or
+  NONE target never takes public content-defined boundaries, and one tenant's boundary key never
+  cuts another tenant's data. Those publishes use the target's chunker, reuse only whole identical
+  blocks, and are counted in <code>Stats.derivedUnaligned</code> (<code>DefaultChunkerTest</code>).</li>
+<li><strong>Streaming read memory.</strong> The read window was 256 blocks, so a stream held about three windows of
+  1–4 MiB blocks: 1–3 GiB. It is now bounded by <code>readWindowBytes</code> as well (64 MiB, at least one
+  block), about 200 MB per stream whatever the block size (<code>ReadWindowTest</code>).</li>
+<li><strong>Pieced downloads.</strong> <code>core.get</code> serves a download as 8 MiB range reads, and a piece boundary inside
+  a block fetched and opened that block twice: about one block in eight at 1 MiB. A download now
+  reads through one <code>StorageEngine.RangeCursor</code>, which keeps the last block of each range for the
+  next. Grants and broken references are still checked for the kept block (<code>ReadWindowTest</code>).</li>
+</ul>
+<p><strong>Random range reads</strong> (rerun r2). A range read fetches every block it touches, whole. For a read of
+R bytes at a random offset, bytes fetched per byte asked are (size-biased mean block + R − 1) / R.
+For WSI, the tile rows replay every tile of every tiled image read alone and uncached, as a slide
+viewer without a cache would read them (45.4 M tiles, mean 8.9 KB).</p>
+<table>
+<thead>
+<tr>
+<th>Chunker</th>
+<th style="text-align: right;">DICOM 32 KiB read</th>
+<th style="text-align: right;">WSI 32 KiB read</th>
+<th style="text-align: right;">WSI tile read: fetched per tile</th>
+<th style="text-align: right;">WSI tile amplification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fixed:65536</code></td>
+<td style="text-align: right;">3.0×</td>
+<td style="text-align: right;">3.0×</td>
+<td style="text-align: right;">74 KB</td>
+<td style="text-align: right;">8.4×</td>
+</tr>
+<tr>
+<td><code>fixed:1048576</code></td>
+<td style="text-align: right;">17.8×</td>
+<td style="text-align: right;">33×</td>
+<td style="text-align: right;">1.06 MB</td>
+<td style="text-align: right;">119×</td>
+</tr>
+<tr>
+<td><code>fixed:4194304</code></td>
+<td style="text-align: right;">20×</td>
+<td style="text-align: right;">129×</td>
+<td style="text-align: right;">4.2 MB</td>
+<td style="text-align: right;">473×</td>
+</tr>
+<tr>
+<td><code>cdc:65536:8192:131072</code></td>
+<td style="text-align: right;">3.8×</td>
+<td style="text-align: right;">3.8×</td>
+<td style="text-align: right;">104 KB</td>
+<td style="text-align: right;">11.7×</td>
+</tr>
+<tr>
+<td><code>cdc:262144:65536:1048576</code></td>
+<td style="text-align: right;">11.2×</td>
+<td style="text-align: right;">16.6×</td>
+<td style="text-align: right;">552 KB</td>
+<td style="text-align: right;">62×</td>
+</tr>
+<tr>
+<td><strong><code>cdc:1048576:262144:4194304</code></strong></td>
+<td style="text-align: right;"><strong>18.2×</strong></td>
+<td style="text-align: right;"><strong>63×</strong></td>
+<td style="text-align: right;"><strong>2.13 MB</strong></td>
+<td style="text-align: right;"><strong>240×</strong></td>
+</tr>
+<tr>
+<td><code>cdc:4194304:1048576:16777216</code></td>
+<td style="text-align: right;">24×</td>
+<td style="text-align: right;">249×</td>
+<td style="text-align: right;">8.4 MB</td>
+<td style="text-align: right;">949×</td>
+</tr>
+</tbody>
+</table>
+<p>At 1 MiB CDC the size-biased mean WSI block is 2.0 MB (DICOM 0.56 MB): JPEG tile data yields more
+long blocks than random bytes do. Sequential reads are unaffected (a whole-file read fetches each
+block once).</p>
+<p><strong>Flag for the owner: slide viewing.</strong> Serving viewer tiles straight from 1 MiB blocks, uncached,
+moves about 240× the tile bytes from the storage sites, against 12× at 64 KiB. Dedup and metadata
+still favour 1 MiB, and the owner accepted 1 MiB blocks, so the default stays. A deployment that
+serves tiles from GFS should put a block cache in front of reads (tiles of one viewport sit in a few
+blocks) or give viewer-facing pathology collections a smaller chunker per domain
+(<code>cdc:262144:65536:1048576</code> fetches a quarter as much; <code>cdc:65536:8192:131072</code> a twentieth).</p>
+<h3 id="follow-up-2026-09-26-second-review">Follow-up 2026-09-26: second review<a class="headerlink" href="#follow-up-2026-09-26-second-review" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>The default is per instance.</strong> It was a JVM-wide static that every <code>ExecutorImpl</code> constructor
+  reset, so a storage instance built after the index silently changed the index's default for new
+  domains. <code>ExecutorImpl</code> now only validates the key, and hands it to its own <code>CoreService</code>, which
+  carries it into every engine it builds, including after a snapshot install.</li>
+<li><strong>Recorded specs replay.</strong> The 16 MiB bound and exact field count applied on replay too, so a
+  domain an earlier build had accepted (for example <code>cdc:4194304:1048576:33554432</code>, or a trailing
+  field the old parser ignored) fenced the whole core on restart. Replay now goes through
+  <code>PolicyEngine.restoreDomain</code>, which checks the spec against what any earlier build could record
+  (<code>ChunkerSpec.checkRecorded</code>); live creation stays strict. Writes cut with the recorded spec exactly
+  as before, up to <code>ChunkerSpec.MAX_RECORDED_BLOCK</code> (64 MiB); past it, that domain alone refuses
+  writes and says why, and its data stays readable. A spec no build could record still fails replay
+  and fences the engine.</li>
+<li><strong>Derived publishes choose the chunker per file.</strong> A changed path the base holds is cut with the
+  chunker of the domain holding most of that file's bytes, under the same leak rules; a new path has
+  nothing to match in the base and gets the target's own chunker. Before, a new 40 GB file derived
+  into a 1 MiB domain from a 64 KiB base took 16× the block references for no dedup.</li>
+<li><strong>The matrix record is opt-in.</strong> <code>IntegrationMatrixTest</code> writes to <code>target/results/modules/</code> by
+  default; <code>-Dgfs.results.dir=eval/results/modules</code> refreshes the tracked record deliberately.</li>
+<li><strong>Measurement hygiene.</strong> <code>DedupMeasure</code> block keys are HMAC-SHA-384 under a per-run secret, not
+  plain SHA-384 prefixes, so a leftover key file cannot confirm a guessed header block. The shard
+  work files are owner-only, and the merge deletes the block keys and sizes once its JSON is written
+  (the driver deletes the run key). The r1 and r2 work files on the HPC cluster were deleted.</li>
+</ul>
+<p><strong>Label edits.</strong> The 837 GDC slides carry no label or macro image (GDC strips them). A first
+read-only search (job 223130) for scanner-native slides elsewhere timed out; a second, narrower one
+(job 223618) found seven Philips iSyntax slides on the HPC cluster with label and macro images. Label edits
+were measured on those (job 223712, <code>eval/dedup/isyntax_label.sbatch</code>, run on node-local scratch)
+and on the six public OpenSlide Aperio test slides (CC0 or freely distributable, no patient data;
+<code>eval/dedup/openslide_label.sh</code>). The edit zeroes the label and macro images and blanks identifying
+metadata, same length, in place.</p>
+<table>
+<thead>
+<tr>
+<th>Chunker</th>
+<th style="text-align: right;">iSyntax label: new bytes per slide (p95)</th>
+<th style="text-align: right;">iSyntax metadata only</th>
+<th style="text-align: right;">Aperio label: new bytes per slide (p95)</th>
+<th style="text-align: right;">Aperio description only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fixed:65536</code></td>
+<td style="text-align: right;">309 KB (371 KB)</td>
+<td style="text-align: right;">66 KB</td>
+<td style="text-align: right;">362 KB (441 KB)</td>
+<td style="text-align: right;">131 KB</td>
+</tr>
+<tr>
+<td><code>cdc:65536:8192:131072</code></td>
+<td style="text-align: right;">273 KB (371 KB)</td>
+<td style="text-align: right;">67 KB</td>
+<td style="text-align: right;">601 KB (741 KB)</td>
+<td style="text-align: right;">178 KB</td>
+</tr>
+<tr>
+<td><code>cdc:262144:65536:1048576</code></td>
+<td style="text-align: right;">1.97 MB (4.19 MB)</td>
+<td style="text-align: right;">257 KB</td>
+<td style="text-align: right;">1.69 MB (2.10 MB)</td>
+<td style="text-align: right;">1.01 MB</td>
+</tr>
+<tr>
+<td><strong><code>cdc:1048576:262144:4194304</code></strong></td>
+<td style="text-align: right;"><strong>4.54 MB (7.05 MB)</strong></td>
+<td style="text-align: right;"><strong>1.22 MB</strong></td>
+<td style="text-align: right;"><strong>4.32 MB (7.05 MB)</strong></td>
+<td style="text-align: right;"><strong>3.09 MB</strong></td>
+</tr>
+<tr>
+<td><code>cdc:4194304:1048576:16777216</code></td>
+<td style="text-align: right;">18.4 MB (23.7 MB)</td>
+<td style="text-align: right;">3.78 MB</td>
+<td style="text-align: right;">9.80 MB (14.1 MB)</td>
+<td style="text-align: right;">7.96 MB</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>iSyntax: 7 slides, 9.93 GiB, median 1.56 GB; the label and macro images are base64 in the XML
+  header (174 KB per slide). At 1 MiB a label edit stores 0.3 % of slide bytes; at 64 KiB, 0.02 %.
+  Block references per TiB: 17.0 M at 64 KiB CDC against 0.83 M at 1 MiB. Dedup saving at most 1.0 %.</li>
+<li>Aperio: 6 slides, 1.22 GiB, median 178 MB (441 KB edited per slide). At 1 MiB a label edit stores
+  2.0 % of slide bytes; at 64 KiB, 0.3 %. The description edit alone costs 3.09 MB at 1 MiB, in line
+  with the 2.9 MB measured on the GDC slides.</li>
+<li>A label edit costs 4-5 MB per slide at 1 MiB, about 16× (iSyntax) and 7× (Aperio) the 64 KiB cost.
+  Against slides of 0.2-2 GB that is 0.3-2 % of slide bytes. It does not change the verdict.</li>
+<li>Not measured: other vendors' layouts (NDPI, MRXS, DICOM-WSI) and a larger iSyntax sample.</li>
+</ul>
+<h2 id="update-2026-09-26-evening-format-adapters-d-c1-1">Update 2026-09-26 (evening): format adapters (D-C1-1)<a class="headerlink" href="#update-2026-09-26-evening-format-adapters-d-c1-1" title="Permanent link">&para;</a></h2>
+<p>A de-identified DICOM copy re-stored 93 % of each instance at 1 MiB CDC, because a median instance
+is one block. Format adapters remove that cost. An adapter recognises one audited format and names
+the offsets where a block must begin; the inner chunker cuts each region between them as a whole
+file. So a metadata edit, even one that changes lengths, leaves the bulk blocks unchanged at any
+block size. The framework, the contract, the audit checklist, version pinning and the measurements
+are in <a href="../FORMAT-ADAPTERS/">FORMAT-ADAPTERS.md</a>. The code is <code>core/chunk/format/</code>.</p>
+<ul>
+<li><strong>Adapters.</strong> <code>dicom@1</code> cuts at the top-level pixel data element. <code>tiff@1</code> cuts at IFD and
+  ImageDescription regions, and at image data that lies after its IFD. <code>nifti@1</code> cuts at
+  <code>vox_offset</code>. A spec pins exact versions (<code>fmt:dicom@1,nifti@1,tiff@1+&lt;inner&gt;</code>). An adapter or
+  version not on the allowlist refuses domain creation. The engine's segmented, parallel path cuts
+  each region on its own, so no format needs the sequential path.</li>
+<li><strong>Measured on the HPC cluster</strong> (array 223418, merge 223419, bench 223420; plain-CDC figures equal r1):</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Corpus and edit</th>
+<th style="text-align: right;"><code>cdc</code> 1 MiB</th>
+<th style="text-align: right;">with the adapter</th>
+<th style="text-align: right;">Block refs per TiB, without → with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DICOM, 410,546 instances: de-id copy</td>
+<td style="text-align: right;">470 KB (92.6 %)</td>
+<td style="text-align: right;"><strong>4.0 KB (0.8 %)</strong></td>
+<td style="text-align: right;">2.57 M → 4.73 M (64 KiB CDC: 17.2 M, with 99 KB per copy)</td>
+</tr>
+<tr>
+<td>WSI, 837 SVS: description edit</td>
+<td style="text-align: right;">2.87 MB</td>
+<td style="text-align: right;"><strong>1.1 KB</strong></td>
+<td style="text-align: right;">0.84 M → 0.88 M</td>
+</tr>
+<tr>
+<td>WSI: longer description appended</td>
+<td style="text-align: right;">4.32 MB</td>
+<td style="text-align: right;">1.08 MB</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>WSI: associated image removed</td>
+<td style="text-align: right;">2.97 MB</td>
+<td style="text-align: right;">2.02 MB</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>NIfTI, 123 KiTS23, decompressed: descrip edit</td>
+<td style="text-align: right;">2.10 MB</td>
+<td style="text-align: right;"><strong>352 B</strong></td>
+<td style="text-align: right;">0.80 M → 0.80 M</td>
+</tr>
+<tr>
+<td>NIfTI as stored (<code>.nii.gz</code>): descrip edit re-compressed</td>
+<td style="text-align: right;">67.5 MB (80 %)</td>
+<td style="text-align: right;">67.5 MB (80 %)</td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+<p>Files no adapter matches are cut exactly as before: every SVS block is identical under
+  <code>fmt:dicom@1</code>. Throughput is unchanged within the ±10 % noise of a shared node (DICOM engine path
+  830 → 855 MB/s, WSI 848 → 820 MB/s, NIfTI 836 → 858 MB/s).
+- <strong>Adopted:</strong> <code>fmt:dicom@1,nifti@1,tiff@1+cdc:1048576:262144:4194304</code> for new unkeyed domains
+  (<code>ChunkerSpec.DEFAULT_CDC</code>). The numbers support it clearly: every format's edits get far cheaper,
+  nothing else changes, and throughput holds. DICOM pays one block more per instance and still has
+  3.6× fewer references than 64 KiB CDC. <strong>Sealed tenants keep plain <code>keyed-cdc</code></strong>: a format cut
+  sits at a public, content-determined offset (a header's length), which keyed boundaries exist to
+  hide. NONE keeps <code>fixed:1048576</code>. Existing domains keep what they recorded.
+- <strong>Not adopted:</strong> <code>dicom-frag@1</code> (cuts at encapsulated fragments) and <code>tiff-tiles@1</code> (cuts at every
+  tile) stay measurement-only. The renal corpus has no encapsulated pixel data, so fragment cuts
+  could not be tested on real data. Every GDC tile lies before its IFD, so a streaming chunker cannot
+  cut there.
+- <strong>Flags for the owner.</strong>
+  - (1) NIfTI dedups only if stored uncompressed: KiTS23 on the HPC cluster is <code>.nii.gz</code> only, and an edit
+    to a gzip stream re-stores 80 % of it at any block size.
+  - (2) Pixel data can itself identify: burned-in text, or a face reconstructed from head CT/MR.
+    Bulk blocks therefore follow the domain's dedup policy like any other block.
+  - (3) Which adapter cut a file is not yet recorded per file. <code>FileEntry.canonical()</code> feeds the
+    root hash, so the field waits for the wave-2 <code>FileEntry</code> change; a proposal is in
+    FORMAT-ADAPTERS.md.
+  - (4) Label edits on real slides were measured at plain CDC (iSyntax and Aperio, "Label edits"
+    above). With the adapters, label removal was measured only on the GDC thumbnail, which stood in for
+    a label image; it remains to be measured on the iSyntax and Aperio slides.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Text licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The GaiaKeep software is not covered by this licence.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

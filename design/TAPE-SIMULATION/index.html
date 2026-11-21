@@ -1,0 +1,3416 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/TAPE-SIMULATION/">
+      
+      
+        <link rel="prev" href="../PACK-FORMAT/">
+      
+      
+        <link rel="next" href="../FROM-SCRATCH-DECISION/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Tape simulation - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tape simulation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dashboard/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dashboard
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dashboard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dashboard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections and versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/placements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle and jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/mesh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesh tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier, now the live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-LOG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-simulators-model-defaults-tape_sim_profilelto9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The simulator's model (defaults, tape_sim_profile=lto9)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mhvtl-the-real-device-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. mhVTL (the real device path)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The benchmark (TapeBench, JSON into eval/results/bench/, gated by eval/bench_gate.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; TapeBench --verify-sweep)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-simulators-model-defaults-tape_sim_profilelto9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The simulator's model (defaults, tape_sim_profile=lto9)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mhvtl-the-real-device-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. mhVTL (the real device path)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The benchmark (TapeBench, JSON into eval/results/bench/, gated by eval/bench_gate.py)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; TapeBench --verify-sweep)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The LTO-class tape simulator and mhVTL test setup behind the tape benchmarks.</p>
+</div>
+<h1 id="tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark">Tape on simulated devices: the in-JVM simulator, mhVTL, and the tape benchmark<a class="headerlink" href="#tape-on-simulated-devices-the-in-jvm-simulator-mhvtl-and-the-tape-benchmark" title="Permanent link">&para;</a></h1>
+<p>Owner direction 2026-09-30: benchmark and test the tape path end to end on simulated tape devices. Two
+kinds exist, and they answer different questions:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>In-JVM simulator (<code>gfs.tape.sim</code>)</th>
+<th>mhVTL (<code>eval/tape/mhvtl</code>, Lima VM <code>gfs-tape</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What it is</td>
+<td>cartridges as directories, drives and a robot with an LTO-9-class time model</td>
+<td>the Linux virtual tape library: real <code>/dev/nst*</code>, <code>/dev/sg*</code>, a SCSI medium changer</td>
+</tr>
+<tr>
+<td>Exercises</td>
+<td>the binding, the catalogue, the crash rules, faults, <strong>mechanics</strong> (mount, locate, rewind, streaming, shoe-shining)</td>
+<td>the <strong>real device path</strong>: st writes and reads, mt positioning, mtx for the robot, raw SCSI (READ POSITION, LOG SENSE, MAM, SECURITY PROTOCOL IN) through this node's own command set over <code>sg_raw</code></td>
+</tr>
+<tr>
+<td>Timing</td>
+<td>modelled (SIMULATED), deterministic, run on a scaled clock</td>
+<td>real wall time, but mhVTL has <strong>no mechanical model</strong> (no load, locate or streaming delays)</td>
+</tr>
+<tr>
+<td>Where</td>
+<td>every JUnit run, the bench on any host</td>
+<td>the Lima VM only (test infrastructure; GPL; never in the code or its dependencies)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-the-simulators-model-defaults-tape_sim_profilelto9">1. The simulator's model (defaults, <code>tape_sim_profile=lto9</code>)<a class="headerlink" href="#1-the-simulators-model-defaults-tape_sim_profilelto9" title="Permanent link">&para;</a></h2>
+<p>Every figure is configurable (<code>tape_sim_*</code>, below) and none is a measurement.</p>
+<table>
+<thead>
+<tr>
+<th>Figure</th>
+<th>Default</th>
+<th>Config key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Robot move, slot to drive and back</td>
+<td>8 s each way</td>
+<td><code>tape_sim_robot_ms</code></td>
+</tr>
+<tr>
+<td>Load to ready</td>
+<td>15 s</td>
+<td><code>tape_sim_load_ms</code></td>
+</tr>
+<tr>
+<td>Unload</td>
+<td>15 s</td>
+<td><code>tape_sim_unload_ms</code></td>
+</tr>
+<tr>
+<td>Rewind</td>
+<td>3 s + 94 s x the distance from BOT (97 s from the end)</td>
+<td><code>tape_sim_rewind_max_ms</code></td>
+</tr>
+<tr>
+<td>Locate</td>
+<td>2 s settle + 100 s x the fraction of the tape travelled (a full-length locate about 102 s)</td>
+<td><code>tape_sim_locate_full_pass_ms</code>, <code>tape_sim_locate_settle_ms</code></td>
+</tr>
+<tr>
+<td>Read retry reposition</td>
+<td>5 s</td>
+<td><code>tape_sim_reposition_ms</code></td>
+</tr>
+<tr>
+<td>Native streaming</td>
+<td>400 MB/s</td>
+<td><code>tape_sim_stream_bytes_per_sec</code></td>
+</tr>
+<tr>
+<td>Speed matching floor</td>
+<td>177 MB/s</td>
+<td><code>tape_sim_min_stream_bytes_per_sec</code></td>
+</tr>
+<tr>
+<td>Drive buffer</td>
+<td>1 GiB</td>
+<td><code>tape_sim_buffer_bytes</code></td>
+</tr>
+<tr>
+<td>Backhitch (one buffer underrun, or a restart after a synchronous filemark)</td>
+<td>3 s</td>
+<td><code>tape_sim_backhitch_ms</code></td>
+</tr>
+<tr>
+<td>First-load calibration of a new cartridge (N-FIRSTLOAD), once per cartridge, on top of its first load</td>
+<td>2 h (provisional: LTO-9's documented worst case; LTO-10's to come from its spec sheet)</td>
+<td><code>tape_sim_first_load_ms</code></td>
+</tr>
+<tr>
+<td>First byte at mid-tape (robot + load + locate)</td>
+<td>about 75 s</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Whole mount cycle at mid-tape</td>
+<td>about 148 s</td>
+<td>derived</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Serpentine locates (<code>tape_sim_locate=serpentine</code>, CTA-REVIEW §2.3).</strong> By default a locate costs the settle
+time plus the full pass times the distance travelled, as if the tape were one long track. With
+<code>tape_sim_locate=serpentine</code> it is timed by the cost model CERN measured on LTO drives instead: the data runs
+along <code>tape_sim_wraps</code> wraps (default 280, a modelled figure) in 4 bands, even wraps forward and odd ones back,
+and a locate costs 4.29 s + 6.69 s for a wrap change + 3.2 s for a band change - 6.04 s for a landing-zone
+change + 5.22 s for a direction change + 11.32 s for a step back + 0.0006192 s per LPOS unit, with the LPOS
+range scaled so a whole-wrap traverse takes the full pass (<code>gfs.tape.SeekModel</code>). The drive then
+reports that geometry, and a recall batch is put in the recommended access order (<code>tape_read_order=auto</code>, the
+default): greedy shortest locate first under the model, kept only when the model says it beats ascending
+order. On the simulator (64 MiB cartridge, 8 wraps, INSTANT clock), 15 extents near both ends of six wraps took
+298 s of drive time against 430 s ascending, 31 % less (TapeRecallOrderTest; SIMULATED). A real drive reports
+no geometry yet: the end-of-wrap query (MAINTENANCE IN A3h/1Fh/45h) and the drive's own RAO (A3h/A4h service
+action 1Dh) are not on the command allowlist, so recalls stay ascending there <strong>[HW]</strong>.</p>
+<p><code>tape_sim_profile=simplant</code> restores the tape spec's M1 figures (robot 15 s, load 90 s, a 172 s full pass at
+0.6, rewind 50-90 s, unload 25 s, reposition 40 s: first byte about 157 s, cycle about 265 s). A simulated
+node's descriptor figures (first byte p50/p95, cycle, stream rate, reposition) follow its profile unless
+<code>tape_first_byte_*</code> etc. are set, with basis SIMULATED.</p>
+<p><strong>Streaming and shoe-shining.</strong> The tape runs at the host's feed rate clamped to [177, 400] MB/s (speed
+matching). Records arrive into the buffer; the host waits only while the buffer is full. A record that
+arrives after the buffer drained finds the tape stopped: it costs a 3 s backhitch before streaming resumes.
+A writer below 177 MB/s therefore stops the tape again and again (shoe-shining): its drive-time streaming
+rate collapses toward the feed and the drive's repositions (wear) grow. A synchronous filemark (immed=0, the
+binding's per-container durability barrier) stops the tape too: the next write pays one backhitch (counted
+as a sync stop, not a shoe-shine). Arrival times are the host's wall clock by default; a benchmark can feed
+a synthetic timeline (<code>SimDrive.arrivals</code>) to model a host of any rate deterministically.</p>
+<p><strong>The library.</strong> N drives (<code>tape_sim_drives</code>, 2), M slots (<code>tape_sim_slots</code>, 16) and cartridges
+(<code>tape_sim_cartridges</code>, 8; <code>tape_sim_worm_cartridges</code>, the last ones, which the binding keeps for the
+<code>tape_worm_classes</code> only; <code>tape_sim_capacity_bytes</code>, 64 GiB), one robot whose moves are charged to the drive they
+serve. Time runs <code>SCALED</code> (sleeps the modelled time divided by
+<code>tape_sim_time_scale</code>, paced by debt so sub-millisecond operations are not rounded up) or <code>INSTANT</code> (no sleep;
+the modelled time is only accounted). Cartridges are directories, so a simulated host restart keeps them.</p>
+<p><strong>First-load calibration and media intake (N-FIRSTLOAD, owner 2026-10-02).</strong> A new simulated cartridge arrives
+uncalibrated (<code>SimLibrary.Options.calibrated</code>, false by default); its first load spends <code>tape_sim_first_load_ms</code>
+(2 h by default) on top of the load, once, and the cartridge remembers it (in its directory). The binding journals
+the calibration (<code>tcal</code>) after a cartridge's first mount and before it is ever labelled or written. Media intake
+keeps <code>tape_intake_spares</code> (2, provisional) calibrated, unlabelled pool cartridges ready, calibrating new ones one at
+a time on a drive nothing else wants, and only with two or more drives in service; with none ready a write session
+calibrates one itself before labelling it (and waits for it). A dev tape-sim node at <code>tape_sim_time_scale=1</code> spends
+the modelled 2 h of real time on each new cartridge: set <code>tape_sim_first_load_ms</code> lower, or a faster scale, where
+that does not matter. The unit tests' rigs leave intake off (TapeIntakeTest has it), the engine tests and the
+benchmark start from calibrated cartridges: they measure archive and recall, not intake.</p>
+<p><strong>Logical block protection.</strong> A simulated drive does LBP (CRC32C, N-LBP) unless <code>SimDrive.lbpCapable</code> is false
+(mhVTL-like). Its mode is set by MODE SELECT of the control data protection page, built and allowlisted exactly
+as the SCSI path sends it, and stays set across loads until changed. In LBP mode a written record carries its 4
+CRC bytes, which the drive checks (a mismatch: ABORTED COMMAND 0B/10/01, nothing written) and drops; a read record
+comes back with the CRC of the record as stored. The simulator keeps no protection information of its own, so
+damage on the medium (<code>corruptStored</code>) still reads back wrong past LBP and is caught by the footer's SHA-384, as
+damage a drive's check misses would be; damage on the wire is what LBP catches. <code>FakeScsiTarget</code> models the same
+for the SCSI skeleton (TapeDriveContractTest holds both to it).</p>
+<p><strong>Faults</strong> (<code>SimFaults</code>, each consumed as it fires): a record damaged between host and drive on write
+(<code>corruptInTransitOnWrite</code>: refused under LBP, stored damaged without) or between drive and host on read
+(<code>corruptInTransitOnRead</code>, at a chosen offset: found by the host under LBP, read as a bad copy without); medium error at (cartridge, lbn); deferred write error at
+the next synchronous filemark; short write; silent corruption on write (any byte of a record); silent
+corruption of a stored record; unit attention and position lost; drive fault and cleaning required (next
+command); <strong>a drive that dies after N records</strong> (its buffer is lost, every command then fails with HARDWARE
+ERROR, the cartridge stays in it until the robot pulls it); early warning at a chosen byte count; end of
+medium; WORM overwrite; a foreign cartridge; a MAM epoch bumped by "another host"; power cut (every drive
+buffer dropped). A write anywhere but EOD is counted as a violation (the tests assert none), except a write at
+BOT over a written read-write cartridge: that is how a recycled cartridge is labelled again, counted apart
+(<code>SimLibrary.overwrites()</code>); a WORM cartridge refuses it.</p>
+<h2 id="2-mhvtl-the-real-device-path">2. mhVTL (the real device path)<a class="headerlink" href="#2-mhvtl-the-real-device-path" title="Permanent link">&para;</a></h2>
+<p><code>eval/tape/mhvtl/README.md</code> has the VM (Lima <code>gfs-tape</code>, Ubuntu 24.04 aarch64, kernel 6.8), the mhVTL commit,
+the emulated library (STK L700 + two IBM ULT3580-TD9 = LTO-9 drives, cartridges GFS000L9..GFS007L9 of 4 GiB),
+what was verified, and what does not work (mhVTL keeps a 512 KiB transfer cap unless built with the flag
+setup.sh passes; no mechanical timing; no real encryption). <code>setup.sh</code> installs and configures it
+idempotently; <code>fresh-media.sh</code> recreates blank cartridges and waits (restarting mhVTL up to three times) until
+both drives are registered again; <code>run-bench.sh</code> runs the bench. Devices are named by unit serial
+(<code>tape_st_drives=sn=GFSDRV11:auto,sn=GFSDRV12:auto</code>, <code>tape_st_changer=sn=GFSLIB10</code>) and resolved in sysfs
+(VPD page 80h) at each start: after an mhVTL restart the /dev numbers change and udev's by-id links were seen
+to come back incomplete.</p>
+<p>The binding reaches mhVTL through <code>core_store_binding=tape-st</code> (dev mode only; test infrastructure):
+<code>StTapeDrive</code> (records on the no-rewind st node, mt for positioning, and this node's own SCSI command set
+over <code>sg_raw</code> for READ POSITION, LOG SENSE 31h, MAM and SECURITY PROTOCOL IN) and <code>MtxChanger</code>. What st
+imposes and how it is absorbed is in docs/TAPE-FORMAT.md §6. mhVTL does no logical block protection (CTA's
+<code>DriveMHVTL</code> turns it off too) and <code>StTapeDrive</code> reports none: a tape-st node refuses to start under the default
+<code>tape_lbp=crc32c</code>, so the rig runs <code>tape_lbp=off</code> (the bench sets it for its mhvtl backend). LBP is tested on the
+simulator and the fake SCSI target, and is to be confirmed on a real drive <strong>[HW]</strong>.</p>
+<h2 id="3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy">3. The benchmark (<code>TapeBench</code>, JSON into eval/results/bench/, gated by eval/bench_gate.py)<a class="headerlink" href="#3-the-benchmark-tapebench-json-into-evalresultsbench-gated-by-evalbench_gatepy" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code># the simulator (any host), about 10-15 min at the default 20x clock:
+java -cp "target/classes:target/test-classes:$(cat target/cp.txt)" gfs.tape.bench.TapeBench --backend sim
+# mhVTL, inside the VM:
+limactl shell gfs-tape bash -lc 'cd &lt;worktree&gt; &amp;&amp; bash eval/tape/mhvtl/run-bench.sh'
+python3 eval/bench_gate.py eval/results/bench/tape-&lt;backend&gt;-&lt;date&gt;.json
+</code></pre></div>
+<p>Sections: archive throughput (one write session = one drive, then a session per drive: containers are spooled
+first and released together, so the drives are measured, not this host's pace of producing data; on the
+simulator per-drive and aggregate rates are the drives' modelled busy time, with and without the one-off robot
+and mount); recall latency, first byte and full, from a cold library and with the cartridge mounted (model time
+on the simulator: exact); batching (one ticket for many extents across cartridges, against one ticket each);
+recalls per hour under a mixed workload (four closed-loop readers while a writer archives, one modelled hour
+on the scaled clock); shoe-shining (the binding's own spool-fed writes, and a synthetic writer fed at 600,
+250, 150, 50 and 20 MB/s). Every recalled extent is checked byte for byte. <code>bench_gate.py</code> fails a run on any
+wrong byte, a write anywhere but EOD, a batching speedup below 1, a failed mixed recall, (simulator) a spool-fed
+binding streaming under the drive's 177 MB/s floor or with more than one backhitch per GiB, (simulator) a
+mounted recall not faster than a cold one, or a large drop against a baseline. (The binding feeds the drive
+from its local spool as fast as the spool reads: the spool disk must read faster than the drive's
+speed-matching floor, or the drive shoe-shines. A run on a loaded host showed it: one backhitch, streaming
+held at 249 MB/s.)</p>
+<p>The campaign's tier T6 runs all of it: <code>T6.junit.tape</code>, <code>T6.bench.sim</code> (env junit) and <code>T6.bench.mhvtl</code>
+(env lima-tape, <code>--allow-vm</code>).</p>
+<h2 id="4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl">4. Results (2026-09-30, this Mac: Apple Silicon; the VM gfs-tape for mhVTL)<a class="headerlink" href="#4-results-2026-09-30-this-mac-apple-silicon-the-vm-gfs-tape-for-mhvtl" title="Permanent link">&para;</a></h2>
+<h3 id="41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x">4.1 Simulator (eval/results/bench/tape-sim-2026-09-30.json; SIMULATED, LTO-9-class model, clock 20x)<a class="headerlink" href="#41-simulator-evalresultsbenchtape-sim-2026-09-30json-simulated-lto-9-class-model-clock-20x" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Result</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Archive, one write session (one drive), 1 GiB in 4 containers of 256 MiB</td>
+<td>23.3 MB/s effective; 46.2 MB/s leaving out the one-off robot + mount (23 s); tape streaming 384 MB/s</td>
+<td>drive busy time (model)</td>
+</tr>
+<tr>
+<td>Archive, a session per drive (2), 2 GiB</td>
+<td>46.5 MB/s aggregate (2 x 23-24); 91.6 MB/s steady state; each drive streamed 394-396 MB/s, split 1050 / 1119 MB</td>
+<td>drive busy time (model)</td>
+</tr>
+<tr>
+<td>Recall, cold library (4 extents, cartridges in slots)</td>
+<td>first byte p50 28.9 s (p90 29.3 s); full p50 31.4 s</td>
+<td>model, the busiest drive</td>
+</tr>
+<tr>
+<td>Recall, cartridge mounted</td>
+<td>first byte p50 3.1 s (p90 3.2 s); full p50 8.0 s</td>
+<td>model</td>
+</tr>
+<tr>
+<td>Batching, 24 extents on 2 cartridges</td>
+<td>one ticket 36.0 s (2 mounts, 7 locates) against one ticket each 114.3 s (2 mounts, 24 locates): <strong>3.2x</strong></td>
+<td>model</td>
+</tr>
+<tr>
+<td>Recalls per hour, 4 readers + an archiving writer (1.3 GB archived meanwhile), 2 drives</td>
+<td>325 per hour, 0 failed or wrong; latency p50 6.7 s, p90 19.0 s</td>
+<td>scaled clock (host overhead included; varied 192-490 with host load)</td>
+</tr>
+<tr>
+<td>Shoe-shining, the binding (spool-fed, 2 GiB)</td>
+<td>0 underruns, streaming 394.9 MB/s</td>
+<td>model</td>
+</tr>
+<tr>
+<td>Shoe-shining, a synthetic writer at 600 / 250 / 150 / 50 / 20 MB/s (512 MiB)</td>
+<td>0 / 0 / 1 / 3 / 8 underruns; tape streaming 399 / 250 / 89 / 45 / 20 MB/s</td>
+<td>model</td>
+</tr>
+</tbody>
+</table>
+<p>Reading the archive rows: a session pays one robot + mount (23 s), and at 256 MiB containers the fixed
+cost of each container (the synchronous filemark, and under FULL the LOCATE back for the read-back) is
+several times its 0.64 s of streaming: the steady state here is about 47 MB/s per drive. Two sessions double
+the aggregate: the drives are independent. For larger containers and the three <code>tape_write_verify</code> modes, see
+§4.3: the model's own fit gives 143.5 MB/s per drive with FULL at 16 GiB containers (an earlier hand estimate
+here said about 190), because the LOCATE back before each read-back grows with the container's length.</p>
+<h3 id="42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model">4.2 mhVTL (eval/results/bench/tape-mhvtl-2026-09-30.json; MEASURED on the VM, no mechanical model)<a class="headerlink" href="#42-mhvtl-evalresultsbenchtape-mhvtl-2026-09-30json-measured-on-the-vm-no-mechanical-model" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Archive, one write session, 512 MiB (3 containers)</td>
+<td>21.1 MB/s, including the FULL read-back verify of every container, over st/mt/mtx and sg_raw</td>
+</tr>
+<tr>
+<td>Archive, a session per drive (2), 1 GiB (5 containers)</td>
+<td>40.0 MB/s aggregate (the two drives in parallel)</td>
+</tr>
+<tr>
+<td>Recall, cold (robot move by mtx, load, label check, locate by mt, 4 extents of 8 MiB)</td>
+<td>first byte p50 4.3 s (p90 7.4 s); full p50 11.0 s</td>
+</tr>
+<tr>
+<td>Recall, cartridge mounted</td>
+<td>first byte p50 3.2 s (p90 4.4 s); full p50 13.3 s</td>
+</tr>
+<tr>
+<td>Batching, 24 extents on 2 cartridges</td>
+<td>one ticket 55.4 s against one ticket each 82.0 s: <strong>1.5x</strong> (2 mounts either way)</td>
+</tr>
+<tr>
+<td>Recalls per hour, 4 readers + an archiving writer (302 MB archived meanwhile)</td>
+<td>1,875 per hour, 0 failed or wrong; latency p50 6.8 s, p90 14.2 s</td>
+</tr>
+</tbody>
+</table>
+<p>What these measure: the software path and the Linux device stack against a library that answers at once.
+Every positioning step is a process (mt, mtx, sg_raw) of tens of milliseconds, which dominates the small-data
+rows; mhVTL itself streams 190-310 MB/s with dd (eval/tape/mhvtl/README.md). A mounted recall is not faster
+than a cold one here because mhVTL has no load or robot time to save; the simulator carries that difference
+(3.1 s against 28.9 s).</p>
+<p>Every recalled extent in both runs matched byte for byte; no write went anywhere but the medium's EOD.</p>
+<h3 id="43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep">4.3 Write verify: FULL, SAMPLED, NONE (2026-10-01; <code>TapeBench --verify-sweep</code>)<a class="headerlink" href="#43-write-verify-full-sampled-none-2026-10-01-tapebench-verify-sweep" title="Permanent link">&para;</a></h3>
+<p><code>tape_write_verify</code> (owner decision 2026-10-01: an option, default FULL) chooses which containers are read
+back after they are written: FULL every one; SAMPLED the first of each session and then 1 in
+<code>tape_write_verify_sample_every</code> (10); NONE none. One write session on one drive, fresh media for every phase;
+afterwards extents from the first and last containers are recalled and compared byte for byte, SYNCED copies
+included. Every phase: bytes verified, no write anywhere but EOD.</p>
+<p>Simulator (eval/results/bench/tape-verify-sim-2026-10-01.json; SIMULATED, LTO-9-class model, clock 1x and 20x
+give the same figures: drive busy time is the model's):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>39.2 MB/s (steady 59.7)</td>
+<td>41.8 (66.0)</td>
+<td>41.9 (66.2)</td>
+<td>1.07x</td>
+</tr>
+<tr>
+<td>1 GiB x 10</td>
+<td>87.6 (108.0)</td>
+<td>123.6 (168.5)</td>
+<td>129.0 (178.6)</td>
+<td>1.47x</td>
+</tr>
+<tr>
+<td>16 GiB, fitted (not run)</td>
+<td>143.5</td>
+<td>319.5</td>
+<td>370.2</td>
+<td>2.58x</td>
+</tr>
+</tbody>
+</table>
+<p>The fit is a straight line through the two sizes' steady-state seconds per container (FULL: 2.6 s fixed and
+7.3 s per GiB; NONE: 3.3 s and 2.7 s per GiB). At 256 MiB the read-back barely matters: a container not
+read back pays a backhitch after its synchronous filemark instead (3 s), while under FULL the read and the
+LOCATE stop the tape anyway. At production sizes the read-back is most of a container's drive time.</p>
+<p>mhVTL (eval/results/bench/tape-verify-mhvtl-2026-10-01.json; MEASURED wall clock on the VM, no mechanical model):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>111.9 MB/s</td>
+<td>409.1</td>
+<td>505.2</td>
+<td>4.5x</td>
+</tr>
+<tr>
+<td>1 GiB x 6 (two cartridges: early warning at 4 GiB)</td>
+<td>163.2</td>
+<td>299.6 (2 read back: one per session)</td>
+<td>501.1</td>
+<td>3.1x</td>
+</tr>
+</tbody>
+</table>
+<p>mhVTL has no tape mechanics, so its gap was our own software: the read-back copied the container to a scratch
+file and read that again for the pack check, about 150-240 MB/s on this 4-vCPU VM, slower than an LTO-10 drive
+streams (400 MB/s). Fixed the same day: the records stream into SHA-384 as they are read, and the pack check
+runs on the spool (proved byte-identical by that digest) while the medium is read
+(eval/results/bench/tape-verify-mhvtl-2026-10-01-overlap.json):</p>
+<table>
+<thead>
+<tr>
+<th>Containers</th>
+<th>FULL before</th>
+<th>FULL now</th>
+<th>SAMPLED</th>
+<th>NONE</th>
+<th>NONE / FULL now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 MiB x 10</td>
+<td>111.9 MB/s</td>
+<td>286.5</td>
+<td>512.3</td>
+<td>565.2</td>
+<td>2.0x</td>
+</tr>
+<tr>
+<td>1 GiB x 6</td>
+<td>163.2</td>
+<td>281.7</td>
+<td>440.0</td>
+<td>508.8</td>
+<td>1.8x</td>
+</tr>
+</tbody>
+</table>
+<p>The read-back now checks at about 630 MB/s on the VM (1 GiB: 6.4 GB in 10 s more than NONE), above what the
+drive streams: on real hardware the drive, not the verify code, sets FULL's pace.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Text licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The GaiaKeep software is not covered by this licence.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3544 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A global file system for agents — programmatic, versioned, resilient, secure and distributed storage of raw blocks across memory, NVMe, disk and tape.">
+      
+      
+      
+        <link rel="canonical" href="https://gaiakeep.github.io/docs/design/CORE-LOG/">
+      
+      
+        <link rel="prev" href="../JOBS-AND-API/">
+      
+      
+        <link rel="next" href="../DURABILITY-MODES/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>The replicated core log - GaiaKeep GFS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-storage-cores-metadata-log" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="GaiaKeep GFS" class="md-header__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GaiaKeep GFS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              The replicated core log
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/purpose/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dashboard/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Dashboard
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../built/status/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Built and tested
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/remaining/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Roadmap
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Design record
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../reference/glossary/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Glossary
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GaiaKeep GFS" class="md-nav__button md-logo" aria-label="GaiaKeep GFS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GaiaKeep GFS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GaiaKeep/docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GaiaKeep/docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/purpose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Purpose and principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/tenancy-and-dedup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenants, collections and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/placement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placement and loci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/durability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability and redundancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/stops-and-restarts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stops, restarts and slow disks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security and cryptography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/media-and-tape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media and tape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/deletion-and-repack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deletion, retention and repack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/panatlas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    panAtlas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dashboard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dashboard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accounts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections and versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/placements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Placements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/live-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle and jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dashboard/mesh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesh tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built and tested
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built and tested
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status at a glance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/release-1-3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release 1.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/scale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/since-prototype/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Since the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/measurements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measurements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../built/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/remaining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining work
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/caching-tier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The caching tier, now the live tier
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and procurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design record
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design record
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FORMAT-ADAPTERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Format-aware dedup adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JOBS-AND-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs and the API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The replicated core log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#on-disk-core_log_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On disk (core_log_dir)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recovery-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery fails closed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#master-key-rotation-out-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Master-key rotation (OUT-25)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-raft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication (Raft)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at-rest-encryption-lc-enc-out-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At-rest encryption (LC-ENC, OUT-07)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-index-journal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration from the index journal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DURABILITY-MODES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Durability modes and erasure coding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACK-FORMAT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack container format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-SIMULATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FROM-SCRATCH-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From-scratch decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODULE-DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module decisions (measured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPONENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TENANCY-AND-DEDUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tenancy and deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SPECIFICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Block fabric specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTAIL-AGENT-NATIVE-FS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entail: the agent interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-BINDINGS-DECISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage bindings decision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STORAGE-DIRECTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage direction (history)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BAREOS-RECOMMENDATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bareos analysis (historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TAPE-RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tape research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESEARCH-PROMPT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage research brief
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SYSTEM-REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype system report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CORE-PRINCIPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype core principles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EVALUATION-PLAN/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROTOTYPE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the prototype
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prototype results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALE-RESULTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale results (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLAIMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claims registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../global-federated-storage-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original plan (2026-09-13)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#on-disk-core_log_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On disk (core_log_dir)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recovery-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery fails closed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#master-key-rotation-out-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Master-key rotation (OUT-25)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-raft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication (Raft)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at-rest-encryption-lc-enc-out-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At-rest encryption (LC-ENC, OUT-07)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-from-the-index-journal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration from the index journal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="admonition success">
+<p class="admonition-title">Status: Current</p>
+<p>The Raft core log: record format, group commit, snapshots and failover (shipped in 1.3, 2026-10-01).</p>
+</div>
+<h1 id="the-storage-cores-metadata-log">The storage core's metadata log<a class="headerlink" href="#the-storage-cores-metadata-log" title="Permanent link">&para;</a></h1>
+<p><em>2026-09-26. Package <code>gfs.core.log</code>. Covers OUT-08, OUT-13 (core), OUT-04 (core), OUT-14,
+OUT-35, OUT-40 and OUT-53.</em></p>
+<p>The storage core no longer journals through the prototype federation index. Every batch of engine
+deltas is an entry in the core's own log, replicated to the core peers with Raft, and acknowledged
+to the client only once a majority of peers has it on disk.</p>
+<h2 id="on-disk-core_log_dir">On disk (<code>core_log_dir</code>)<a class="headerlink" href="#on-disk-core_log_dir" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+<th>Written by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core-log.header</code></td>
+<td>magic, format, cluster id, key-check value, MAC</td>
+<td>once, atomically</td>
+</tr>
+<tr>
+<td><code>raft-state</code></td>
+<td>current term, vote, this directory's raft state id, whether the peer votes (N18), MAC</td>
+<td>temp, fsync, rename, directory fsync</td>
+</tr>
+<tr>
+<td><code>seg-&lt;first index&gt;.log</code></td>
+<td>segment header (first index, term and MAC before it, header MAC), then records</td>
+<td>append, one <code>force</code> per group commit</td>
+</tr>
+<tr>
+<td><code>snap-&lt;last index&gt;.snap</code></td>
+<td>engine snapshot at that index, its term and chain MAC, payload SHA-384, MAC</td>
+<td>temp, fsync, rename, directory fsync</td>
+</tr>
+<tr>
+<td><code>imported-index.marker</code></td>
+<td>the one-time legacy import, MAC'd</td>
+<td>once</td>
+</tr>
+<tr>
+<td><code>epoch-&lt;n&gt;.key</code></td>
+<td>LC-ENC: an at-rest epoch's file key, AES-KWP-wrapped under the current master kid, MAC'd</td>
+<td>temp, fsync, rename, directory fsync; destroyed (overwritten, unlinked) once no file needs it</td>
+</tr>
+</tbody>
+</table>
+<p>A record is <code>magic | fmt | len | term | index | batch | hmac16 | payload | mac</code>, with
+<code>mac_i = HMAC-SHA-384(k_log, fmt|term|index|mac_(i-1)|payload)</code>. The 16-byte header MAC covers the
+header fields and <code>mac_(i-1)</code>, so a length is authenticated before it is used. <code>batch</code> is the first
+index of the record's group commit (one write and one <code>force</code>); everything before it was forced
+before the record was written. It is local to the peer and outside the chain, so peers' chain values
+stay equal.
+<code>k_log = HKDF-SHA-384(master, "gfs/core/log-mac/v1")</code>. Equal chain values at an index mean equal
+logs up to that index, on any peer.</p>
+<h2 id="recovery-fails-closed">Recovery fails closed<a class="headerlink" href="#recovery-fails-closed" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The directory's fsync barrier is probed with the storage nodes' own probe (<code>FsBinding.commission</code>,
+  five unanimous rounds). If it is not proven, the core refuses to start unless
+  <code>core_log_durability_attested=true</code>.</li>
+<li>A wrong master key is refused by the key-check value before anything is read.</li>
+<li>Every record's framing, MAC, chain and index continuity is verified. An incomplete or
+  unverifiable record in the last segment is a torn tail unless a verifiable record of a <strong>later</strong>
+  group commit follows it. A group commit that was never forced may reach the disk in any order
+  (later pages written, an earlier one zero-filled), so records of the bad record's own group commit
+  after it prove nothing; a later group commit was written only after this one was forced, so it
+  proves corruption. A torn tail is truncated from the bad record, synced, logged and counted
+  (<code>core.status</code> → <code>log.torn_*</code>). A record counts as verifiable if its header MAC checks against the
+  bytes before it, against the chain value expected there, or against the value a damaged
+  predecessor's own bytes compute to.
+  A segment header is forced before any record is written, so a bad header with bytes after it is
+  corruption, never a torn creation.</li>
+<li>Anything else refuses to start with the file, offset and index: mid-log corruption, a bad MAC
+  followed by valid records, a gap, a chain break, a snapshot that fails its MAC or disagrees with
+  the log, an unknown format number.</li>
+<li>Installing a leader's snapshot that replaces the log deletes the replaced segments newest first,
+  syncing the directory after each, so a crash leaves a prefix of the old log that recovery
+  recognises (it disagrees with the snapshot) and finishes discarding. A gap after a snapshot is
+  therefore always lost data, and refuses.</li>
+<li>An entry the engine cannot apply (an unknown delta from a newer release) halts the core, naming
+  segment, offset and index. A halted core serves nothing.</li>
+</ul>
+<h2 id="master-key-rotation-out-25">Master-key rotation (OUT-25)<a class="headerlink" href="#master-key-rotation-out-25" title="Permanent link">&para;</a></h2>
+<p><code>k_log</code> and <code>k_raft</code> are HKDF-SHA-384 from one master key, so each pair is bound to that key's id
+(<code>kid</code>). A peer holds the log keys of every master kid it holds (<code>core_master_key_file</code> plus
+<code>core_master_key_previous_files</code>).</p>
+<ul>
+<li><strong>The header names the kid.</strong> <code>core-log.header</code> carries the kid the log is keyed under, that kid's
+  key-check value, and <code>rekeyedAt</code>, the last index written under an earlier kid. A header naming a
+  kid the peer does not hold refuses to start and names it.</li>
+<li><strong>Every file is MAC'd under one kid</strong> and verified under the held kid that authenticates it. A
+  segment's records are under its header's kid. Recovery refuses an earlier kid where only the
+  header's may be: a segment starting after <code>rekeyedAt</code>, a snapshot past <code>rekeyedAt</code>; and a change of
+  kid between segments (or inside one) that no journaled switch accounts for. A file under a retired
+  kid that is put back, or forged by someone holding the retired key, is refused rather than replayed.</li>
+<li><strong>The chain's kid changes through the log (journaled kid switch).</strong> Chain values are MAC'd under
+  the kid in effect at each index, and peers compare them on every append, so every peer must change
+  kid at the same index. A <code>CHAINKID</code> entry (payload kind 3, naming a kid) says the chain continues
+  under that kid after it. The leader appends one once every member has answered the features probe
+  with <code>ckid1</code> and <code>cur:&lt;kid&gt;</code> naming the leader's current kid (within three election timeouts; a
+  member that is down or has not answered blocks it, and an older build never answers <code>ckid1</code>, so it
+  never receives the entry it would halt on). Each peer, as it appends the entry, forces it, rewrites
+  the header (new kid, <code>rekeyedAt</code> = the entry's index), rolls a new segment under the new kid and
+  rewrites the raft state and marker. A peer starting with a new current kid changes nothing in its
+  log; the leader's <code>raft.kid_switch</code> (core.status) says what the switch waits for. A follower that
+  does not hold the kid an entry names does not append it (it logs why and waits; it does not halt).</li>
+<li><strong>Crashes and truncations.</strong> A switch entry written and forced but not yet in the header is finished
+  at the next open. A truncation below a switch undoes it: the segment that held the first removed
+  index stays (emptied) as the record of the kid before, the header goes back to it, and an open after
+  a crash in between does the same. History is never rewritten: the chain value at the switch is the
+  same, and later records chain from it under the new kid.</li>
+<li><strong>A follower with nothing after its snapshot</strong> (a fresh peer, a snapshot install that replaced its
+  log, a truncation to the snapshot) cannot tell from its own files which kid the next record chains
+  under. It takes the held kid under which the leader's entries end at the leader's chain value (the
+  header's kid first). The leader's chain over those entries from the same value at the snapshot is
+  what any choice must match, so this accepts no history the check would otherwise refuse. Until it
+  has learned it, a peer whose snapshot was installed over its log (with more than one kid held) does
+  not stand for election, so it never extends the chain under a guess.</li>
+<li><strong>The next snapshot retires the old kid.</strong> While <code>kids_in_use</code> (core.status <code>log</code>) lists a kid
+  other than the header's, the snapshot pass takes a snapshot every 10 s; once one lies past
+  <code>rekeyedAt</code>, compaction deletes the old kid's segments and snapshot. <code>core.rotatemaster</code> reports
+  <code>log_kid</code>, <code>log_kids_in_use</code> and a <code>retirable_kids</code> that accounts for the log as well as the roots.</li>
+<li><strong>Raft messages</strong> are MAC'd under the sender's current kid and verified under any held kid, so the
+  rotation rolls through the peers one restart at a time, provided every peer holds the new kid
+  (as a previous key) before any peer makes it current. A peer that does not hold it cannot follow;
+  its raft status shows "MAC fails under every held master kid".</li>
+<li><strong><code>CoreLog.rekey</code></strong> moves a log to the current kid on its own, at its last index. It is for a log no
+  other peer compares chains with (tools, a copy); the core service no longer calls it. Builds before
+  OUT-25 called it at every start, which is why a peer re-keyed alone during a rolling restart halted
+  with "divergent history"; its re-key point (<code>rekeyedAt</code>) still opens as before.</li>
+</ul>
+<p>Tested: CoreLogTest (re-key in place, reopen, old kid retired after the snapshot, a forged old-kid
+snapshot refused, an interrupted re-key finished), CoreLogKidSwitchTest (a switch at one index whatever
+the batching, a crash before the header, a truncation below the switch and a crash before its header, a
+record under the old kid after a switch refused, a switch to an unheld kid refused, learning the kid
+from the leader's chain and not from another history), KidRotationSimTest (three peers rolled onto a
+new current kid under write load with no halt and every acknowledged write kept, then onto the new kid
+alone; a peer that missed the switch catching up by entries and by snapshot; an uncommitted switch
+undone by truncation; a divergent log and a log re-keyed alone still halt), LifecycleAtRestClusterTest
+(the rotation rolled one peer at a time; the kid census retires the old kid) and CoreServiceClusterTest
+(the KEY-CUSTODY runbook end to end with rolling restarts and writes around each: add as previous, make
+current, rotatemaster, snapshots, remove the old kid; a peer without the new kid is refused with the
+reason).</p>
+<h2 id="replication-raft">Replication (Raft)<a class="headerlink" href="#replication-raft" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Peers: <code>core_peers</code>, the <code>region:agent:plugin</code> of every core peer including this one. Absent, the
+  index primary is a cluster of one (quorum 1), which is how existing single-index deployments keep
+  working. An index replica (<code>index_primary=false</code>) without <code>core_peers</code> refuses to run a core: as a
+  cluster of one it would elect itself and serve an empty core, and later join the primary's cluster
+  with a different history. Storage nodes accept <code>x.*</code> from every address in <code>core_peers</code> and
+  <code>core_index_addrs</code>.</li>
+<li>Every message carries a digest of the sender's <code>core_peers</code> (order-free). Peers configured with
+  different peer lists refuse each other's messages rather than count different quorums, until the log
+  decides membership (below).</li>
+<li><strong>Online membership (OUT-08c).</strong> <code>core_peers</code> is the configuration until the first change. A change is
+  a raft configuration entry (entry kind 2, <code>memb1</code>): single-server (add a learner, promote a caught-up
+  learner, remove a voter or a learner), one at a time (the next only once the last is committed, and
+  only by a leader whose term's no-op committed), in effect on each peer as soon as it is appended,
+  committed or not, and undone if a new leader truncates it. Quorums, elections, the lease and
+  check-quorum count the configuration's voters; learners receive the log and count for nothing. A
+  leader the voters no longer include leads until that removal commits, then steps down; a peer that is
+  not a voter never campaigns. CoreLog notes configuration entries' indices as it verifies records at
+  open and as it appends, so finding them never reads the log; a snapshot records the configuration in
+  effect at its index as its leading <code>raftConf</code> delta (a snapshot that does not is not adopted), and a
+  peer installing one takes it from there. Once a peer's log holds a configuration it sends a fixed
+  dynamic digest and accepts any authenticated sender of the cluster (Raft's rules and leader
+  stickiness decide what it may do); a peer still on <code>core_peers</code> accepts the dynamic digest from any
+  sender, so a new member can lead it. An older build refuses the dynamic digest and halts on the entry
+  kind, so a change waits until every member the leader has heard from in two election timeouts has
+  answered FEATURES with <code>memb1</code> and a majority of the new voters have (a down peer does not hold a
+  replacement back). <code>core.membership</code> (system-admin) drives it: op=status, op=add and op=remove as C2
+  jobs (OPERATIONS §5.2).</li>
+<li><strong>Divergent histories halt.</strong> Every append carries the leader's chain values at <code>prevIndex</code> and at
+  its last entry. A follower whose term matches at an index but whose chain value differs holds a
+  history written by another cluster (a peer that once ran alone, a log copied from elsewhere): it
+  halts, naming segment, offset and index, instead of accepting entries on top of it.</li>
+<li>Pre-vote, randomized election timeout in <code>[core_election_timeout_ms, 2x)</code>, heartbeat
+  <code>core_heartbeat_ms</code>. A peer that has heard from a leader within the timeout ignores vote requests.</li>
+<li>The leader writes a proposal to its log and sends it at once, and syncs its log on a thread of its own: the
+  raft monitor is never held while the medium syncs, so heartbeats, acknowledgements and status go on during a
+  slow fsync (an ingest's writes on the same disk made one take ~3 s on the HPC cluster, 2026-10-01, and the leader, its
+  monitor held, sent no heartbeat, counted no acknowledgement and stepped down). Its own copy counts toward a
+  commit only once synced (<code>durable_index</code> in status). A follower does the same (OUT-08a): it writes the entries a
+  leader sends unforced, answers at once with what is already on its medium, and acknowledges the rest once a
+  sync on its sync thread covers it (one sync covers every append that arrived before it began;
+  <code>raft.follower_sync_acks</code>). Its monitor is free during the sync, so heartbeats, votes and the lease keep
+  flowing through a stall of any length, and the leader never counts an entry a follower has not forced.
+  Unforced appends are one group commit until a force returns (each record's group-commit start is the
+  first unforced index), so a power cut that tears an earlier one and keeps a later one, even across a
+  segment roll, is a torn tail, not refused as corruption.
+  A leader that cannot reach a majority within the timeout steps down.</li>
+<li>Commit counts only entries of the current term, from a majority's fsync. A new leader serves only
+  after its term's no-op is committed and applied.</li>
+<li><strong>Non-voters (N18).</strong> A peer whose log is empty, or whose directory has no <code>raft-state</code> of its own
+  (a wiped or replaced disk), starts as a non-voter (<code>raft.voter: False</code>, persisted). It grants no
+  vote, and it says so in every answer, so the leader does not count its copy toward commit: it may
+  have acknowledged entries its lost disk held, and an empty log would grant any candidate. It
+  becomes a voter (persisted, <code>raft.promotions</code>) once an append leaves its log equal to the leader's
+  through the leader's last index, or through a commit point of the leader's own term, and only if
+  that append names the peer's own process incarnation (R1, raft message format 3: a peer refuses
+  another format's messages, so every core peer is upgraded together). The leader names
+  the incarnation it last heard from, and only while it holds its lease: an append sent to the
+  process before a restart or a wipe (a delayed or duplicated copy that the new process's empty
+  replay window cannot recognise) promotes nothing, and neither does a deposed leader. Until it can
+  vouch for a non-voter, the leader sends it heartbeats but no entries: an empty peer stays empty (it
+  may still consent) rather than hold entries it was not promoted by, which in a cluster just formed by
+  consent would leave no peer able to elect a leader once the first one falls. An empty
+  non-voter only consents: a consent counts toward an election that every peer joins (or the bootstrap
+  majority above), never toward a majority. <code>core_raft_voter_override=&lt;its raft.state_id&gt;</code> makes a
+  non-voter vote when an operator has established that nothing committed depends on what it lost. It is armed at
+  start and applied only once no leader has been heard for two election timeouts (OUT-105: a serving leader
+  disarms it and catches the peer up instead; <code>raft.voter_override</code> reports armed, applied, ignored or forced);
+  <code>core_raft_voter_override_force=true</code> applies it at start.</li>
+<li>A follower whose log is behind the leader's snapshot (empty, new, wiped) is sent the snapshot.
+  A follower that restarted (a new process incarnation) or rejects entries it had acknowledged
+  (a truncated tail, a wiped directory) stops counting toward the quorum until it confirms them again.</li>
+<li><strong>Lease.</strong> The leader serves (reads and writes) only while a majority answered a request it sent
+  less than ¾ of an election timeout ago. A follower refuses votes for a full election timeout after
+  hearing from a leader, and for one timeout after it starts, so a leader cut off by a partition or a
+  long pause stops serving before another can be elected. Timers, heartbeats and the lease run on
+  each host's monotonic clock (<code>System.nanoTime</code>), so a stepped wall clock cannot stretch a lease;
+  clock rates are assumed within 25 %. Only message freshness reads the wall clock. Only answers
+  from peers that kept their term count toward the lease (R1): voters, and a non-voter process that
+  granted or consented to this leadership. A wiped peer restarts at term 0 and follows any leader
+  that reaches it, even one a newer term deposed, so its answers cannot show that no newer leader
+  exists: a leader paused through an election and answered only by a wiped peer holds no lease.</li>
+<li><strong>Leadership transfer (<code>xfer1</code>, Raft thesis §3.10).</strong> A leader that steps down while it can still send (check-quorum
+  when its followers' answers are lost one way, as in the 2026-10-15 04:23 incident; removal from the voters; a held
+  candidacy; a fenced engine) hands its leadership to its most caught-up voter at once: it picks, among the voters that
+  vote (N18) and whose current process answered FEATURES with <code>xfer1</code>, the one with the highest match index (then the
+  latest answer), steps down (lease 0), then sends <code>TIMEOUT_NOW</code> (message type 16, format unchanged) to the other
+  capable voters and last to the candidate. The candidate, if it may lead (a voter with a log, candidacy not held, chain
+  kid known), campaigns for the next term at once: no pre-vote, no timer, its vote requests resent each heartbeat to
+  voters that have not granted. A voter told of the hand-over does not refuse that candidate's vote request for the next
+  term as sticky; its log comparison and its one vote per term apply as always, so a candidate whose log is short is
+  simply not elected and safety is Raft's (at most one leader per term, checked in every simulated run). A <code>TIMEOUT_NOW</code>
+  of an older term, or from a peer that is not the leader this peer follows, is ignored. A graceful stop
+  (<code>CoreService.stop</code>, so every plugin stop and rolling upgrade) hands over first: the leader takes no new proposals,
+  waits until the chosen voter holds its whole log and it is committed (at most half an election timeout; then it
+  hands over anyway and the vote decides), steps down, sends <code>TIMEOUT_NOW</code>, and waits until it hears the new leader
+  (one election timeout in all) before its transport stops. <strong>Gate:</strong> the leader asks each voter's features once per
+  process and keeps the answering incarnation; it sends <code>TIMEOUT_NOW</code> only to a peer whose current process (the
+  incarnation its appends come from) advertised <code>xfer1</code>, so an older build never receives the type (it would refuse
+  it, counted in <code>refused_messages</code>, not halt). <code>core_raft_transfer=false</code> turns it off on a peer: it neither advertises
+  nor sends it. Status: <code>raft.transfers_sent</code>, <code>transfers_taken</code>, <code>transfers_declined</code>, <code>transfer_votes</code>,
+  <code>last_transfer</code>, and <code>handoff</code> while one is in progress. Measured at a tenth of the standing timing (600 ms
+  elections): leaderless after a one-way-loss check-quorum step-down 786 ms mean without transfer, 13 ms (max 34) with
+  it; at a leader stop 868 ms without, 19 ms (max 37) with (<code>RaftSimTest</code>, 20 seeds each).</li>
+<li><strong>Destructive maintenance asks the lease.</strong> The live leader's engine checks, before each copy it
+  destroys (gc, withdrawal, trim, scrub, intent cleanup), that it still holds its lease; otherwise
+  the operation stops. A withdrawal is committed before the copies it frees are destroyed. The
+  residual window (one reclaim already in flight when the lease lapses) is closed by the storage
+  nodes: every <code>x.*</code> carries the term its signer was elected leader in (<code>RaftNode.leaderTerm</code>, not
+  the newer term a deposed leader may have heard of), and a node refuses a term below the highest it
+  has seen, kept in its <code>x-term</code> file across restarts (N17).</li>
+<li><strong>Read barrier.</strong> A read verb (<code>core.head</code>, <code>core.get</code>, <code>core.list</code>, <code>core.benchread</code>) first waits
+  until every change applied before it is committed, and fails if one is not: a read never shows
+  a change that may yet be lost.</li>
+<li>The leader's engine applies deltas to memory before journaling (unchanged); the journal append
+  blocks until the batch commits, <code>core_commit_timeout_ms</code>, or lost leadership. A failure fences
+  the engine, the peer steps down, and the engine is rebuilt from snapshot plus committed log.
+  The rebuild (a full replay) runs off the raft lock, so the peer keeps voting and acknowledging;
+  entries committed meanwhile are replayed into the new engine before it is swapped in, the peer
+  serves nothing until then, and sites that joined meanwhile are added to it.</li>
+<li>Messages (<code>core.raft.msg</code>) carry HMAC-SHA-384 under <code>k_raft = HKDF(master, "gfs/core/raft-auth/v1")</code>,
+  the cluster id, sender and recipient, a wall-clock send time checked against a freshness window
+  (<code>core_raft_freshness_ms</code>, 120 s), and a per-sender sequence number: forged, altered, misaddressed
+  and replayed messages are refused. Hosts whose clocks differ by more than the window cannot talk;
+  <code>core.status</code> → <code>raft.stale_refusals</code> and <code>raft.last_clock_skew_ms</code> show it.</li>
+<li>Entry payloads over 64 KiB and every snapshot chunk travel on the dataplane as FrameBus bodies,
+  with their SHA-384 inside the MAC'd header. An append carries at most <code>core_raft_batch_bytes</code> of
+  entries (at least one, at most 8192; a larger single entry is split across frames); snapshots
+  move in chunks of that size. Values above the codec's 64 MiB chunk limit are clamped, with a warning.</li>
+<li><strong>One bulk message per follower.</strong> The leader keeps at most one append-with-entries or snapshot
+  chunk per follower in the transport and resends nothing to it until the transport reports that
+  message sent or dropped; the resend timer starts then. A message the transport has held for
+  20 election timeouts is presumed lost (<code>raft.bulk_stuck</code>). The transport's bulk lane is also
+  bounded by bytes (<code>max(16 MiB, 2 x core_raft_batch_bytes + 1 MiB)</code> per peer;
+  <code>raft.transport_bulk_dropped</code>), and header-only messages (votes, heartbeats, answers) use their
+  own lane, so a slow body transfer never delays a heartbeat. While a transfer is slow the leader
+  sends plain heartbeats, which keep the follower following and the lease alive.</li>
+<li>Only the leader serves <code>core.*</code>. Every peer answers <code>core.status</code> and <code>core.metahash</code> with role,
+  term, leader and commit index. A follower answers anything else with status <code>12</code> and <code>core_leader</code>.
+  <code>eval/gkt.py:call_leader</code> follows that redirect, one retry per redirect, bounded.</li>
+</ul>
+<h2 id="at-rest-encryption-lc-enc-out-07">At-rest encryption (LC-ENC, OUT-07)<a class="headerlink" href="#at-rest-encryption-lc-enc-out-07" title="Permanent link">&para;</a></h2>
+<p><code>core_at_rest_encryption</code> (default <code>false</code>; local to each peer) encrypts the log's files at rest:</p>
+<ul>
+<li><strong>Epochs.</strong> An at-rest epoch has a random 32-byte file key, AES-KWP-wrapped (SP 800-38F) under
+  <code>HKDF(master[kid], "gfs/core/at-rest-kek/v1")</code> then <code>HKDF(·, "gfs/core/at-rest-epoch/v1", "core-log", epoch)</code>, in
+  <code>epoch-&lt;n&gt;.key</code> (MAC'd under that kid's <code>k_log</code>). The epoch rolls at every snapshot (a compaction or an installed
+  snapshot) and at a master-key re-key; <code>adopt</code> rewrites every segment the compaction keeps under the new epoch (in
+  place: temp, fsync, rename over, the replaced file overwritten through its still-open channel) and destroys every
+  epoch key file no file, writer or new write needs. <code>kidsInUse</code> names the key files' kids, so an old kid retires only
+  once its epochs are gone.</li>
+<li><strong>Segments (fmt 2).</strong> The header adds the epoch and the segment's own random key, AES-KWP-wrapped under the epoch
+  key (bound to the segment's first index). Each record's stored payload is <code>iv ‖ ciphertext ‖ tag</code>: AES-256-GCM
+  under the segment key, the IV generated by the cryptographic module (<code>GfsCrypto.gcmSeal</code>), the record header (before
+  its MAC) as AAD. The record format stays 1 and its chain MAC is over the plaintext, so an encrypting peer and a
+  plain one have equal chain values. A segment key seals at most 2^24 records (the segment rolls).</li>
+<li><strong>Snapshots (fmt 2).</strong> The header adds the epoch and the file's own key (AES-KWP under the epoch key, bound to the
+  last index); the payload is 1 MiB plaintext chunks, each <code>iv ‖ ct ‖ tag</code> (module IV, the chunk index as AAD). The
+  length, SHA-384 and MAC are over the plaintext, so the payload a leader sends a follower is unchanged; each peer
+  stores what it receives in its own format.</li>
+<li><strong>Recovery</strong> opens every fmt-2 file only with its epoch's key file; a missing key file, a key that does not unwrap,
+  a chunk or record that does not decrypt are refusals (a record in the tail of the last segment that does not
+  decrypt is a torn tail, as a bad MAC is).</li>
+<li><strong>Off again</strong> writes new files in the clear and decrypts at the next compaction, after which the build can be
+  downgraded. An older build refuses fmt 2 by its format number.</li>
+<li>Remanence: secure delete stays best effort on SSD and copy-on-write filesystems; a remanent copy of a deleted file
+  needs its epoch key file, and a remanent copy of that needs its master kid: retiring the kid (LIFECYCLE.md, kid
+  census) is what makes the copies unreadable.</li>
+</ul>
+<h2 id="compaction">Compaction<a class="headerlink" href="#compaction" title="Permanent link">&para;</a></h2>
+<p>At a consistent cut the engine's snapshot deltas are written as a snapshot and the segments it
+covers are deleted. <strong>Streamed (OUT-26):</strong> the leader takes its cut copy-on-write inside the consistent cut (policy,
+versions and holds copied, the block table cut by pages) and streams it after the cut is released: the delta count is
+declared first (a sealed cut is walked once dry to count its envelopes), then each delta and each phase's envelopes go
+straight into the file through <code>CoreLog.writeSnapshot(PayloadWriter)</code>; memory is the sealer's per-partition buffers
+(<code>core_meta_snapshot_group_bytes</code>) and one at-rest chunk, never a list. The install reads the file twice, one delta at
+a time: a first pass authenticates it (head, count, check, splice, context, MAC, the anti-rollback check) with nothing
+applied; the second applies it in order, sealed envelopes opened ahead by <code>core_meta_install_threads</code> workers in a
+bounded window, each opening used only while its partition's key is unchanged. The cut holds the engine's lock and the policy and key-ring locks (their changes
+are made outside the engine's lock and journaled by hooks), and a cut is discarded if anything
+reached the log meanwhile (<code>log.cuts_discarded</code>). A follower does not snapshot its engine under the
+raft lock: it replays its snapshot and committed log into a scratch engine off the lock and
+snapshots that, so it keeps answering appends and votes while it compacts. Automatic after
+<code>core_log_snapshot_bytes</code> of entries (jittered up to +25 % per peer, so peers do not compact
+together), on demand with <code>core.snapshot</code> (any peer compacts its own log; the request is signed for
+that peer, <code>audience</code> = its <code>peer_audience</code>, so it cannot be replayed on another). <code>core.snapshot</code> goes
+through per-verb authorization (only <code>core.status</code> and <code>core.metahash</code> do not) and is rate-limited
+to one taken snapshot per <code>core_snapshot_min_interval_ms</code> (status <code>14</code>, TOO_SOON, otherwise), because a
+leader's cut stalls writers. Replay loads the newest snapshot, then the entries
+after it. Measured in <code>ReplicatedCoreTest.replayTimeOfALargeLog</code> (one Mac, JDK 21): 2,000 entries
+holding 200,000 block deltas, 36.5 MB of log, replay in 0.4-0.5 s; from a 36.3 MB snapshot,
+0.35-0.55 s.</p>
+<h2 id="migration-from-the-index-journal">Migration from the index journal<a class="headerlink" href="#migration-from-the-index-journal" title="Permanent link">&para;</a></h2>
+<p>When the core log is empty and this peer was the prototype index primary (<code>index_primary=true</code>),
+the <code>core.batch</code> lines in <code>gfs-index.jsonl</code> are replayed once into an engine and written as the
+log's base snapshot (index 1, term 1), and <code>imported-index.marker</code> records it. The import never
+repeats. The index keeps the old lines and applies nothing for them.</p>
+<p>The import refuses (and the core does not start) when the journal holds a <code>snapshot</code> line: the index
+writes one when a replica installs the primary's state, and the core state before it then lived only
+in that dump, so the journal holds a partial core. Import from the peer whose journal holds every
+<code>core.batch</code> line, or set <code>core_legacy_import=skip</code> to start without importing. It also refuses when
+the importing peer is not the first in <code>core_peers</code>.</p>
+<p><strong>Bootstrap rule.</strong> A peer whose log is empty never campaigns unless it is the first peer listed in
+<code>core_peers</code>, so an empty or wiped peer cannot win against peers that hold state. List the old
+index primary first when turning a single index into a replicated core. A brand-new cluster (every
+peer a non-voter, below) forms once every peer is up: empty peers consent to an election every peer
+joins. With <code>core_raft_bootstrap=true</code> on the first listed peer's first start it forms with a
+majority; remove the setting once the core has formed.</p>
+<h2 id="config-keys">Config keys<a class="headerlink" href="#config-keys" title="Permanent link">&para;</a></h2>
+<p><code>core_at_rest_encryption</code> (LC-ENC, above) and <code>core_meta_install_threads</code> (the install's decrypt pool) are in the
+README's metadata-crypto table.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core_log_dir</code></td>
+<td><code>&lt;plugin data&gt;/core-log</code></td>
+<td>put on node-local storage (OUT-40)</td>
+</tr>
+<tr>
+<td><code>core_log_durability_attested</code></td>
+<td><code>false</code></td>
+<td>skip the barrier probe; an operator attestation</td>
+</tr>
+<tr>
+<td><code>core_log_snapshot_bytes</code></td>
+<td>268435456 (256 MiB)</td>
+<td>entries between automatic snapshots</td>
+</tr>
+<tr>
+<td><code>core_peers</code></td>
+<td>this peer only (index primary); refused on an index replica</td>
+<td>comma list of every core peer, this one included, identical on every peer</td>
+</tr>
+<tr>
+<td><code>core_cluster_id</code></td>
+<td><code>gfs-core</code></td>
+<td>stored in the header and in every message</td>
+</tr>
+<tr>
+<td><code>core_commit_timeout_ms</code></td>
+<td>15000</td>
+<td>a batch not committed by then fences the leader</td>
+</tr>
+<tr>
+<td><code>core_election_timeout_ms</code></td>
+<td>6000</td>
+<td>randomized to up to twice this; the leader's check-quorum window; lease = 3/4 of it</td>
+</tr>
+<tr>
+<td><code>core_heartbeat_ms</code></td>
+<td>250</td>
+<td></td>
+</tr>
+<tr>
+<td><code>core_raft_batch_bytes</code></td>
+<td>4194304 (4 MiB)</td>
+<td>bound on one append and one snapshot chunk</td>
+</tr>
+<tr>
+<td><code>core_raft_max_unsynced_bytes</code></td>
+<td>67108864 (64 MiB)</td>
+<td>most bytes the log holds staged, not yet written to its disk (reserved under the raft lock; one larger entry alone when nothing else is); beyond it a proposal waits for the sync up to <code>core_raft_stuck_sync_ms</code> (then is refused, retryable) and new writes are answered busy (11); 0: no cap (OPERATIONS §5)</td>
+</tr>
+<tr>
+<td><code>core_raft_stuck_sync_ms</code></td>
+<td>30000</td>
+<td>a leader calls its disk stuck only when one write or fsync of its log has not returned for this long; it then hands over only to followers shown to make entries durable without it (a quorum of them), else rides the stall out; a slow disk never costs the leadership; 0: never (OPERATIONS §5)</td>
+</tr>
+<tr>
+<td><code>core_site_probe_ms</code></td>
+<td>3000</td>
+<td>the leader's own liveness probe of each storage node</td>
+</tr>
+<tr>
+<td><code>core_site_probe_timeout_ms</code></td>
+<td>5000</td>
+<td>a site that does not answer by then is quarantined</td>
+</tr>
+<tr>
+<td><code>core_legacy_import</code></td>
+<td><code>auto</code></td>
+<td><code>skip</code> starts without the one-time import (<code>auto</code> or <code>skip</code>)</td>
+</tr>
+<tr>
+<td><code>core_raft_freshness_ms</code></td>
+<td>120000</td>
+<td>largest tolerated clock skew between core hosts; older messages are refused</td>
+</tr>
+<tr>
+<td><code>core_raft_bootstrap</code></td>
+<td><code>false</code></td>
+<td>the first listed peer's first start forms a new core with a majority of empty peers (N18)</td>
+</tr>
+<tr>
+<td><code>core_raft_transfer</code></td>
+<td><code>true</code></td>
+<td>leadership transfer: a stepping-down or stopping leader hands over with TIMEOUT_NOW (<code>xfer1</code>); off: neither advertised nor sent</td>
+</tr>
+<tr>
+<td><code>core_stop_drain_ms</code></td>
+<td>3000</td>
+<td>a stopping peer refuses new requests at once (12, <code>stopping=true</code>) and lets those it admitted finish for at most this long before it hands over (OUT-111)</td>
+</tr>
+<tr>
+<td><code>core_stop_max_ms</code></td>
+<td>10000</td>
+<td>the stop's drain, hand-over and waits (passes, archives, jobs, probes, the replicated core's hooks, the raft log's sync) share one budget, at most this long and inside the plugin's <code>gfs_stop_max_ms</code> (25000); a sync still running then is left to the log's close, which keeps the directory held until it returns (OUT-111)</td>
+</tr>
+<tr>
+<td><code>core_raft_voter_override</code></td>
+<td>none</td>
+<td>this peer's own <code>raft.state_id</code>: vote although it lost its raft state (N18, OPERATIONS §5.3); armed until no leader is heard for two election timeouts (OUT-105)</td>
+</tr>
+<tr>
+<td><code>core_raft_voter_override_force</code></td>
+<td>false</td>
+<td>apply <code>core_raft_voter_override</code> at start, not armed (owner sign-off; <code>gaiakeep op raft override --force</code> prints it)</td>
+</tr>
+<tr>
+<td><code>core_snapshot_min_interval_ms</code></td>
+<td>60000</td>
+<td>least time between two on-demand snapshots taken</td>
+</tr>
+<tr>
+<td><code>core_membership_enabled</code></td>
+<td><code>true</code></td>
+<td><code>core.membership</code> op=add and op=remove may change the configuration (OUT-08c)</td>
+</tr>
+<tr>
+<td><code>core_membership_catchup_ms</code></td>
+<td>600000</td>
+<td>how long an add waits for its learner to catch up before it fails, retryable</td>
+</tr>
+<tr>
+<td><code>core_identity_reanchor</code></td>
+<td>none</td>
+<td>the journaled core identity's public key: this peer starts with that identity parked so an operator can re-anchor it (gfs#23, OPERATIONS §6.7); remove it afterwards</td>
+</tr>
+</tbody>
+</table>
+<p><strong>One instance per log directory.</strong> A log directory is held from <code>CoreLog.open</code> until the instance's files are really
+closed (its close's closer, after a write the medium stalled has returned): in the JVM, and on the real filesystem with an
+OS lock on <code>core-log.lock</code> in the directory. A second open waits for the holder at most <code>reopenWaitMs</code> (60 s) and
+refuses (<code>CoreLogRefusal</code>: the core's start fails closed). Review of fix/clean-stop (2026-10-28): a plugin stop past its
+bound left the old instance's log open with staged records; a new instance opened it and acknowledged entries, and the
+old sync's late write replaced them with a valid chain (CleanStopReviewTest). A simulated medium (CrashFs) holds the
+directory only from a close until its files are closed, as an instance abandoned at a simulated power cut never closes.</p>
+<h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
+<p>JUnit: <code>CoreLogTest</code> (torn tails, refusals, compaction, install), <code>RaftCodecTest</code> (forged,
+altered, replayed, stale, misaddressed, oversized, unknown format), <code>RaftSimTest</code> (deterministic
+simulation: elections, majority commit, failover, partitioned old leader, catch-up by entries and by
+chunked snapshot, and randomized faults over 300 and 200 rounds checking election safety, log
+matching, leader completeness, state machine safety and that every acknowledged entry reaches every
+peer, with power losses in the middle of writes that tear the unforced bytes of a group commit in any
+order; separate-cluster histories halting; a stepped wall clock; a skewed peer; a slow link; leadership transfer
+after a one-way-loss check-quorum step-down and at a graceful stop, measured with and without, an older build never
+sent TIMEOUT_NOW, and randomized faults with hand-overs, one-way losses and mixed builds),
+<code>LeadershipTransferClusterTest</code> (three <code>CoreService</code> peers: a stopped leader hands over),
+<code>RaftTransportTest</code> (lanes, byte bound, done reporting), <code>ReplicatedCoreTest</code> (real engines: failover byte-identical, rejoin, compaction across
+restarts, fencing, legacy import on one and three peers, apply refusal, policy and key-ring changes
+racing compaction, rebuild off the raft lock, lease and read barrier), <code>CoreServiceTest</code> (serving,
+redirects, refusals), <code>CoreServiceClusterTest</code> (three <code>CoreService</code> peers over the production
+transport's encoding on an in-process fabric: election, redirect, a 1.5 MB entry in frames, failover
+within the randomized election timeout, rejoin, a wiped peer caught up by snapshot frames, forged,
+replayed and malformed <code>core.raft.msg</code>). The live harness <code>eval/core_failover_check.py</code> (three
+peers, five storage nodes) is not yet run on the fabric; its scenarios run, signed and sealed, against three real core
+peers in one JVM (<code>eval/tests/test_core_failover.py</code>, <code>RealClusterServer</code>, in CI's <code>evaltests</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Text licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The GaiaKeep software is not covered by this licence.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
