@@ -10,7 +10,10 @@ this public site. Links to files that no longer exist are reduced to plain text 
 Every copied document passes through public_filter.scrub, which rewrites internal detail
 (workstation paths, cluster hosts, accounts, private addresses) into neutral words.
 
-Usage:  python3 scripts/sync_design.py [path/to/gfs]     (default: ../gfs)
+Usage:  python3 scripts/sync_design.py [path/to/gfs]     (default: a gfs checkout beside this one, ../gfs)
+
+The gfs checkout must hold docs/public-scrub.json (private): the rules that keep every dependency name out of
+the public pages. Without it nothing is copied.
 """
 
 import re
@@ -18,11 +21,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from public_filter import private, scrub  # noqa: E402
+from public_filter import private, private_rules, scrub  # noqa: E402
 
 SITE = Path(__file__).resolve().parent.parent
-GFS = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else (SITE.parent.parent / "gfs").resolve()
+GFS = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else (SITE.parent / "gfs").resolve()
 SRC = GFS / "docs"
+RULES = private_rules(SRC / "public-scrub.json")
+if not RULES:
+    sys.exit(f"sync_design: no {SRC / 'public-scrub.json'}: refusing to copy (the public pages must name no dependency)")
 
 # (file, title, status, banner). Order is the order in the navigation.
 DOCS = [
@@ -139,7 +145,7 @@ def main():
             (out / fname).unlink(missing_ok=True)
             print(f"REFUSED {fname}: marked private at the source; removed from the list and from the site")
             continue
-        body = scrub(rewrite_links(text, SRC, names))
+        body = scrub(rewrite_links(text, SRC, names), RULES)
         (out / fname).write_text(banner(status, note) + body, encoding="utf-8")
         rows.append((fname, title, status, note.split(". ")[0].replace("**", "")))
         print(f"synced {fname}")
@@ -156,7 +162,7 @@ def main():
 
     oq = SRC / "OPEN-QUESTIONS.md"
     if oq.exists():
-        body = scrub(rewrite_links(oq.read_text(encoding="utf-8"), SRC, set()))
+        body = scrub(rewrite_links(oq.read_text(encoding="utf-8"), SRC, set()), RULES)
         (SITE / "docs/roadmap/open-questions.md").write_text(
             '!!! info "Answer by id"\n    Every decision the owner still needs to make, with a priority '
             'and, where one exists, a recommendation. Source: `GaiaKeep/gfs` `docs/OPEN-QUESTIONS.md`.\n\n'

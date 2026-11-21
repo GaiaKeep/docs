@@ -43,9 +43,8 @@
   recover with no operator action.
 
 **The mesh**
-: The distributed agent mesh GaiaKeep runs on: identity, tenant isolation, the control-message control plane and
+: The distributed agent mesh GaiaKeep runs on: identity, tenant isolation, the control plane and
   the dataplane. The storage core runs as a plugin, `gfs`.
-  [the mesh documentation](https://mesh.github.io/docs/).
 
 **Dedup domain**
 : The set of data whose identical blocks may be stored once: NONE, COLLECTION, GROUP or GLOBAL

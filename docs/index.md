@@ -25,7 +25,7 @@ The system is required to be five things:
 | **Versioned** | Every read names a version. Versions and point-in-time extracts are citable and reproducible. |
 | **Resilient** | Copies in independent failure domains; loss is detected and repaired without intervention. |
 | **Secure** | Encrypted at the origin; storage sites hold only ciphertext; policies scale from full isolation to global sharing. |
-| **Distributed** | Runs over the [the mesh](https://mesh.github.io/docs/) mesh across institutions and sites. |
+| **Distributed** | Runs over the mesh across institutions and sites. |
 
 ## Where things stand
 
@@ -91,7 +91,7 @@ Every status claim on this site uses one of five labels:
 
 ## Related
 
-- [the mesh](https://mesh.github.io/docs/): the distributed agent mesh GaiaKeep runs on (identity, tenant
+- The mesh: the distributed agent mesh GaiaKeep runs on (identity, tenant
   isolation, messaging and the dataplane).
 - [panAtlas](https://thepanatlas.github.io/docs/): a reference atlas for multimodal evaluation across every domain
   of knowledge, also built on the mesh, and a primary intended user of this storage. See [panAtlas](concepts/panatlas.md).

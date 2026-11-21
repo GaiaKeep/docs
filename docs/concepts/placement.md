@@ -75,7 +75,7 @@ test can show that.
     than node-local storage.
 
 !!! warning "Operational consequence"
-    On the HPC cluster, storage nodes default to a directory under `<cluster home storage>…`, which is on the
+    On the HPC cluster, storage nodes default to a directory under `<cluster project storage>`, which is on the
     shared network filesystem. The robust probe now admits it, but it is 10–18× slower than
     node-local storage, so point `store_dir` at node-local storage. If a probe run there comes back
     inconsistent, those nodes are refused durable copies, and placement logs why.

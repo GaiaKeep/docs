@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 python3 scripts/public_filter.py check docs
+python3 scripts/public_filter.py deny .
 command -v gitleaks >/dev/null || { echo "pre-push: gitleaks not installed (brew install gitleaks); push refused"; exit 1; }
 zero=0000000000000000000000000000000000000000
 while read -r _ local _ remote; do

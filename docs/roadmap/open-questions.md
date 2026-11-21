@@ -60,7 +60,7 @@ datasets into the fabric. The trust and tenancy model differs completely.
 **P7 — Is DoD/DoW deployment in scope for this system specifically?** The zero-trust pivot made
 the mesh fail-closed by default, with the CNSA-strength `cnsa1` crypto policy as the default and FIPS 140-3
 approved-only mode required under the `production` security profile
-([FIPS](https://mesh.github.io/docs/security/fips/)). Does GFS inherit every one of those requirements
+(FIPS). Does GFS inherit every one of those requirements
 now, or only when it is fielded there?
 
 **P8 — Is GFS intended to become a product or open-source project others run?** This decides how
@@ -486,7 +486,7 @@ the mesh?**
 required for the mesh generally. Anything else?
 
 **I5 — Should GFS verbs appear in the capability inventory as LLM tools** **ANSWERED 2026-10-02:** yes; finish the LLM-tool descriptions for the core.* verbs. (like the 89
-existing ones, when asked; the mesh's [capability inventory](https://mesh.github.io/docs/api/plugin-actions/)
+existing ones, when asked; the mesh's capability inventory
 lists about 130 actions across 9 namespaces as of 2026-11-10)?
 
 **I6 — Cost model returned by `prospect`:** drive-hours, wall time, dollars, carbon, egress? Which
@@ -517,7 +517,7 @@ same day that live copies are unencrypted native files and that the writer gets 
 
 ## 14. Operations
 
-**O1 [NOW] — Fix the HPC cluster mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two live tier (node-local store_dir remains the expected answer). Nodes under `<cluster home storage>` are on a network
+**O1 [NOW] — Fix the HPC cluster mesh storage path?** **ANSWERED 2026-10-02:** deferred to the phase-two live tier (node-local store_dir remains the expected answer). Nodes under `<cluster project storage>` are on a network
 filesystem and are now refused durable copies. Point `store_dir` at node-local storage, or attest?
 **Rec:** node-local; it is also 40× faster.
 

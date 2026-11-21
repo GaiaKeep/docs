@@ -7,8 +7,7 @@ the HPC cluster before shipping.
 | What | Where | State |
 |---|---|---|
 | GFS storage core (`gfs`) | `GaiaKeep/gfs`, branch `1.3`, `8461e1a` | CI green: 2,188 core tests, 50 Java client tests, Python client, lints; release jar published |
-| framework fixes | controller, gateway, tunnel, agent: branch `1.3` | CI green on each |
-| Python client library | the Python transport library 1.3.1 on PyPI | published |
+| Framework fixes | controller, gateway, tunnel, agent: branch `1.3` | CI green on each |
 
 See [Test results](tests.md) for what was tested and [Benchmarks](benchmarks.md) for the numbers.
 

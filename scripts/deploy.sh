@@ -40,6 +40,7 @@ fi
 
 echo "== gate 2: public-content filter"
 python3 scripts/public_filter.py check docs
+python3 scripts/public_filter.py deny .
 
 echo "== build (mkdocs --strict)"
 VENV="$ROOT/.venv"

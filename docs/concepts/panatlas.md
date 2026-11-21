@@ -3,7 +3,7 @@
 panAtlas is a reference atlas for multimodal evaluation across every domain of knowledge. Medicine is
 where its holdings run deepest today, but it is not a medical atlas. It is a provenance-first knowledge
 graph linking concepts, datasets, models, training curricula and benchmarks, and a distributed system on
-[the mesh](https://mesh.github.io/docs/): each registered dataset is managed by its own plugin at
+the mesh: each registered dataset is managed by its own plugin at
 the site that holds it. It is a primary intended user of this storage system: every document has a unique
 id and metadata, and everything is indexed. Its own documentation is at
 [thepanatlas.github.io/docs](https://thepanatlas.github.io/docs/), and

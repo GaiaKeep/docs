@@ -60,5 +60,5 @@ extremes, and everything between, are policy. See
 BSD). Copyleft code may appear only in test infrastructure that is never shipped or linked. This is
 why Bareos was removed; see [Media and tape](media-and-tape.md).
 
-**Built on the mesh.** [the mesh](https://mesh.github.io/docs/) supplies the mesh, identity, tenant
+**Built on a secure agent mesh.** The mesh supplies identity, tenant
 isolation, messaging and the dataplane. The storage system does not reinvent any of them.

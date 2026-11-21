@@ -5,7 +5,7 @@ remains. Source for the code and the full design record: [GaiaKeep/gfs](https://
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-python3 scripts/sync_design.py            # refresh docs/design/ and the open questions from ../gfs
+python3 scripts/sync_design.py            # refresh docs/design/ and the open questions from a gfs checkout at ../gfs
 .venv/bin/mkdocs serve                    # http://127.0.0.1:8000
 .venv/bin/mkdocs build --strict           # must pass with zero warnings
 ```
@@ -24,7 +24,8 @@ planned-stop and store-restart diagrams are generated the same way by `scripts/m
 - in `scripts/deploy.sh`, by gitleaks over the whole history and the same content check, before anything is built.
 
 The content check fails on credentials, on internal paths, hosts and addresses that survived the scrub, on
-links into the private gfs repository, and on any document marked private (`**PRIVATE` or `> **Private.**`
+links into the private gfs repository, on any dependency named anywhere in this repository (`scripts/public_filter.py
+deny .`: the public documentation names no dependency), and on any document marked private (`**PRIVATE` or `> **Private.**`
 in its opening lines). `sync_design.py` refuses a document marked private at the source and removes a copy
 published before it was marked.
 

@@ -91,10 +91,58 @@ def private(text: str) -> bool:
     return any(PRIVATE.search(line) for line in text.splitlines()[:15])
 
 
-def scrub(text: str) -> str:
+# The public documentation names no dependency (owner, 2026-11-21). The words it must not contain are kept only as
+# SHA-256 digests of their lower-case form, so this public script names none of them; any word holding one (a
+# compound identifier included) is refused.
+DENY_SHA256 = {'7e3873975beb1bbc29a2ad32b32abfa86c167171aa282062f95befb217b0c334', '70cc3f5141676bc2442767a668f2a528fab5845b621ac3cde0725da0a840f11c', '4425af4a256dd8b7f72563e87467b7f8e66de13b911e230065c0382f81eb8b4c', 'c649ae712de60722742f6346fa1e827fe83d230efd322b461d59943b37fcabbf', 'e0c1bf97b7eb4405fbd0f40e6cf10fea93799c76a5c3cdf7875553ec6de86668', 'cd5d154f9061ee927ee2f3ad9eb5c04450fad1a0bee94a3f7b3d93dd615b198e', '165a0bcdbd95b70e52afb155f2f5430a100c7664066b766d85dcfbf657448d96', '960f984285701c6d8dba5dc71c35c55c0397ff276b06423146dde88741ddf1af', '83f11be5ee6a5cf41a19c344be3755d8919e9fa3ce1a0d3670d689a661529cf7', '57d6f7c06e35a3a3b445e5fce28c1b2b13f76bd7764cd4a8b59a947216260648', '3589ea89dd790d2450b1b727362207e0f128ba2d868c95f18a3a3eb4999a6ac2', 'dc355ec75a2dc4a1d29582933b52f9f2ed71061432d72e1991d8b15445b2ff03', '3a2ff84cb8bd8297d537f405a8354e372f152b4b1a3e742e5293ae5e43db78b6', '0e27150cb1fc10c8366e5924160b7d3c36bc045edf614989b5134136bd719188', 'ebc3ae3876b191a7b1768ef24b3cbbbec119afddaccc356c925b4ea7fb5b1c6d', 'e6b4a2d01195c478066de02171373f5e9c86176ba930420162de9c3023b2dfe6', '0934a9da4eb3926358cd48b87bacb3ffcfd9df6c379348779baa0e03dfef43f7', 'b1fa055a8a6f2aa631619a8a706f5e3cc03a65cfa2dc7aadce910704683e41be', 'bbd7390f2945e23847b747830d6eaa6d4b67d3dd564b6e5b46ab659282b7aa12'}
+_DENY_LENS = (4, 5, 6, 7, 8, 9, 10)
+_WORD = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+
+
+def denied(line: str) -> list:
+    """The words of a line that contain a denied name (by digest)."""
+    import hashlib
+    hits = []
+    for w in _WORD.findall(line):
+        lw = w.lower()
+        if any(hashlib.sha256(lw[i:i + n].encode()).hexdigest() in DENY_SHA256
+               for n in _DENY_LENS for i in range(0, max(0, len(lw) - n) + 1)):
+            hits.append(w)
+    return hits
+
+
+def private_rules(path) -> list:
+    """The private [regex, replacement] rules (kept outside this repository) that sync_design.py applies."""
+    import json
+    p = Path(path)
+    if not p.is_file():
+        return []
+    return [(re.compile(a), b) for a, b in json.loads(p.read_text(encoding="utf-8"))["rules"]]
+
+
+def scrub(text: str, extra=()) -> str:
     for rx, rep in SCRUB:
         text = rx.sub(rep, text)
+    for rx, rep in extra:
+        text = rx.sub(rep, text)
     return text
+
+
+def deny_check(root: Path) -> int:
+    """Every text file under root (the whole repository: pages, scripts, configuration), except build output."""
+    bad = 0
+    skip = {".git", ".venv", "site", "__pycache__"}
+    for p in sorted(root.rglob("*")):
+        if not p.is_file() or skip.intersection(p.relative_to(root).parts):
+            continue
+        if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".pdf"):
+            continue
+        text = p.read_text(encoding="utf-8", errors="replace")
+        for n, line in enumerate(text.splitlines(), 1):
+            for w in denied(line):
+                print(f"FORBIDDEN a dependency named ({w}): {p}:{n}")
+                bad += 1
+    return bad
 
 
 def check(root: Path) -> int:
@@ -116,6 +164,11 @@ def check(root: Path) -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) >= 2 and sys.argv[1] == "deny":
+        root = Path(sys.argv[2] if len(sys.argv) > 2 else ".")
+        n = deny_check(root)
+        print(f"public_filter: {n} dependency name(s) in {root}")
+        sys.exit(1 if n else 0)
     if len(sys.argv) >= 2 and sys.argv[1] == "check":
         root = Path(sys.argv[2] if len(sys.argv) > 2 else "docs")
         n = check(root)
